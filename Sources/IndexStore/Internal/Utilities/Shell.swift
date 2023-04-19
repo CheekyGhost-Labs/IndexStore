@@ -1,5 +1,5 @@
 //
-//  Utilities.swift
+//  Shell.swift
 //  IndexStore
 //
 //  Created by CheekyGhost Labs on 19/4/2023.
@@ -31,5 +31,5 @@ func shell(_ command: String) throws -> String {
         throw ShellError.unableToDecodeResult
     }
 
-    return output
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }

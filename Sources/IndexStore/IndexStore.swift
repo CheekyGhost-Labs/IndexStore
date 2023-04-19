@@ -10,25 +10,16 @@ import Foundation
 import IndexStoreDB
 import Logging
 
-/// Class abstracting `IndexStoreDB` functionality that serves ``SourceDetail`` results.
+/// Class abstracting `IndexStoreDB` functionality that serves ``SourceDetails`` results.
 public final class IndexStore {
 
     // MARK: - Properties
 
-    /// The path to the libIndexStor dlyib.
-    public let libIndexStorePath: String
+    /// The active ``Configuration`` instance any index store derives paths from.
+    public let configuration: Configuration
 
-    /// The root project directory.
-    public let projectDirectory: String
-
-    /// The path to the raw index store data.
-    public let indexStorePath: String
-
-    /// The path to put the index database.
-    public let indexDatabasePath: String
-
-    /// The source code index (if loaded)
-    private(set) public var index: IndexStoreDB?
+    /// ``Workspace`` instance to facilitate symbol lookups.
+    public let workspace: Workspace
 
     /// Logger instance for any debug or console output.
     public let logger: Logger
@@ -42,88 +33,213 @@ public final class IndexStore {
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
     ///   - logger: `Logger` instance for any debug or console output.
-    public init(
-        libIndexStorePath: String,
-        projectDirectory: String,
-        indexStorePath: String,
-        indexDatabasePath: String,
-        logger: Logger
-    ) {
-        self.libIndexStorePath = libIndexStorePath
-        self.projectDirectory = projectDirectory
-        self.indexStorePath = indexStorePath
-        self.indexDatabasePath = indexDatabasePath
-        self.logger = logger
-        try? loadIndexStore()
-    }
-
-    /// Will create a new instance and attempt to load an index store using the values from the given configuration.
-    /// - Parameters:
-    ///   - configuration: The configuration instance holding any path values.
-    ///   - logger: `Logger` instance for any debug or console output.
     public init(configuration: Configuration, logger: Logger) {
-        // Assign overrides
-        self.projectDirectory = configuration.projectDirectory
-        self.indexStorePath = configuration.indexStorePath
-        self.indexDatabasePath = configuration.indexDatabasePath
-        self.libIndexStorePath = configuration.libIndexStorePath
+        self.configuration = configuration
+        self.workspace = Workspace(configuration: configuration, logger: logger)
         self.logger = logger
-        // Create index store instance
-        try? loadIndexStore()
-    }
-
-    // MARK: - Helpers: IndexStore
-
-    /// Will attempt to load the index store based on the current path settings.
-    ///
-    /// **Note: ** If an `index` instance is assigned it will be replaced.
-    public func loadIndexStore() throws {
-        index = nil
-        let lib = try IndexStoreLibrary(dylibPath: libIndexStorePath)
-        let storePath = URL(fileURLWithPath: indexStorePath).path
-        let databasePath = URL(fileURLWithPath: indexDatabasePath).path
-        do {
-            index = try IndexStoreDB(storePath: storePath, databasePath: databasePath, library: lib, listenToUnitEvents: true)
-            index?.pollForUnitChangesAndWait()
-            logger.info("Opened IndexStoreDB at \(indexDatabasePath) with store path \(indexStorePath)")
-        } catch {
-            logger.error("Failed to open IndexStoreDB: \(error.localizedDescription)")
-            throw error
-        }
     }
 
     // MARK: - Helpers: Public
 
-    func findWorkspaceSymbols(matching: String) -> [SymbolOccurrence] {
-        guard let index = index else { return [] }
-        // let projectDirectory = workspace.projectDirectory - can restrict if need be
-        var symbolOccurrenceResults: [SymbolOccurrence] = []
-        index.forEachCanonicalSymbolOccurrence(
-            containing: matching,
-            anchorStart: true,
-            anchorEnd: true,
-            subsequence: false,
-            ignoreCase: false
-        ) { symbol in
-            if !symbol.location.isSystem,
-                FileManager.default.fileExists(atPath: symbol.location.path),
-                !symbol.roles.contains(.accessorOf) && symbol.roles.contains(.definition),
-                !symbolOccurrenceResults.contains(where: { $0.symbol.usr == symbol.symbol.usr })
-            {
-                symbolOccurrenceResults.append(symbol)
-            }
-            return true
+    /// Will return an array of ``SourceDetails`` instances for any declarations matching the given type and whose declaration kind is contained in the given array.
+    /// - Parameters:
+    ///   - type: The type to search for.
+    ///   - kinds: Array of ``SourceKind`` types to restrict results to.
+    /// - Returns: `Array` of ``SourceDetails`` objects.
+    public func sourceDetailsForType(_ type: String, kinds: [SourceKind]) -> [SourceDetails] {
+        logger.debug("Searching for symbol occurances with type `\(type)`: kinds `\(kinds)`")
+        let rawResults = workspace.findWorkspaceSymbols(matching: type)
+        var results = rawResults.compactMap(sourceDetailsFromOccurence)
+        // Extensions have to be resolved via USR name
+        guard kinds.contains(.extension) else {
+            logger.debug("`.extensions` kind not included - skipping extensions lookup")
+            return resultsFilteredByKind(results: results, kinds: kinds)
         }
-        return symbolOccurrenceResults
+        logger.debug("`.extensions` kind included - performing USR extension lookup")
+        let usrs = results.map(\.usr)
+        usrs.forEach {
+            /*
+             Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
+             have the `.extendedBy`. Including `.definition` for safety.
+             */
+            let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
+            let relations: [SymbolRelation] = references.flatMap(\.relations)
+            // For each valid relation usr - resolve the symbol and transform into SourceDetail
+            relations.forEach { relation in
+                let symbols = workspace.occurrences(
+                    ofUSR: relation.symbol.usr, roles: [.extendedBy, .definition])
+                let transformed = symbols.compactMap(sourceDetailsFromOccurence)
+                // Append valid symbols to the result set
+                results.append(contentsOf: transformed)
+            }
+        }
+        return resultsFilteredByKind(results: results, kinds: kinds)
     }
 
-    public func occurrences(ofUSR usr: String, roles: SymbolRole) -> [SymbolOccurrence] {
-        guard let index = index else { return [] }
-        return index.occurrences(ofUSR: usr, roles: roles)
+    public func sourceDetailsForExtensionOfType(_ type: String) -> [SourceDetails] {
+        let rawResults = workspace.findWorkspaceSymbols(matching: type).filter {
+            $0.roles.contains(.definition)
+        }
+        let conformingTypes: [SourceDetails] = rawResults.flatMap {
+            let conforming = workspace.occurrences(
+                ofUSR: $0.symbol.usr, roles: [.reference, .extendedBy])
+            let validUsrs: [String] = conforming.flatMap {
+                guard $0.roles == [.reference, .extendedBy] else {
+                    return [String]()
+                }
+                return $0.relations.map(\.symbol.usr)
+            }
+            let occurances = validUsrs.flatMap {
+                return workspace.occurrences(ofUSR: $0, roles: [.definition])
+            }
+            return occurances.compactMap(sourceDetailsFromOccurence)
+        }
+        return conformingTypes
     }
 
-    public func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> [SymbolOccurrence] {
-        guard let index = index else { return [] }
-        return index.occurrences(relatedToUSR: usr, roles: roles)
+    public func sourceDetailsForTypesConformingToProtocolNamed(_ name: String) -> [SourceDetails] {
+        let rawResults = workspace.findWorkspaceSymbols(matching: name).filter {
+            $0.symbol.kind == .protocol && $0.roles.contains(.definition)
+        }
+        let conformingTypes: [SourceDetails] = rawResults.flatMap {
+            let conforming = workspace.occurrences(
+                ofUSR: $0.symbol.usr, roles: [.reference, .baseOf])
+            let validUsrs: [String] = conforming.flatMap {
+                guard $0.roles == [.reference, .baseOf] else {
+                    return [String]()
+                }
+                return $0.relations.map(\.symbol.usr)
+            }
+            let occurances = validUsrs.flatMap {
+                return workspace.occurrences(ofUSR: $0, roles: [.definition])
+            }
+            return occurances.compactMap(sourceDetailsFromOccurence)
+        }
+        return conformingTypes
+    }
+
+    /// Will return the declaration source **line** from the source contents associated with the given details.
+    ///
+    /// **Note:** This will return the entire line including any whitespace. i.e if the declaration is on one line:
+    /// ```
+    ///     enum Foo { typealias Bar = String }
+    /// ```
+    /// the result will be `"    enum Foo { typealias Bar = String }"`
+    /// ```
+    ///     enum Foo {
+    ///         typealias Bar = String
+    ///     }
+    /// ```
+    /// the result will be `"    enum Foo {"`
+    /// - Parameter details: The source declaration details to resolve for.
+    /// - Returns: `String` if the source file exists and can be read.
+    /// - Throws: ``SourceResolvingError``
+    public func declarationSourceForDetails(_ details: SourceDetails) throws -> String {
+        let contents = try sourceContentsForDetails(details)
+        let lines = contents.components(separatedBy: .newlines)
+        let normalisedLine = max(0, details.location.line - 1)
+        guard normalisedLine < lines.count else {
+            throw SourceResolvingError.unableToResolveSourceLine(
+                name: details.name,
+                path: details.location.path,
+                line: details.location.line
+            )
+        }
+        return lines[normalisedLine]
+    }
+
+    /// Will return the **full source contents** from the source file holding with the given source declaration details.
+    /// - Parameter details: The source declaration details to resolve for.
+    /// - Returns: `String` if the source file exists and can be read.
+    /// - Throws: ``SourceResolvingError``
+    public func sourceContentsForDetails(_ details: SourceDetails) throws -> String {
+        let path = details.location.path
+        guard FileManager.default.fileExists(atPath: path) else {
+            throw SourceResolvingError.sourcePathDoesNotExist(path: path)
+        }
+        do {
+            let contents = try String(contentsOfFile: path)
+            guard !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw SourceResolvingError.sourceContentsIsEmpty(path: path)
+            }
+            return contents
+        } catch let error as SourceResolvingError {
+            throw error
+        } catch {
+            throw SourceResolvingError.unableToReadContents(path: path, cause: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Helpers: Internal
+
+    func resultsFilteredByKind(results: [SourceDetails], kinds: [SourceKind]) -> [SourceDetails] {
+        results.filter { kinds.contains($0.sourceKind) }
+    }
+
+    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceDetails? {
+        // Ensure source kind is valid and source path exists
+        guard FileManager.default.fileExists(atPath: occurance.location.path) else { return nil }
+        // Resolve source declaration kind
+        let kind = SourceKind(symbolKind: occurance.symbol.kind)
+        // Source location
+        let location = SourceLocation(symbol: occurance)
+        // Roles
+        let roles = SourceRole(rawValue: occurance.roles.rawValue)
+        // Optional parent
+        let parent = resolveParentForOccurance(occurance)
+        // Inheritence
+        let inheritenceCollection = resolveInheritenceForOccurance(occurance)
+        // Result
+        let result = SourceDetails(
+            name: occurance.symbol.name,
+            usr: occurance.symbol.usr,
+            sourceKind: kind,
+            roles: roles,
+            location: location,
+            parent: parent,
+            inheritence: inheritenceCollection
+        )
+        return result
+    }
+
+    func resolveParentForOccurance(_ symbolOccurance: SymbolOccurrence) -> SourceDetails? {
+        guard
+            let childOfRelation = symbolOccurance.relations.first(where: {
+                $0.roles.contains(.childOf)
+            })
+        else {
+            return nil
+        }
+        // Resolve Occurance Definition
+        let references = workspace.occurrences(
+            ofUSR: childOfRelation.symbol.usr, roles: [.definition])
+        guard
+            let parentOccurence = references.first(where: {
+                $0.symbol.name == childOfRelation.symbol.name
+            })
+        else {
+            return nil
+        }
+        return sourceDetailsFromOccurence(parentOccurence)
+    }
+
+    func resolveInheritenceForOccurance(_ occurance: SymbolOccurrence) -> [SourceDetails] {
+        let sourceKind = SourceKind(symbolKind: occurance.symbol.kind)
+        let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
+        guard validSourceKinds.contains(sourceKind) else { return [] }
+        logger.debug("resolving inheritence for source `\(occurance.symbol.name)`")
+        let references = workspace.occurrences(relatedToUSR: occurance.symbol.usr, roles: [.baseOf])
+        var results: [SourceDetails] = []
+        references.forEach { ref in
+            guard
+                !results.contains(where: { $0.usr == ref.symbol.usr }),
+                ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name }),
+                let details = sourceDetailsForType(ref.symbol.name, kinds: validSourceKinds).first
+            else {
+                return
+            }
+            results.append(details)
+        }
+        return results
     }
 }

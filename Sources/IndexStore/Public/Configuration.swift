@@ -39,7 +39,7 @@ public struct Configuration {
         // Project directory path
         self.projectDirectory = projectDirectory
         // Database Path
-        self.indexDatabasePath = indexDatabasePath ?? NSTemporaryDirectory() + "index_\(getpid())"
+        self.indexDatabasePath = indexDatabasePath ?? "\(NSTemporaryDirectory())index_\(getpid())"
         // Resolve xcode path for index store dylib
         if let libIndexStorePath {
             self.libIndexStorePath = libIndexStorePath
@@ -49,7 +49,7 @@ public struct Configuration {
         }
         // Resolve index store db path from active process
         let processInfo = ProcessInfo()
-        // Xcode Process
+        // Running in swift/terminal etc
         guard processInfo.environment.keys.contains(EnvironmentKeys.xcodeBuiltProducts) else {
             let projectDirectory = try processInfo.environmentVariable(name: EnvironmentKeys.PWD)
             let buildRoot = projectDirectory + "/.build/debug"
@@ -57,7 +57,7 @@ public struct Configuration {
             self.indexStorePath = indexStorePath ?? "\(buildRootPath.pathString)/Index/Store"
             return
         }
-        // Running in swift/terminal etc
+        // Xcode Process
         let buildRoot = try processInfo.environmentVariable(name: EnvironmentKeys.xcodeBuiltProducts)
         let buildRootPath = try AbsolutePath(validating: buildRoot).parentDirectory.parentDirectory.parentDirectory
         self.indexStorePath = indexStorePath ?? "\(buildRootPath.pathString)/Index.noindex/DataStore"

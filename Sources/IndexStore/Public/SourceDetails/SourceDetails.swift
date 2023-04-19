@@ -23,6 +23,9 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
     /// - See: ``SourceKind``
     public let sourceKind: SourceKind
 
+    /// OptionSet value representation of the roles the source plays.
+    public let roles: SourceRole
+
     /// The location of the source.
     /// - See: ``SourceLocation``
     public let location: SourceLocation
@@ -65,6 +68,7 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
         name: String,
         usr: String,
         sourceKind: SourceKind,
+        roles: SourceRole,
         location: SourceLocation,
         parent: SourceDetails? = nil,
         inheritence: [SourceDetails] = []
@@ -72,6 +76,7 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
         self.name = name
         self.usr = usr
         self.sourceKind = sourceKind
+        self.roles = roles
         self.location = location
         self.inheritance = inheritence
         if let parent = parent {
