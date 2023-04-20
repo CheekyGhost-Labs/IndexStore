@@ -10,7 +10,7 @@ import IndexStoreDB
 
 /// Enumeration of supported roles a source declaration can contain.
 ///
-/// **Note: ** These are mapped from the ``IndexStoreDB.SymbolRole`` option set.
+/// **Note: ** These are mapped from the `IndexStoreDB.SymbolRole` option set.
 public struct SourceRole: OptionSet, Hashable {
     public var rawValue: UInt64
     // Primary Roles
@@ -35,10 +35,10 @@ public struct SourceRole: OptionSet, Hashable {
     public static let ibTypeOf: SourceRole = SourceRole(rawValue: SymbolRole.ibTypeOf.rawValue)
     public static let specializationOf: SourceRole = SourceRole(rawValue: SymbolRole.specializationOf.rawValue)
     // Additionals
-    public static let canonical: SymbolRole = SymbolRole(rawValue: SymbolRole.canonical.rawValue)
+    public static let canonical: SourceRole = SourceRole(rawValue: SymbolRole.canonical.rawValue)
 
     // Convenience
-    public static let all: SymbolRole = SymbolRole(rawValue: ~0)
+    public static let all: SourceRole = SourceRole(rawValue: SymbolRole.all.rawValue)
 
     public init(rawValue: UInt64) {
         self.rawValue = rawValue

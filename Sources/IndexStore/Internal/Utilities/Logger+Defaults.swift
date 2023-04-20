@@ -12,6 +12,7 @@ import Logging
 private let defaultInstance: Logger = Logger(label: "com.cheekyghost.IndexStore")
 
 extension Logger {
-    /// Unit testing Logger instance
-    static var test: Logger { defaultInstance }
+
+    /// Default client Logger instance
+    static var `default`: Logger { defaultInstance }
 }

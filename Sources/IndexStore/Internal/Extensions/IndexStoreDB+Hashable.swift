@@ -1,6 +1,6 @@
 //
 //  IndexStoreDB+Hashable.swift
-//  
+//
 //
 //  Created by Michael O'Brien on 20/4/2023.
 //

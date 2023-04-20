@@ -106,16 +106,17 @@ public final class Workspace {
     // MARK: - Helpers: Public
 
     /// Will search for any symbols matching the given search text.
-    ///
     /// - Parameters:
     ///   - matching: The search term. An empty string will return no results.
+    ///   - roles: `SymbolRole` set types to restrict results to.
     ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SymbolOccurrence`` instances
+    /// - Returns: Set of `SymbolOccurrence` instances.
     public func findWorkspaceSymbols(
         matching: String,
+        roles: SymbolRole = .all,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
@@ -131,13 +132,37 @@ public final class Workspace {
             anchorEnd: true,
             subsequence: false,
             ignoreCase: caseInsensitive
-        ) { symbol in
-            if !symbol.location.isSystem || !excludeSystem, !symbol.roles.contains(.accessorOf) && symbol.roles.contains(.definition) {
-                symbolOccurrenceResults.append(symbol)
+        ) {
+            // Forced role check for declaration symbols that are not accessor relations
+            let isValidRole = !$0.roles.contains(.accessorOf) && $0.roles.contains(.definition)
+            if !$0.location.isSystem || !excludeSystem, isValidRole, roles.contains($0.roles) {
+                symbolOccurrenceResults.append($0)
             }
             return true
         }
         return symbolOccurrenceResults
+    }
+
+    /// Will return all symbols from within the source files at the given paths.
+    ///
+    /// **Note:** You can restrict results to a `SymbolRole` type. Default is `.declaration`.
+    /// - Parameters:
+    ///   - path: Array of absolute paths to the soure files to search in.
+    ///   - kinds: Array of `IndexSymbolKind` cases to restrict results to.
+    ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
+    /// - Returns: Array of `SymbolOccurrence` instances.
+    public func symbolsInSourceFiles(
+        at paths: [String],
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .declaration
+    ) -> OrderedSet<SymbolOccurrence> {
+        guard index != nil else { return [] }
+        var results: OrderedSet<SymbolOccurrence> = []
+        paths.forEach {
+            let occurences = symbolsInSourceFile(at: $0, kinds: kinds, roles: roles)
+            occurences.forEach { results.append($0) }
+        }
+        return results
     }
 
     /// Will return all symbols from within the source at the given path.
@@ -145,9 +170,14 @@ public final class Workspace {
     /// **Note:** You can restrict results to a `SymbolRole` type. Default is `.declaration`.
     /// - Parameters:
     ///   - path: The absolute path to the soure file to search in.
+    ///   - kinds: Array of `IndexSymbolKind` cases to restrict results to.
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
-    /// - Returns: Array of ``SymbolOccurrence`` instances.
-    public func symbolsInSourceFile(at path: String, roles: SymbolRole = .declaration) -> OrderedSet<SymbolOccurrence> {
+    /// - Returns: Array of `SymbolOccurrence` instances.
+    public func symbolsInSourceFile(
+        at path: String,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .declaration
+    ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let excludeSystem = excludeSystemResults
         let symbols = index.symbols(inFilePath: path)
@@ -155,7 +185,9 @@ public final class Workspace {
         symbols.forEach {
             index.forEachSymbolOccurrence(byUSR: $0.usr, roles: roles) { occurence in
                 if !occurence.location.isSystem || !excludeSystem, occurence.roles.contains(.definition) {
-                    results.append(occurence)
+                    if kinds.contains(occurence.symbol.kind) {
+                        results.append(occurence)
+                    }
                 }
                 return true
             }
@@ -168,7 +200,7 @@ public final class Workspace {
     /// - Parameters:
     ///   - usr: The usr of the source symbol to search for.
     ///   - roles: The roles to restrict symbol results to.
-    /// - Returns: Array of ``SymbolOccurrence`` instances.
+    /// - Returns: Array of `SymbolOccurrence` instances.
     public func occurrences(ofUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let results = index.occurrences(ofUSR: usr, roles: roles)
@@ -180,7 +212,7 @@ public final class Workspace {
     /// - Parameters:
     ///   - usr: The usr of the source symbol to search for relations to.
     ///   - roles: The roles to restrict symbol results to.
-    /// - Returns: Array of ``SymbolOccurrence`` instances.
+    /// - Returns: Array of `SymbolOccurrence` instances.
     public func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)

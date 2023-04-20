@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Result returned by a ``SourceKitServer`` instance containing details about a resolved source type.
+/// Result returned by a ``IndexStore`` instance containing details about a resolved source type.
 public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
 
     // MARK: - Properties

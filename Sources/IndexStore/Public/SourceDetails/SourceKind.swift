@@ -45,7 +45,7 @@ public enum SourceKind: String, CaseIterable, Equatable {
 
     /// Will return all cases except the `unsupported` case.
     public static var supported: [SourceKind] {
-        allCases.filter { $0 != .unsupported }
+        excluding([.unsupported])
     }
 
     /// Will return all source kind cases excluding the provided set.

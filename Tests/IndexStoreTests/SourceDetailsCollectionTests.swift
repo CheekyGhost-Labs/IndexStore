@@ -7,6 +7,7 @@
 //
 
 import XCTest
+
 @testable import IndexStore
 
 final class SourceDetailsCollectionTests: XCTestCase {
@@ -24,10 +25,15 @@ final class SourceDetailsCollectionTests: XCTestCase {
         var collection = SourceDetailsCollection(items: items)
         collection.append(additional)
         XCTAssertEqual(collection.items, items + [additional])
+        XCTAssertEqual(collection.count, 4)
         let instanceUnderTest = collection.makeIterator()
         XCTAssertEqual(instanceUnderTest.next()?.name, "0")
         XCTAssertEqual(instanceUnderTest.next()?.name, "1")
         XCTAssertEqual(instanceUnderTest.next()?.name, "2")
         XCTAssertEqual(instanceUnderTest.next()?.name, "3")
+        let directIterator = SourceDetailsIterator(collection)
+        XCTAssertEqual(directIterator.count, 4)
+        let otherIterator = SourceDetailsIterator(collection)
+        XCTAssertEqual(directIterator, otherIterator)
     }
 }
