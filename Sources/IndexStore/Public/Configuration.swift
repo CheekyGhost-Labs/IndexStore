@@ -19,10 +19,18 @@ public struct Configuration {
     public let indexStorePath: String
 
     /// The project index database path.
-    public var indexDatabasePath: String
+    public let indexDatabasePath: String
 
     /// /// The path to the libIndexStore dlyib.
-    public var libIndexStorePath: String
+    public let libIndexStorePath: String
+
+    /// Bool whether to exclude any system symbols from results.
+    ///
+    /// i.e: `Equatable` is a system symbol and would be excluded from any results.
+    public let excludeSystemResults: Bool
+
+    /// Bool whether to exclude any symbols from results where the `isStale` is `true`.
+    public let excludeStaleResults: Bool
 
     // MARK: - Lifecycle
 
@@ -34,8 +42,12 @@ public struct Configuration {
         projectDirectory: String,
         indexStorePath: String? = nil,
         indexDatabasePath: String? = nil,
-        libIndexStorePath: String? = nil
+        libIndexStorePath: String? = nil,
+        excludeSystemResults: Bool = true,
+        excludeStaleResults: Bool = true
     ) throws {
+        self.excludeSystemResults = excludeSystemResults
+        self.excludeStaleResults = excludeStaleResults
         // Project directory path
         self.projectDirectory = projectDirectory
         // Database Path

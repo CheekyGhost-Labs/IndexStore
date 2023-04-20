@@ -39,7 +39,22 @@ public final class IndexStore {
         self.logger = logger
     }
 
-    // MARK: - Helpers: Public
+    // MARK: - Helpers: Public: SourceFiles
+
+    public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
+        let fileManager = FileManager.default
+        let projectRoot = projectRoot ?? configuration.projectDirectory
+        guard let enumerator = fileManager.enumerator(atPath: projectRoot) else { return [] }
+        var swiftSourceFiles: [String] = []
+        for case let fileURL as URL in enumerator {
+            if fileURL.pathExtension == "swift" {
+                swiftSourceFiles.append(fileURL.path)
+            }
+        }
+        return swiftSourceFiles
+    }
+
+    // MARK: - Helpers: Public: Indexing
 
     /// Will return an array of ``SourceDetails`` instances for any declarations matching the given type and whose declaration kind is contained in the given array.
     /// - Parameters:
@@ -74,6 +89,20 @@ public final class IndexStore {
             }
         }
         return resultsFilteredByKind(results: results, kinds: kinds)
+    }
+
+    public func sourceDetailsForSourceKinds(_ kinds: [SourceKind], roles: SourceRole) -> [SourceDetails] {
+        let sourceFiles = swiftSourceFiles()
+        let symbolRoles = SymbolRole(rawValue: roles.rawValue)
+        // Parse ensuring no duplicates exist
+        var parsedSymbols: [SymbolOccurrence] = []
+        var results: [SourceDetails] = []
+        sourceFiles.forEach { filePath in
+            let occurences = workspace.symbolsInSourceFile(at: filePath, roles: symbolRoles).filter { !parsedSymbols.contains($0) }
+            parsedSymbols.append(contentsOf: occurences)
+            mapOccurencesToResults(occurences, into: &results)
+        }
+        return results
     }
 
     public func sourceDetailsForExtensionOfType(_ type: String) -> [SourceDetails] {
@@ -176,9 +205,16 @@ public final class IndexStore {
         results.filter { kinds.contains($0.sourceKind) }
     }
 
-    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceDetails? {
-        // Ensure source kind is valid and source path exists
-        guard FileManager.default.fileExists(atPath: occurance.location.path) else { return nil }
+    func mapOccurencesToResults(_ occurences: [SymbolOccurrence], into results: inout [SourceDetails]) {
+        occurences.forEach {
+            let details = sourceDetailsFromOccurence($0)
+            if !details.location.isStale, !configuration.excludeStaleResults {
+                results.append(details)
+            }
+        }
+    }
+
+    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceDetails {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurance.symbol.kind)
         // Source location

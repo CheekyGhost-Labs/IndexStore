@@ -43,12 +43,16 @@ public enum SourceKind: String, CaseIterable, Equatable {
 
     // MARK: - Convenience
 
-    public static var excludingExtensions: [SourceKind] {
-        allCases.filter { $0 != .extension }
+    /// Will return all cases except the `unsupported` case.
+    public static var supported: [SourceKind] {
+        allCases.filter { $0 != .unsupported }
     }
 
-    public static var excludingUnsupported: [SourceKind] {
-        allCases.filter { $0 != .unsupported }
+    /// Will return all source kind cases excluding the provided set.
+    /// - Parameter exclusions: Array of source kinds to exclude.
+    /// - Returns: Array of ``SourceKind`` cases.
+    public static func excluding(_ exclusions: [SourceKind]) -> [SourceKind] {
+        allCases.filter { !exclusions.contains($0) }
     }
 
     // MARK: - Lifecycle

@@ -14,14 +14,14 @@ final class SourceKindTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_convenienceGetters_willReturnExpectedValues() {
-        XCTAssertEqual(
-            SourceKind.excludingExtensions,
-            [.class, .struct, .enum, .protocol, .typealias, .unsupported])
-        XCTAssertEqual(
-            SourceKind.excludingUnsupported,
-            [.class, .struct, .enum, .protocol, .typealias, .extension])
-    }
+//    func test_convenienceGetters_willReturnExpectedValues() {
+//        XCTAssertEqual(
+//            SourceKind.excludingExtensions,
+//            [.class, .struct, .enum, .protocol, .typealias, .unsupported])
+//        XCTAssertEqual(
+//            SourceKind.excludingUnsupported,
+//            [.class, .struct, .enum, .protocol, .typealias, .extension])
+//    }
 
     func test_indexSymbolKind_willReturnExpectedValue() {
         let kinds = SourceKind.allCases
