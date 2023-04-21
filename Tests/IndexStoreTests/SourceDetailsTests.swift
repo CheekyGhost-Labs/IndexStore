@@ -27,7 +27,7 @@ final class SourceDetailsTests: XCTestCase {
 
     func test_sourceDetails_parentIterator_willReturnExpectedValue() throws {
         let sourceResolver = try IndexStore(configuration: Configuration(projectDirectory: ""), logger: .test)
-        let results = sourceResolver.sourceDetails(matchingType: "DoubleNestedStruct", kinds: [.struct])
+        let results = sourceResolver.queryIndexStoreSymbols(matchingType: "DoubleNestedStruct", kinds: [.struct])
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
         let iterator = targetResult.parentsIterator

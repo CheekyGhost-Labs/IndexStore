@@ -18,7 +18,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.protocol, .class, .enum, .struct, .typealias],
             roles: [.definition],
@@ -38,7 +38,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.class],
             roles: [.definition],
@@ -56,7 +56,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.protocol],
             roles: [.definition],
@@ -74,7 +74,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.struct],
             roles: [.definition],
@@ -92,7 +92,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.enum],
             roles: [.definition],
@@ -110,7 +110,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.typealias],
             roles: [.definition],

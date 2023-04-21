@@ -27,7 +27,7 @@ extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: type,
             kinds: kinds,
             roles: [.definition],
@@ -40,7 +40,7 @@ extension IndexStore {
 
     /// Will return source details for any declarations/symbols within the store that match the given source kinds and roles.
     ///
-    /// **Note: ** This method iteratest through **all** source files in the project. It can be expensive if you
+    /// **Note: ** This method iteratest through **all** source files in the project. It can be **very time expensive** if you
     /// have a vast source file count. Filtering for source kinds is also done while iterating.
     /// - Parameters:
     ///   - kinds: The source kinds to search for.
@@ -48,7 +48,16 @@ extension IndexStore {
     /// - Returns: Array of ``SourceDetails`` instances.
     public func sourceDetails(forSourceKinds kinds: [SourceKind]) -> [SourceDetails] {
         let sourceFiles = swiftSourceFiles()
-        let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
+        return sourceDetails(inSourceFiles: sourceFiles, kinds: kinds)
+    }
+
+    /// Will return source details for any declarations/symbols within the contents of the source at the given file paths.
+    /// - Parameters:
+    ///   - filePaths: Array of source file paths to search in.
+    ///   - kinds: The source kinds to filter results with.
+    /// - Returns: Array of ``SourceDetails``
+    public func sourceDetails(inSourceFiles filePaths: [String], kinds: [SourceKind]) -> [SourceDetails] {
+        let rawResults = workspace.symbolsInSourceFiles(at: filePaths, roles: [.definition])
         var results: [SourceDetails] = rawResults.compactMap(sourceDetailsFromOccurence)
         // Extensions have to be resolved via USR name
         guard kinds.contains(.extension) else {

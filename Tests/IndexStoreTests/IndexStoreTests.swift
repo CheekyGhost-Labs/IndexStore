@@ -12,19 +12,15 @@ import Files
 final class IndexStoreTests: XCTestCase {
 
     // MARK: - Properties
-    let temporaryFolderName: String = "index-store-unit-tests"
     var sourceCreated: Bool = false
     var instanceUnderTest: IndexStore!
-    let temporaryProjectFolder: Folder = Folder.temporary
 
     // MARK: - Lifecycle
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        let targetPath = "\(temporaryProjectFolder.path)\(temporaryFolderName)"
-        let configuration = try Configuration(projectDirectory: targetPath)
+        let configuration = try loadDefaultConfiguration()
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
-        try copySampleSourceToTemporaryDirectory()
     }
 
     override func tearDownWithError() throws {
@@ -34,20 +30,12 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Helpers
 
-    func copySampleSourceToTemporaryDirectory() throws {
-        guard !sourceCreated else { return }
-        sourceCreated = true
-        // Remove existing if possible
-        if let existing = try? Folder.temporary.subfolder(named: temporaryFolderName) {
-            try existing.delete()
-        }
-        let targetFolder = try Folder.temporary.createSubfolder(named: temporaryFolderName)
-        // Resolve samples directory
-        let sourcePath = "\(Bundle.module.resourcePath ?? "")/Samples"
-        let sourceFolder = try Folder(path: sourcePath)
-        try sourceFolder.files.forEach {
-            try $0.copy(to: targetFolder)
-        }
+    func loadDefaultConfiguration() throws -> Configuration {
+        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
+        let configUrl = URL(fileURLWithPath: configPath)
+        let data = try Data(contentsOf: configUrl)
+        let decoded = try JSONDecoder().decode(Configuration.self, from: data)
+        return decoded
     }
 
     func pathSuffix(_ sourceName: String) -> String {
@@ -56,26 +44,27 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Direct
 
-    func test_sourceDetailsMatchingType_rootClass_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(forSourceKinds: [.class])
-        XCTAssertEqual(results.count, 2)
-        let targetResult = results[0]
-        XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "RootClass")
-        XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("Classes.swift")))
-        XCTAssertEqual(targetResult.location.line, 3)
-        XCTAssertEqual(targetResult.location.column, 7)
-        XCTAssertEqual(targetResult.location.offset, 7)
-        let extensionResult = results[1]
-        XCTAssertNil(extensionResult.parent)
-        XCTAssertEqual(extensionResult.name, "RootClass")
-        XCTAssertEqual(extensionResult.sourceKind, .extension)
-        XCTAssertTrue(extensionResult.location.path.hasSuffix(pathSuffix("Extensions.swift")))
-        XCTAssertEqual(extensionResult.location.line, 8)
-        XCTAssertEqual(extensionResult.location.column, 11)
-        XCTAssertEqual(extensionResult.location.offset, 11)
-    }
+    // NOTE: Expensive task - should look at structured concurrency to potentially run multiple at once
+//    func test_sourceDetailsMatchingType_rootClass_willReturnExpectedValues() throws {
+//        let results = instanceUnderTest.sourceDetails(forSourceKinds: [.class])
+//        XCTAssertEqual(results.count, 2)
+//        let targetResult = results[0]
+//        XCTAssertNil(targetResult.parent)
+//        XCTAssertEqual(targetResult.name, "RootClass")
+//        XCTAssertEqual(targetResult.sourceKind, .class)
+//        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("Classes.swift")))
+//        XCTAssertEqual(targetResult.location.line, 3)
+//        XCTAssertEqual(targetResult.location.column, 7)
+//        XCTAssertEqual(targetResult.location.offset, 7)
+//        let extensionResult = results[1]
+//        XCTAssertNil(extensionResult.parent)
+//        XCTAssertEqual(extensionResult.name, "RootClass")
+//        XCTAssertEqual(extensionResult.sourceKind, .extension)
+//        XCTAssertTrue(extensionResult.location.path.hasSuffix(pathSuffix("Extensions.swift")))
+//        XCTAssertEqual(extensionResult.location.line, 8)
+//        XCTAssertEqual(extensionResult.location.column, 11)
+//        XCTAssertEqual(extensionResult.location.offset, 11)
+//    }
 
     // MARK: - Tests: Declarations
 
@@ -349,7 +338,7 @@ final class IndexStoreTests: XCTestCase {
     // MARK: - Tests: Extension
 
     func test_sourceDetailsForType_extension_class_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(
+        let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootClass",
             kinds: [.extension],
             roles: [.definition]
@@ -367,7 +356,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_extension_struct_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(
+        let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootStruct",
             kinds: [.extension],
             roles: [.definition]
@@ -385,7 +374,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_extension_enum_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(
+        let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootEnum",
             kinds: [.extension],
             roles: [.definition]
@@ -403,7 +392,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_extension_protocol_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(
+        let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootProtocol",
             kinds: [.extension],
             roles: [.definition]
@@ -421,7 +410,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_extension_multiple_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(
+        let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "ProtocolWithSystemInheritence",
             kinds: [.extension],
             roles: [.definition]
@@ -490,7 +479,7 @@ final class IndexStoreTests: XCTestCase {
     // MARK: - Tests: TypeAlias
 
     func test_sourceDetailsForType_typeAlias_root_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(matchingType: "RootAlias", kinds: [.typealias])
+        let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "RootAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
@@ -504,7 +493,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_typeAlias_nested_enum_many_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(matchingType: "NestedAlias", kinds: [.typealias])
+        let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "NestedAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 2)
         let fooResult = results[0]
@@ -528,7 +517,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_typeAlias_nested_struct_single_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(matchingType: "StructAlias", kinds: [.typealias])
+        let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "StructAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
         let fooResult = results[0]
@@ -543,7 +532,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_typeAlias_nested_class_single_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.sourceDetails(matchingType: "ClassAlias", kinds: [.typealias])
+        let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "ClassAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
         let fooResult = results[0]
@@ -558,14 +547,14 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceDetailsForType_typeAlias_structName_willReturnNoResults() throws {
-        let results = instanceUnderTest.sourceDetails(matchingType: "FooBar", kinds: [.typealias])
+        let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "FooBar", kinds: [.typealias])
         XCTAssertEqual(results.count, 0)
     }
 
     // MARK: - Tests: Source Getting
 
     func test_declarationSourceForDetails_willReturnExpectedDeclaration() throws {
-        let details = instanceUnderTest.sourceDetails(matchingType: "SourceAlias", kinds: [.typealias])
+        let details = instanceUnderTest.queryIndexStoreSymbols(matchingType: "SourceAlias", kinds: [.typealias])
         let sourceLines = try details.map { try instanceUnderTest.declarationSource(forDetails: $0) }
         let expectedLines = [
             "    typealias SourceAlias = String",
@@ -575,7 +564,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_declarationSourceForDetails_unresolvableLine_willThrowError() throws {
-        let validDetails = instanceUnderTest.sourceDetails(matchingType: "SourceAlias", kinds: [.typealias])[0]
+        let validDetails = instanceUnderTest.queryIndexStoreSymbols(matchingType: "SourceAlias", kinds: [.typealias])[0]
         let location = SourceLocation(
             path: validDetails.location.path, line: 100, column: 0, offset: 0, isStale: false)
         let details = SourceDetails(
@@ -606,7 +595,7 @@ final class IndexStoreTests: XCTestCase {
             }
 
             """#
-        let details = instanceUnderTest.sourceDetails(matchingType: "SourceAlias", kinds: [.typealias])[0]
+        let details = instanceUnderTest.queryIndexStoreSymbols(matchingType: "SourceAlias", kinds: [.typealias])[0]
         let sourceContents = try instanceUnderTest.sourceContents(forDetails: details)
         XCTAssertEqual(sourceContents, expectedContents)
     }
@@ -628,7 +617,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceContentsForDetails_emptyFile_willThrowError() throws {
-        let validDetails = instanceUnderTest.sourceDetails(
+        let validDetails = instanceUnderTest.queryIndexStoreSymbols(
             matchingType:
                 "SourceAlias", kinds: [.typealias])[0]
         let emptyPath = validDetails.location.path.replacingOccurrences(

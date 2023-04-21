@@ -10,7 +10,7 @@ import Foundation
 public extension IndexStore {
 
     func sourceDetails(forFunctionsMatching query: String, caseInsensitive: Bool = false) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.instanceMethod],
             roles: [.definition, .canonical],

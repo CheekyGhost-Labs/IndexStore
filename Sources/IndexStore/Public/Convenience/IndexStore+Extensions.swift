@@ -25,7 +25,7 @@ public extension IndexStore {
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
     ) -> [SourceDetails] {
-        sourceDetails(
+        queryIndexStoreSymbols(
             matchingType: type,
             kinds: [.extension],
             roles: [.definition],
