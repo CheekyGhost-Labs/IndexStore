@@ -104,8 +104,8 @@ public final class IndexStore {
         let projectRoot = projectRoot ?? configuration.projectDirectory
         guard let enumerator = fileManager.enumerator(atPath: projectRoot) else { return [] }
         var swiftSourceFiles: [String] = []
-        for case let fileURL as URL in enumerator where fileURL.pathExtension == "swift" {
-            swiftSourceFiles.append(fileURL.path)
+        for (_, fileName) in enumerator.enumerated() {
+            swiftSourceFiles.append("\(projectRoot)/\(fileName)")
         }
         return swiftSourceFiles
     }

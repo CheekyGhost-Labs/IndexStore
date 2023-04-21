@@ -38,7 +38,7 @@ extension IndexStore {
         )
     }
 
-    /// Will return source details  for any declarations/symbols within the store that match the given source kinds and roles.
+    /// Will return source details for any declarations/symbols within the store that match the given source kinds and roles.
     ///
     /// **Note: ** This method iteratest through **all** source files in the project. It can be expensive if you
     /// have a vast source file count. Filtering for source kinds is also done while iterating.
@@ -46,12 +46,32 @@ extension IndexStore {
     ///   - kinds: The source kinds to search for.
     ///   - roles: The roles any symbols must match.
     /// - Returns: Array of ``SourceDetails`` instances.
-    public func sourceDetails(forSourceKinds kinds: [SourceKind], roles: SourceRole) -> [SourceDetails] {
+    public func sourceDetails(forSourceKinds kinds: [SourceKind]) -> [SourceDetails] {
         let sourceFiles = swiftSourceFiles()
-        let symbolRoles = SymbolRole(rawValue: roles.rawValue)
-        let occurences = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
-        var results: [SourceDetails] = []
-        mapOccurencesToResults(occurences, into: &results)
+        let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
+        var results: [SourceDetails] = rawResults.compactMap(sourceDetailsFromOccurence)
+        // Extensions have to be resolved via USR name
+        guard kinds.contains(.extension) else {
+            logger.debug("`.extensions` kind not included - skipping extensions lookup")
+            return resultsFilteredByKind(results: results, kinds: kinds)
+        }
+        logger.debug("`.extensions` kind included - performing USR extension lookup")
+        let usrs = results.map(\.usr)
+        usrs.forEach {
+            let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
+            let relations: [SymbolRelation] = references.flatMap(\.relations)
+            // For each valid relation usr - resolve the symbol and transform into SourceDetail
+            relations.forEach { relation in
+                /*
+                 Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
+                 have the `.extendedBy`. Including `.definition` for safety.
+                 */
+                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
+                let transformed = symbols.compactMap(sourceDetailsFromOccurence)
+                // Append valid symbols to the result set
+                results.append(contentsOf: transformed)
+            }
+        }
         return resultsFilteredByKind(results: results, kinds: kinds)
     }
 }

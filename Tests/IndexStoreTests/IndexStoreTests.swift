@@ -15,14 +15,14 @@ final class IndexStoreTests: XCTestCase {
     let temporaryFolderName: String = "index-store-unit-tests"
     var sourceCreated: Bool = false
     var instanceUnderTest: IndexStore!
-    var temporaryProjectDirectory: String!
+    let temporaryProjectFolder: Folder = Folder.temporary
 
     // MARK: - Lifecycle
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        temporaryProjectDirectory = NSTemporaryDirectory().appending("/index-store-unit-tests")
-        let configuration = try Configuration(projectDirectory: temporaryProjectDirectory)
+        let targetPath = "\(temporaryProjectFolder.path)\(temporaryFolderName)"
+        let configuration = try Configuration(projectDirectory: targetPath)
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
         try copySampleSourceToTemporaryDirectory()
     }
@@ -56,26 +56,26 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Direct
 
-//    func test_sourceDetailsMatchingType_rootClass_willReturnExpectedValues() throws {
-//        let results = instanceUnderTest.sourceDetails(forSourceMatching: )
-//        XCTAssertEqual(results.count, 2)
-//        let targetResult = results[0]
-//        XCTAssertNil(targetResult.parent)
-//        XCTAssertEqual(targetResult.name, "RootClass")
-//        XCTAssertEqual(targetResult.sourceKind, .class)
-//        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("Classes.swift")))
-//        XCTAssertEqual(targetResult.location.line, 3)
-//        XCTAssertEqual(targetResult.location.column, 7)
-//        XCTAssertEqual(targetResult.location.offset, 7)
-//        let extensionResult = results[1]
-//        XCTAssertNil(extensionResult.parent)
-//        XCTAssertEqual(extensionResult.name, "RootClass")
-//        XCTAssertEqual(extensionResult.sourceKind, .extension)
-//        XCTAssertTrue(extensionResult.location.path.hasSuffix(pathSuffix("Extensions.swift")))
-//        XCTAssertEqual(extensionResult.location.line, 8)
-//        XCTAssertEqual(extensionResult.location.column, 11)
-//        XCTAssertEqual(extensionResult.location.offset, 11)
-//    }
+    func test_sourceDetailsMatchingType_rootClass_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.sourceDetails(forSourceKinds: [.class])
+        XCTAssertEqual(results.count, 2)
+        let targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("Classes.swift")))
+        XCTAssertEqual(targetResult.location.line, 3)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        let extensionResult = results[1]
+        XCTAssertNil(extensionResult.parent)
+        XCTAssertEqual(extensionResult.name, "RootClass")
+        XCTAssertEqual(extensionResult.sourceKind, .extension)
+        XCTAssertTrue(extensionResult.location.path.hasSuffix(pathSuffix("Extensions.swift")))
+        XCTAssertEqual(extensionResult.location.line, 8)
+        XCTAssertEqual(extensionResult.location.column, 11)
+        XCTAssertEqual(extensionResult.location.offset, 11)
+    }
 
     // MARK: - Tests: Declarations
 
