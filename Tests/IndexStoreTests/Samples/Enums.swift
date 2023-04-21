@@ -1,10 +1,3 @@
-//
-//  Enums.swift
-//  IndexStoreTests
-//
-//  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
-//
-
 import Foundation
 
 enum RootEnum {

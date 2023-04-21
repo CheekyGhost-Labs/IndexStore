@@ -41,7 +41,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("Classes.swift")))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         let extensionResult = results[1]
@@ -49,7 +49,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(extensionResult.name, "RootClass")
         XCTAssertEqual(extensionResult.sourceKind, .extension)
         XCTAssertTrue(extensionResult.location.path.hasSuffix(pathSuffix("Extensions.swift")))
-        XCTAssertEqual(extensionResult.location.line, 16)
+        XCTAssertEqual(extensionResult.location.line, 8)
         XCTAssertEqual(extensionResult.location.column, 11)
         XCTAssertEqual(extensionResult.location.offset, 11)
     }
@@ -65,7 +65,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
     }
@@ -80,7 +80,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "NestedClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 13)
+        XCTAssertEqual(targetResult.location.line, 5)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -97,7 +97,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "DoubleNestedClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 7)
         XCTAssertEqual(targetResult.location.column, 15)
         XCTAssertEqual(targetResult.location.offset, 15)
     }
@@ -118,7 +118,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
     }
@@ -133,7 +133,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "NestedStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 13)
+        XCTAssertEqual(targetResult.location.line, 5)
         XCTAssertEqual(targetResult.location.column, 12)
         XCTAssertEqual(targetResult.location.offset, 12)
     }
@@ -150,7 +150,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "DoubleNestedStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 7)
         XCTAssertEqual(targetResult.location.column, 16)
         XCTAssertEqual(targetResult.location.offset, 16)
     }
@@ -163,21 +163,21 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "InheritenceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
         XCTAssertEqual(targetResult.inheritance.count, 2)
         var nextInheritence = targetResult.inheritance[0]
         XCTAssertEqual(nextInheritence.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(nextInheritence.sourceKind, .protocol)
-        XCTAssertEqual(nextInheritence.location.line, 13)
+        XCTAssertEqual(nextInheritence.location.line, 5)
         XCTAssertEqual(nextInheritence.location.column, 10)
         XCTAssertEqual(nextInheritence.location.offset, 10)
         XCTAssertTrue(nextInheritence.location.path.hasSuffix("Protocols.swift"))
         nextInheritence = targetResult.inheritance[1]
         XCTAssertEqual(nextInheritence.name, "RootProtocol")
         XCTAssertEqual(nextInheritence.sourceKind, .protocol)
-        XCTAssertEqual(nextInheritence.location.line, 11)
+        XCTAssertEqual(nextInheritence.location.line, 3)
         XCTAssertEqual(nextInheritence.location.column, 10)
         XCTAssertEqual(nextInheritence.location.offset, 10)
         XCTAssertTrue(nextInheritence.location.path.hasSuffix("Protocols.swift"))
@@ -199,7 +199,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootEnum")
         XCTAssertEqual(targetResult.sourceKind, .enum)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 6)
         XCTAssertEqual(targetResult.location.offset, 6)
     }
@@ -214,7 +214,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(nestedEnum.name, "NestedEnum")
         XCTAssertEqual(nestedEnum.sourceKind, .enum)
         XCTAssertTrue(nestedEnum.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(nestedEnum.location.line, 13)
+        XCTAssertEqual(nestedEnum.location.line, 5)
         XCTAssertEqual(nestedEnum.location.column, 10)
         XCTAssertEqual(nestedEnum.location.offset, 10)
         let structEnum = results[1]
@@ -223,7 +223,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(structEnum.name, "NestedEnum")
         XCTAssertEqual(structEnum.sourceKind, .enum)
         XCTAssertTrue(structEnum.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(structEnum.location.line, 23)
+        XCTAssertEqual(structEnum.location.line, 15)
         XCTAssertEqual(structEnum.location.column, 10)
         XCTAssertEqual(structEnum.location.offset, 10)
         let classEnum = results[2]
@@ -232,7 +232,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(classEnum.name, "NestedEnum")
         XCTAssertEqual(classEnum.sourceKind, .enum)
         XCTAssertTrue(classEnum.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(classEnum.location.line, 30)
+        XCTAssertEqual(classEnum.location.line, 22)
         XCTAssertEqual(classEnum.location.column, 10)
         XCTAssertEqual(classEnum.location.offset, 10)
     }
@@ -249,7 +249,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "DoubleNestedEnum")
         XCTAssertEqual(targetResult.sourceKind, .enum)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 7)
         XCTAssertEqual(targetResult.location.column, 14)
         XCTAssertEqual(targetResult.location.offset, 14)
     }
@@ -270,7 +270,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootProtocol")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 10)
         XCTAssertEqual(targetResult.location.offset, 10)
     }
@@ -284,7 +284,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 13)
+        XCTAssertEqual(targetResult.location.line, 5)
         XCTAssertEqual(targetResult.location.column, 10)
         XCTAssertEqual(targetResult.location.offset, 10)
     }
@@ -298,7 +298,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "ProtocolWithInheritence")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 19)
+        XCTAssertEqual(targetResult.location.line, 11)
         XCTAssertEqual(targetResult.location.column, 10)
         XCTAssertEqual(targetResult.location.offset, 10)
     }
@@ -319,7 +319,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootClass")
         XCTAssertEqual(targetResult.sourceKind, .extension)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 16)
+        XCTAssertEqual(targetResult.location.line, 8)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -333,7 +333,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootStruct")
         XCTAssertEqual(targetResult.sourceKind, .extension)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 25)
+        XCTAssertEqual(targetResult.location.line, 17)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -347,7 +347,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootEnum")
         XCTAssertEqual(targetResult.sourceKind, .extension)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 33)
+        XCTAssertEqual(targetResult.location.line, 25)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -361,7 +361,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootProtocol")
         XCTAssertEqual(targetResult.sourceKind, .extension)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 42)
+        XCTAssertEqual(targetResult.location.line, 34)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -375,7 +375,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(firstResult.sourceKind, .extension)
         XCTAssertTrue(firstResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(firstResult.location.line, 50)
+        XCTAssertEqual(firstResult.location.line, 42)
         XCTAssertEqual(firstResult.location.column, 11)
         XCTAssertEqual(firstResult.location.offset, 11)
         let lastResult = results[1]
@@ -383,7 +383,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(lastResult.sourceKind, .extension)
         XCTAssertTrue(lastResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(lastResult.location.line, 54)
+        XCTAssertEqual(lastResult.location.line, 46)
         XCTAssertEqual(lastResult.location.column, 11)
         XCTAssertEqual(lastResult.location.offset, 11)
     }
@@ -397,7 +397,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(firstResult.sourceKind, .extension)
         XCTAssertTrue(firstResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(firstResult.location.line, 50)
+        XCTAssertEqual(firstResult.location.line, 42)
         XCTAssertEqual(firstResult.location.column, 11)
         XCTAssertEqual(firstResult.location.offset, 11)
         let lastResult = results[1]
@@ -405,7 +405,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritence")
         XCTAssertEqual(lastResult.sourceKind, .extension)
         XCTAssertTrue(lastResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(lastResult.location.line, 54)
+        XCTAssertEqual(lastResult.location.line, 46)
         XCTAssertEqual(lastResult.location.column, 11)
         XCTAssertEqual(lastResult.location.offset, 11)
     }
@@ -421,7 +421,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "RootAlias")
         XCTAssertEqual(targetResult.sourceKind, .typealias)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 11)
         XCTAssertEqual(targetResult.location.offset, 11)
     }
@@ -436,7 +436,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(fooResult.name, "NestedAlias")
         XCTAssertEqual(fooResult.sourceKind, .typealias)
         XCTAssertTrue(fooResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(fooResult.location.line, 15)
+        XCTAssertEqual(fooResult.location.line, 7)
         XCTAssertEqual(fooResult.location.column, 15)
         XCTAssertEqual(fooResult.location.offset, 15)
         let barResult = results[1]
@@ -445,7 +445,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(barResult.name, "NestedAlias")
         XCTAssertEqual(barResult.sourceKind, .typealias)
         XCTAssertTrue(barResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(barResult.location.line, 25)
+        XCTAssertEqual(barResult.location.line, 17)
         XCTAssertEqual(barResult.location.column, 15)
         XCTAssertEqual(barResult.location.offset, 15)
     }
@@ -460,7 +460,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(fooResult.name, "StructAlias")
         XCTAssertEqual(fooResult.sourceKind, .typealias)
         XCTAssertTrue(fooResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(fooResult.location.line, 31)
+        XCTAssertEqual(fooResult.location.line, 23)
         XCTAssertEqual(fooResult.location.column, 15)
         XCTAssertEqual(fooResult.location.offset, 15)
     }
@@ -475,7 +475,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(fooResult.name, "ClassAlias")
         XCTAssertEqual(fooResult.sourceKind, .typealias)
         XCTAssertTrue(fooResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(fooResult.location.line, 36)
+        XCTAssertEqual(fooResult.location.line, 28)
         XCTAssertEqual(fooResult.location.column, 15)
         XCTAssertEqual(fooResult.location.offset, 15)
     }
@@ -570,13 +570,7 @@ final class IndexStoreTests: XCTestCase {
         }
     }
 
-    // MARK: Tests: Performance
-
-    func test_declarations_inheritence_standardPerformance() throws {
-        self.measure {
-            _ = instanceUnderTest.sourceDetails(matchingType: "InheritenceStruct", kinds: [.struct])
-        }
-    }
+    // MARK: Tests: Convenience
 
     func test_typesConformingToProtocol_withSystemInheritence() throws {
         let results = instanceUnderTest.sourceDetails(conformingToProtocol: "ProtocolWithSystemInheritence")
@@ -586,7 +580,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "InheritenceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
         XCTAssertEqual(
@@ -596,7 +590,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "InheritenceClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 16)
+        XCTAssertEqual(targetResult.location.line, 8)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(
@@ -611,7 +605,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "CustomInheritenceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 25)
+        XCTAssertEqual(targetResult.location.line, 17)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
         XCTAssertEqual(
@@ -621,7 +615,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "CustomInheritenceClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 30)
+        XCTAssertEqual(targetResult.location.line, 22)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(
@@ -631,7 +625,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(inheritedInheritence.name, "BaseProtocol")
         XCTAssertEqual(inheritedInheritence.sourceKind, .protocol)
         XCTAssertTrue(inheritedInheritence.location.path.hasSuffix("Protocols.swift"))
-        XCTAssertEqual(inheritedInheritence.location.line, 17)
+        XCTAssertEqual(inheritedInheritence.location.line, 9)
         XCTAssertEqual(inheritedInheritence.location.column, 10)
         XCTAssertEqual(inheritedInheritence.location.offset, 10)
         XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
