@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Files
 import IndexStoreDB
 import Logging
 import TSCBasic
@@ -41,6 +42,18 @@ public final class IndexStore {
     }
 
     // MARK: - Public: Convenience
+
+    /// Will return all swift source file paths within the given project directory.
+    /// - Parameter projectRoot: The project directory
+    /// - Returns: Array of source file path `String` types
+    public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
+        let projectRoot = projectRoot ?? configuration.projectDirectory
+        guard let projectFolder = try? Folder(path: projectRoot) else { return [] }
+        let sourceFiles = projectFolder.files.recursive.filter { file in
+            file.extension == "swift"
+        }
+        return sourceFiles.map(\.path)
+    }
 
     /// Will return the declaration source **line** from the source contents associated with the given details.
     ///
@@ -96,20 +109,6 @@ public final class IndexStore {
 
     // MARK: - Helpers: Internal
 
-    /// Will return all swift source file paths within the given project directory.
-    /// - Parameter projectRoot: The project directory
-    /// - Returns: Array of source file path `String` types
-    func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
-        let fileManager = FileManager.default
-        let projectRoot = projectRoot ?? configuration.projectDirectory
-        guard let enumerator = fileManager.enumerator(atPath: projectRoot) else { return [] }
-        var swiftSourceFiles: [String] = []
-        for (_, fileName) in enumerator.enumerated() {
-            swiftSourceFiles.append("\(projectRoot)/\(fileName)")
-        }
-        return swiftSourceFiles
-    }
-
     /// Will return source details  for any declarations/symbols matching the given type and whose declaration kind is contained in the given array.
     /// - Parameters:
     ///   - type: The type to search for.
@@ -120,7 +119,7 @@ public final class IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: `Array` of ``SourceDetails`` objects.
-    func sourceDetails(
+    public func queryIndexStoreSymbols(
         matchingType type: String,
         kinds: [SourceKind] = SourceKind.allCases,
         roles: SourceRole = .all,
@@ -254,7 +253,7 @@ public final class IndexStore {
             guard
                 !results.contains(where: { $0.usr == ref.symbol.usr }),
                 ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name }),
-                let details = sourceDetails(matchingType: ref.symbol.name, kinds: validSourceKinds).first
+                let details = queryIndexStoreSymbols(matchingType: ref.symbol.name, kinds: validSourceKinds).first
             else {
                 return
             }
