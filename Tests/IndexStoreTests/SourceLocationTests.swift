@@ -14,7 +14,7 @@ final class SourceLocationTests: XCTestCase {
     // MARK: - Tests
 
     func test_description_returnsExpectedValue() {
-        let location = SourceLocation(path: "test-path", line: 123, column: 12, offset: 12, isStale: true)
+        let location = SourceLocation(path: "test-path", line: 123, column: 12, offset: 12, isSystem: false, isStale: true)
         XCTAssertEqual(location.description, "test-path:123:12")
     }
 }

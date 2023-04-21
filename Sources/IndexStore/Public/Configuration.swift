@@ -23,14 +23,6 @@ public struct Configuration: Decodable {
     /// The path to the libIndexStore dlyib.
     public let libIndexStorePath: String
 
-    /// Bool whether to exclude any system symbols from results.
-    ///
-    /// i.e: `Equatable` is a system symbol and would be excluded from any results.
-    public let excludeSystemResults: Bool
-
-    /// Bool whether to exclude any symbols from results where the `isStale` is `true`.
-    public let excludeStaleResults: Bool
-
     // MARK: - Codable
 
     enum CodingKeys: CodingKey {
@@ -38,15 +30,11 @@ public struct Configuration: Decodable {
         case indexStorePath
         case indexDatabasePath
         case libIndexStorePath
-        case excludeSystemResults
-        case excludeStaleResults
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.projectDirectory = try container.decode(String.self, forKey: .projectDirectory)
-        self.excludeSystemResults = try container.decode(Bool.self, forKey: .excludeSystemResults)
-        self.excludeStaleResults = try container.decode(Bool.self, forKey: .excludeStaleResults)
         // Optionals
         let storePath = try container.decodeIfPresent(String.self, forKey: .indexStorePath)
         let databasePath = try container.decodeIfPresent(String.self, forKey: .indexDatabasePath)
@@ -71,12 +59,8 @@ public struct Configuration: Decodable {
         projectDirectory: String,
         indexStorePath: String? = nil,
         indexDatabasePath: String? = nil,
-        libIndexStorePath: String? = nil,
-        excludeSystemResults: Bool = true,
-        excludeStaleResults: Bool = true
+        libIndexStorePath: String? = nil
     ) throws {
-        self.excludeSystemResults = excludeSystemResults
-        self.excludeStaleResults = excludeStaleResults
         self.projectDirectory = projectDirectory
         self.indexDatabasePath = Self.resolveIndexDatabasePath(provided: indexDatabasePath)
         self.libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexStorePath)

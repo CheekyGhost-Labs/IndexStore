@@ -14,7 +14,7 @@ final class SourceDetailsCollectionTests: XCTestCase {
     // MARK: - Tests
 
     func test_makeIterator_willReturnExpectedValue() throws {
-        let location = SourceLocation(path: "path", line: 0, column: 0, offset: 0, isStale: false)
+        let location = SourceLocation(path: "path", line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
         let items: [SourceDetails] = [
             SourceDetails(name: "0", usr: "0", sourceKind: .struct, roles: .declaration, location: location),
             SourceDetails(name: "1", usr: "1", sourceKind: .struct, roles: .declaration, location: location),

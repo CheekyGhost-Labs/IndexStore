@@ -173,19 +173,6 @@ public final class IndexStore {
         results.filter { kinds.contains($0.sourceKind) }
     }
 
-    /// Will transform the given set of ``SymbolOccurrence`` instances into ``SourceDetails`` instances and append them to the given array.
-    /// - Parameters:
-    ///   - occurences: Set of ``SymbolOccurrence`` instances to transform.
-    ///   - results: ``SourceDetails`` array to append results to
-    func mapOccurencesToResults(_ occurences: OrderedSet<SymbolOccurrence>, into results: inout [SourceDetails]) {
-        occurences.forEach {
-            let details = sourceDetailsFromOccurence($0)
-            if !details.location.isStale, !configuration.excludeStaleResults {
-                results.append(details)
-            }
-        }
-    }
-
     /// Transforms the given occurance into a source details instance.
     ///
     /// **Note: **Will also look up any inheritence and parents. This can increase time.

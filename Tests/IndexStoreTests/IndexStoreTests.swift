@@ -580,7 +580,7 @@ final class IndexStoreTests: XCTestCase {
     func test_declarationSourceForDetails_unresolvableLine_willThrowError() throws {
         let validDetails = instanceUnderTest.queryIndexStoreSymbols(matchingType: "SourceAlias", kinds: [.typealias])[0]
         let location = SourceLocation(
-            path: validDetails.location.path, line: 100, column: 0, offset: 0, isStale: false)
+            path: validDetails.location.path, line: 100, column: 0, offset: 0, isSystem: false, isStale: false)
         let details = SourceDetails(
             name: validDetails.name,
             usr: validDetails.usr,
@@ -616,7 +616,7 @@ final class IndexStoreTests: XCTestCase {
 
     func test_sourceContentsForDetails_missingFile_willThrowError() throws {
         let location = SourceLocation(
-            path: "file://missing/file.swift", line: 0, column: 0, offset: 0, isStale: false)
+            path: "file://missing/file.swift", line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
         let details = SourceDetails(
             name: "SourceAlias",
             usr: "",
@@ -636,7 +636,7 @@ final class IndexStoreTests: XCTestCase {
                 "SourceAlias", kinds: [.typealias])[0]
         let emptyPath = validDetails.location.path.replacingOccurrences(
             of: "SourceContents.swift", with: "EmptySource.swift")
-        let location = SourceLocation(path: emptyPath, line: 0, column: 0, offset: 0, isStale: false)
+        let location = SourceLocation(path: emptyPath, line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
         let details = SourceDetails(
             name: "SourceAlias",
             usr: "",
