@@ -127,14 +127,12 @@ public final class Workspace {
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         index.forEachCanonicalSymbolOccurrence(
             containing: matching,
-            anchorStart: true,
-            anchorEnd: true,
-            subsequence: false,
+            anchorStart: anchorStart,
+            anchorEnd: anchorEnd,
+            subsequence: includeSubsequence,
             ignoreCase: caseInsensitive
         ) {
-            // Forced role check for declaration symbols that are not accessor relations
-            let isValidRole = !$0.roles.contains(.accessorOf) && $0.roles.contains(.definition)
-            if !$0.location.isSystem || !excludeSystem, isValidRole, roles.contains($0.roles) {
+            if !$0.location.isSystem || !excludeSystem, $0.roles.contains(roles) {
                 symbolOccurrenceResults.append($0)
             }
             return true

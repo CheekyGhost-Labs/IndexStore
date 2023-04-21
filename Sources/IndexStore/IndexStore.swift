@@ -93,14 +93,14 @@ public final class IndexStore {
         logger.debug("`.extensions` kind included - performing USR extension lookup")
         let usrs = results.map(\.usr)
         usrs.forEach {
-            /*
-             Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
-             have the `.extendedBy`. Including `.definition` for safety.
-             */
             let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
             let relations: [SymbolRelation] = references.flatMap(\.relations)
             // For each valid relation usr - resolve the symbol and transform into SourceDetail
             relations.forEach { relation in
+                /*
+                 Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
+                 have the `.extendedBy`. Including `.definition` for safety.
+                 */
                 let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.extendedBy, .definition])
                 let transformed = symbols.compactMap(sourceDetailsFromOccurence)
                 // Append valid symbols to the result set
@@ -118,7 +118,7 @@ public final class IndexStore {
     ///   - kinds: The source kinds to search for.
     ///   - roles: The roles any symbols must match.
     /// - Returns: Array of ``SourceDetails`` instances.
-    public func sourceDetailsForSourceKinds(_ kinds: [SourceKind], roles: SourceRole) -> [SourceDetails] {
+    public func sourceDetails(forSourceKinds kinds: [SourceKind], roles: SourceRole) -> [SourceDetails] {
         let sourceFiles = swiftSourceFiles()
         let symbolRoles = SymbolRole(rawValue: roles.rawValue)
         let symbolKinds = kinds.map(\.indexSymbolKind)
@@ -126,27 +126,6 @@ public final class IndexStore {
         var results: [SourceDetails] = []
         mapOccurencesToResults(occurences, into: &results)
         return results
-    }
-
-    /// Will return the source details for any  extension declarations/symbols within the store that extend the given source type.
-    /// - Parameter type: The source type being extended
-    /// - Returns: Array of ``SourceDetails`` instances.
-    public func sourceDetails(extendingType type: String) -> [SourceDetails] {
-        let rawResults = workspace.findWorkspaceSymbols(matching: type)
-        let conformingTypes: [SourceDetails] = rawResults.flatMap {
-            let conforming = workspace.occurrences(ofUSR: $0.symbol.usr, roles: [.reference, .extendedBy])
-            let validUsrs: [String] = conforming.flatMap {
-                guard $0.roles == [.reference, .extendedBy] else {
-                    return [String]()
-                }
-                return $0.relations.map(\.symbol.usr)
-            }
-            let occurances = validUsrs.flatMap {
-                return workspace.occurrences(ofUSR: $0, roles: [.definition])
-            }
-            return occurances.compactMap(sourceDetailsFromOccurence)
-        }
-        return conformingTypes
     }
 
     /// Will return source details  for any declarations/symbols within the store that conform to the given protocol.
