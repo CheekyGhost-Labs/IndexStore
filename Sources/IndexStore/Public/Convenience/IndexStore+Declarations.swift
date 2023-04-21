@@ -21,7 +21,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.protocol, .class, .enum, .struct, .typealias],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,
@@ -41,7 +41,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.class],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,
@@ -59,7 +59,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.protocol],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,
@@ -77,7 +77,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.struct],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,
@@ -95,7 +95,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.enum],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,
@@ -113,7 +113,7 @@ public extension IndexStore {
         sourceDetails(
             matchingType: query,
             kinds: [.typealias],
-            roles: [.definition, .declaration],
+            roles: [.definition],
             anchorStart: anchorStart,
             anchorEnd: anchorEnd,
             includeSubsequence: includeSubsequence,

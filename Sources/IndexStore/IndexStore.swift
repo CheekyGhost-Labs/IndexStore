@@ -40,9 +40,66 @@ public final class IndexStore {
         self.logger = storeLogger
     }
 
-    // MARK: - Helpers: Public: SourceFiles
+    // MARK: - Public: Convenience
 
-    public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
+    /// Will return the declaration source **line** from the source contents associated with the given details.
+    ///
+    /// **Note:** This will return the entire line including any whitespace. i.e if the declaration is on one line:
+    /// ```
+    ///     enum Foo { typealias Bar = String }
+    /// ```
+    /// the result will be `"    enum Foo { typealias Bar = String }"`
+    /// ```
+    ///     enum Foo {
+    ///         typealias Bar = String
+    ///     }
+    /// ```
+    /// the result will be `"    enum Foo {"`
+    /// - Parameter details: The source declaration details to resolve for.
+    /// - Returns: `String` if the source file exists and can be read.
+    /// - Throws: ``SourceResolvingError``
+    public func declarationSource(forDetails details: SourceDetails) throws -> String {
+        let contents = try sourceContents(forDetails: details)
+        let lines = contents.components(separatedBy: .newlines)
+        let normalisedLine = max(0, details.location.line - 1)
+        guard normalisedLine < lines.count else {
+            throw SourceResolvingError.unableToResolveSourceLine(
+                name: details.name,
+                path: details.location.path,
+                line: details.location.line
+            )
+        }
+        return lines[normalisedLine]
+    }
+
+    /// Will return the **full source contents** from the source file holding with the given source declaration details.
+    /// - Parameter details: The source declaration details to resolve for.
+    /// - Returns: `String` if the source file exists and can be read.
+    /// - Throws: ``SourceResolvingError``
+    public func sourceContents(forDetails details: SourceDetails) throws -> String {
+        let path = details.location.path
+        guard FileManager.default.fileExists(atPath: path) else {
+            throw SourceResolvingError.sourcePathDoesNotExist(path: path)
+        }
+        do {
+            let contents = try String(contentsOfFile: path)
+            guard !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw SourceResolvingError.sourceContentsIsEmpty(path: path)
+            }
+            return contents
+        } catch let error as SourceResolvingError {
+            throw error
+        } catch {
+            throw SourceResolvingError.unableToReadContents(path: path, cause: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Helpers: Internal
+
+    /// Will return all swift source file paths within the given project directory.
+    /// - Parameter projectRoot: The project directory
+    /// - Returns: Array of source file path `String` types
+    func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
         let fileManager = FileManager.default
         let projectRoot = projectRoot ?? configuration.projectDirectory
         guard let enumerator = fileManager.enumerator(atPath: projectRoot) else { return [] }
@@ -52,8 +109,6 @@ public final class IndexStore {
         }
         return swiftSourceFiles
     }
-
-    // MARK: - Helpers: Public: Indexing
 
     /// Will return source details  for any declarations/symbols matching the given type and whose declaration kind is contained in the given array.
     /// - Parameters:
@@ -65,7 +120,7 @@ public final class IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: `Array` of ``SourceDetails`` objects.
-    public func sourceDetails(
+    func sourceDetails(
         matchingType type: String,
         kinds: [SourceKind] = SourceKind.allCases,
         roles: SourceRole = .all,
@@ -101,7 +156,7 @@ public final class IndexStore {
                  Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
                  have the `.extendedBy`. Including `.definition` for safety.
                  */
-                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.extendedBy, .definition])
+                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
                 let transformed = symbols.compactMap(sourceDetailsFromOccurence)
                 // Append valid symbols to the result set
                 results.append(contentsOf: transformed)
@@ -109,101 +164,6 @@ public final class IndexStore {
         }
         return resultsFilteredByKind(results: results, kinds: kinds)
     }
-
-    /// Will return source details  for any declarations/symbols within the store that match the given source kinds and roles.
-    ///
-    /// **Note: ** This method iteratest through **all** source files in the project. It can be expensive if you
-    /// have a vast source file count. Filtering for source kinds is also done while iterating.
-    /// - Parameters:
-    ///   - kinds: The source kinds to search for.
-    ///   - roles: The roles any symbols must match.
-    /// - Returns: Array of ``SourceDetails`` instances.
-    public func sourceDetails(forSourceKinds kinds: [SourceKind], roles: SourceRole) -> [SourceDetails] {
-        let sourceFiles = swiftSourceFiles()
-        let symbolRoles = SymbolRole(rawValue: roles.rawValue)
-        let symbolKinds = kinds.map(\.indexSymbolKind)
-        let occurences = workspace.symbolsInSourceFiles(at: sourceFiles, kinds: symbolKinds, roles: symbolRoles)
-        var results: [SourceDetails] = []
-        mapOccurencesToResults(occurences, into: &results)
-        return results
-    }
-
-    /// Will return source details  for any declarations/symbols within the store that conform to the given protocol.
-    /// - Parameter protocolName: The protocol to search for.
-    /// - Returns: Array of ``SourceDetails``
-    public func sourceDetails(conformingToProtocol protocolName: String) -> [SourceDetails] {
-        let rawResults = workspace.findWorkspaceSymbols(matching: protocolName).filter { $0.symbol.kind == .protocol }
-        let conformingTypes: [SourceDetails] = rawResults.flatMap {
-            let conforming = workspace.occurrences(ofUSR: $0.symbol.usr, roles: [.reference, .baseOf])
-            let validUsrs: [String] = conforming.flatMap {
-                guard $0.roles == [.reference, .baseOf] else {
-                    return [String]()
-                }
-                return $0.relations.map(\.symbol.usr)
-            }
-            let occurances = validUsrs.flatMap {
-                return workspace.occurrences(ofUSR: $0, roles: [.definition])
-            }
-            return occurances.compactMap(sourceDetailsFromOccurence)
-        }
-        return conformingTypes
-    }
-
-    // MARK: - Public: Convenience
-
-    /// Will return the declaration source **line** from the source contents associated with the given details.
-    ///
-    /// **Note:** This will return the entire line including any whitespace. i.e if the declaration is on one line:
-    /// ```
-    ///     enum Foo { typealias Bar = String }
-    /// ```
-    /// the result will be `"    enum Foo { typealias Bar = String }"`
-    /// ```
-    ///     enum Foo {
-    ///         typealias Bar = String
-    ///     }
-    /// ```
-    /// the result will be `"    enum Foo {"`
-    /// - Parameter details: The source declaration details to resolve for.
-    /// - Returns: `String` if the source file exists and can be read.
-    /// - Throws: ``SourceResolvingError``
-    public func declarationSourceForDetails(_ details: SourceDetails) throws -> String {
-        let contents = try sourceContentsForDetails(details)
-        let lines = contents.components(separatedBy: .newlines)
-        let normalisedLine = max(0, details.location.line - 1)
-        guard normalisedLine < lines.count else {
-            throw SourceResolvingError.unableToResolveSourceLine(
-                name: details.name,
-                path: details.location.path,
-                line: details.location.line
-            )
-        }
-        return lines[normalisedLine]
-    }
-
-    /// Will return the **full source contents** from the source file holding with the given source declaration details.
-    /// - Parameter details: The source declaration details to resolve for.
-    /// - Returns: `String` if the source file exists and can be read.
-    /// - Throws: ``SourceResolvingError``
-    public func sourceContentsForDetails(_ details: SourceDetails) throws -> String {
-        let path = details.location.path
-        guard FileManager.default.fileExists(atPath: path) else {
-            throw SourceResolvingError.sourcePathDoesNotExist(path: path)
-        }
-        do {
-            let contents = try String(contentsOfFile: path)
-            guard !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                throw SourceResolvingError.sourceContentsIsEmpty(path: path)
-            }
-            return contents
-        } catch let error as SourceResolvingError {
-            throw error
-        } catch {
-            throw SourceResolvingError.unableToReadContents(path: path, cause: error.localizedDescription)
-        }
-    }
-
-    // MARK: - Helpers: Internal
 
     /// Will filter the given results by the given source kinds
     /// - Parameters:

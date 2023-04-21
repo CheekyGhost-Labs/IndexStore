@@ -20,7 +20,7 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
 
     /// The kind of the source.
     /// - See: ``SourceKind``
-    public let sourceKind: SourceKind
+    internal(set) public var sourceKind: SourceKind
 
     /// OptionSet value representation of the roles the source plays.
     public let roles: SourceRole

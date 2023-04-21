@@ -132,7 +132,7 @@ public final class Workspace {
             subsequence: includeSubsequence,
             ignoreCase: caseInsensitive
         ) {
-            if !$0.location.isSystem || !excludeSystem, $0.roles.contains(roles) {
+            if !$0.location.isSystem || !excludeSystem, roles.contains($0.roles) || $0.roles.contains(roles) {
                 symbolOccurrenceResults.append($0)
             }
             return true
@@ -150,13 +150,12 @@ public final class Workspace {
     /// - Returns: Array of `SymbolOccurrence` instances.
     public func symbolsInSourceFiles(
         at paths: [String],
-        kinds: [IndexSymbolKind],
         roles: SymbolRole = .declaration
     ) -> OrderedSet<SymbolOccurrence> {
         guard index != nil else { return [] }
         var results: OrderedSet<SymbolOccurrence> = []
         paths.forEach {
-            let occurences = symbolsInSourceFile(at: $0, kinds: kinds, roles: roles)
+            let occurences = symbolsInSourceFile(at: $0, roles: roles)
             occurences.forEach { results.append($0) }
         }
         return results
@@ -172,7 +171,6 @@ public final class Workspace {
     /// - Returns: Array of `SymbolOccurrence` instances.
     public func symbolsInSourceFile(
         at path: String,
-        kinds: [IndexSymbolKind],
         roles: SymbolRole = .declaration
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
@@ -181,10 +179,8 @@ public final class Workspace {
         var results: OrderedSet<SymbolOccurrence> = []
         symbols.forEach {
             index.forEachSymbolOccurrence(byUSR: $0.usr, roles: roles) { occurence in
-                if !occurence.location.isSystem || !excludeSystem, occurence.roles.contains(.definition) {
-                    if kinds.contains(occurence.symbol.kind) {
-                        results.append(occurence)
-                    }
+                if !occurence.location.isSystem || !excludeSystem, roles.contains(occurence.roles) || occurence.roles.contains(roles) {
+                    results.append(occurence)
                 }
                 return true
             }
