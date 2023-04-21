@@ -2,7 +2,6 @@
 //  IndexStoreTests.swift
 //  IndexStoreTests
 //
-//  Created by CheekyGhost Labs on 19/4/2023.
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
@@ -552,8 +551,9 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceContentsForDetails_emptyFile_willThrowError() throws {
-        let validDetails = instanceUnderTest.sourceDetails(matchingType:
-            "SourceAlias", kinds: [.typealias])[0]
+        let validDetails = instanceUnderTest.sourceDetails(
+            matchingType:
+                "SourceAlias", kinds: [.typealias])[0]
         let emptyPath = validDetails.location.path.replacingOccurrences(
             of: "SourceContents.swift", with: "EmptySource.swift")
         let location = SourceLocation(path: emptyPath, line: 0, column: 0, offset: 0, isStale: false)

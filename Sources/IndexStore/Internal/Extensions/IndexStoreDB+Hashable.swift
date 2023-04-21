@@ -7,6 +7,8 @@
 
 import IndexStoreDB
 
+// Extensions that adds Hashable support to IndexStoreDB types so can use OrderedSet results
+
 extension SymbolOccurrence: Hashable {
 
     public func hash(into hasher: inout Hasher) {

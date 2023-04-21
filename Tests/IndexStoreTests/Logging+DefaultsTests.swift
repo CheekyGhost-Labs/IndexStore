@@ -2,12 +2,12 @@
 //  LoggingDefaultsTests.swift
 //  IndexStoreTests
 //
-//  Created by CheekyGhost Labs on 19/4/2023.
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
-import XCTest
 import Logging
+import XCTest
+
 @testable import IndexStore
 
 final class LoggingDefaultsTests: XCTestCase {

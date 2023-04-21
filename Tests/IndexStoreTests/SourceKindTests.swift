@@ -2,7 +2,6 @@
 //  SourceKindTests.swift
 //  IndexStoreTests
 //
-//  Created by CheekyGhost Labs on 19/4/2023.
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
@@ -44,7 +43,7 @@ final class SourceKindTests: XCTestCase {
                 .parameter,
                 .using,
                 .concept,
-                .commentTag
+                .commentTag,
             ]
         )
     }
@@ -81,7 +80,7 @@ final class SourceKindTests: XCTestCase {
             .parameter,
             .using,
             .concept,
-            .commentTag
+            .commentTag,
         ]
         for (index, kind) in kinds.enumerated() {
             XCTAssertEqual(kind.indexSymbolKind, symbols[index])
@@ -119,7 +118,7 @@ final class SourceKindTests: XCTestCase {
             .parameter,
             .using,
             .concept,
-            .commentTag
+            .commentTag,
         ]
         let kinds: [SourceKind] = SourceKind.allCases
         for (index, symbol) in symbols.enumerated() {
