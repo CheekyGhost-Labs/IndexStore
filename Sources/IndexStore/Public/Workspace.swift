@@ -32,11 +32,6 @@ public final class Workspace {
     /// The source code index (if loaded)
     private(set) public var index: IndexStoreDB?
 
-    /// Bool whether to exclude any system symbols from results.
-    ///
-    /// i.e: `Equatable` is a system symbol and would be excluded from any results.
-    public let excludeSystemResults: Bool
-
     /// Logger instance for any debug or console output.
     public let logger: Logger
 
@@ -54,14 +49,12 @@ public final class Workspace {
         projectDirectory: String,
         indexStorePath: String,
         indexDatabasePath: String,
-        excludeSystemResults: Bool,
         logger: Logger
     ) {
         self.libIndexStorePath = libIndexStorePath
         self.projectDirectory = projectDirectory
         self.indexStorePath = indexStorePath
         self.indexDatabasePath = indexDatabasePath
-        self.excludeSystemResults = excludeSystemResults
         self.logger = logger
         try? loadIndexStore()
     }
@@ -76,7 +69,6 @@ public final class Workspace {
         self.indexStorePath = configuration.indexStorePath
         self.indexDatabasePath = configuration.indexDatabasePath
         self.libIndexStorePath = configuration.libIndexStorePath
-        self.excludeSystemResults = configuration.excludeSystemResults
         self.logger = logger
         // Create index store instance
         try? loadIndexStore()
@@ -116,6 +108,7 @@ public final class Workspace {
     public func findWorkspaceSymbols(
         matching: String,
         roles: SymbolRole = .all,
+        excludeSystemResults: Bool = true,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
@@ -123,18 +116,16 @@ public final class Workspace {
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         // let projectDirectory = workspace.projectDirectory - can restrict if need be
-        let excludeSystem = excludeSystemResults
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         index.forEachCanonicalSymbolOccurrence(
             containing: matching,
-            anchorStart: true,
-            anchorEnd: true,
-            subsequence: false,
+            anchorStart: anchorStart,
+            anchorEnd: anchorEnd,
+            subsequence: includeSubsequence,
             ignoreCase: caseInsensitive
         ) {
-            // Forced role check for declaration symbols that are not accessor relations
-            let isValidRole = !$0.roles.contains(.accessorOf) && $0.roles.contains(.definition)
-            if !$0.location.isSystem || !excludeSystem, isValidRole, roles.contains($0.roles) {
+            let shouldIgnore = $0.location.isSystem && excludeSystemResults
+            if !shouldIgnore, roles.contains($0.roles) || $0.roles.contains(roles) {
                 symbolOccurrenceResults.append($0)
             }
             return true
@@ -152,13 +143,12 @@ public final class Workspace {
     /// - Returns: Array of `SymbolOccurrence` instances.
     public func symbolsInSourceFiles(
         at paths: [String],
-        kinds: [IndexSymbolKind],
         roles: SymbolRole = .declaration
     ) -> OrderedSet<SymbolOccurrence> {
         guard index != nil else { return [] }
         var results: OrderedSet<SymbolOccurrence> = []
         paths.forEach {
-            let occurences = symbolsInSourceFile(at: $0, kinds: kinds, roles: roles)
+            let occurences = symbolsInSourceFile(at: $0, roles: roles)
             occurences.forEach { results.append($0) }
         }
         return results
@@ -169,24 +159,22 @@ public final class Workspace {
     /// **Note:** You can restrict results to a `SymbolRole` type. Default is `.declaration`.
     /// - Parameters:
     ///   - path: The absolute path to the soure file to search in.
-    ///   - kinds: Array of `IndexSymbolKind` cases to restrict results to.
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
+    ///   - excludeSystemResults: Bool whether to exclude any system symbols from the result set.
     /// - Returns: Array of `SymbolOccurrence` instances.
     public func symbolsInSourceFile(
         at path: String,
-        kinds: [IndexSymbolKind],
-        roles: SymbolRole = .declaration
+        roles: SymbolRole = .declaration,
+        excludeSystemResults: Bool = true
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
-        let excludeSystem = excludeSystemResults
         let symbols = index.symbols(inFilePath: path)
         var results: OrderedSet<SymbolOccurrence> = []
         symbols.forEach {
             index.forEachSymbolOccurrence(byUSR: $0.usr, roles: roles) { occurence in
-                if !occurence.location.isSystem || !excludeSystem, occurence.roles.contains(.definition) {
-                    if kinds.contains(occurence.symbol.kind) {
-                        results.append(occurence)
-                    }
+                let shouldIgnore = occurence.location.isSystem && excludeSystemResults
+                if shouldIgnore, roles.contains(occurence.roles) || occurence.roles.contains(roles) {
+                    results.append(occurence)
                 }
                 return true
             }

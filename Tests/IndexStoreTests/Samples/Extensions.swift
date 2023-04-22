@@ -11,7 +11,7 @@ extension RootClass {
 }
 
 extension RootClass {
-
+    
 }
 
 extension RootStruct {

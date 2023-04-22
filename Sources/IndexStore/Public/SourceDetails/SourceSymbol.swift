@@ -1,5 +1,5 @@
 //
-//  SourceDetails.swift
+//  SourceSymbol.swift
 //  IndexStore
 //
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Result returned by a ``IndexStore`` instance containing details about a resolved source type.
-public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
+public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable {
 
     // MARK: - Properties
 
@@ -20,7 +20,7 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
 
     /// The kind of the source.
     /// - See: ``SourceKind``
-    public let sourceKind: SourceKind
+    internal(set) public var sourceKind: SourceKind
 
     /// OptionSet value representation of the roles the source plays.
     public let roles: SourceRole
@@ -30,15 +30,15 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
     public let location: SourceLocation
 
     /// Optional parent type that declares/owns the declaration type.
-    /// - See: ``SourceDetails``
-    public var parent: SourceDetails? { _parents.first }
+    /// - See: ``SourceSymbol``
+    public var parent: SourceSymbol? { _parents.first }
 
-    /// Iterator holding an array of `SourceDetails` representing the parent heirachy that owns the declaration.
+    /// Iterator holding an array of ``SourceSymbol`` representing the parent heirachy that owns the declaration.
     ///
     /// Parent items are ordered from `0` being the immediate parent/declaring type, with each `next`/index being the next parent in the heirachy
-    public var parentsIterator: AnyIterator<SourceDetails> {
-        var parents: [SourceDetails] = []
-        var nextParent: SourceDetails? = parent
+    public var parentsIterator: AnyIterator<SourceSymbol> {
+        var parents: [SourceSymbol] = []
+        var nextParent: SourceSymbol? = parent
         while nextParent != nil {
             if let element = nextParent {
                 parents.append(element)
@@ -46,20 +46,20 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
             nextParent = nextParent?.parent
         }
         let baseIterator = SourceDetailsIterator(SourceDetailsCollection(items: parents))
-        return AnyIterator<SourceDetails>(baseIterator)
+        return AnyIterator<SourceSymbol>(baseIterator)
     }
 
-    /// Array of ``SourceDetails`` representing the source types that the declaration conforms to (or inherits from).
+    /// Array of ``SourceSymbol`` representing the source types that the declaration conforms to (or inherits from).
     ///
     /// Inheritence items are ordered from `0` being the immediate inheritence with each subsequent element being the next conforming type in the declaration.
-    public let inheritance: [SourceDetails]
+    public let inheritance: [SourceSymbol]
 
     // MARK: - Properties: Internal
 
-    /// Array holding the direct parent ``SourceDetails`` instance (if any).
+    /// Array holding the direct parent ``SourceSymbol`` instance (if any).
     ///
     /// This is used to avoid using a class and protocols as Value types can't recursively contain their own type.
-    let _parents: [SourceDetails]
+    let _parents: [SourceSymbol]
 
     // MARK: - Lifecycle
 
@@ -69,8 +69,8 @@ public struct SourceDetails: Identifiable, CustomStringConvertible, Equatable {
         sourceKind: SourceKind,
         roles: SourceRole,
         location: SourceLocation,
-        parent: SourceDetails? = nil,
-        inheritence: [SourceDetails] = []
+        parent: SourceSymbol? = nil,
+        inheritence: [SourceSymbol] = []
     ) {
         self.name = name
         self.usr = usr

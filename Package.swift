@@ -13,6 +13,7 @@ let package = Package(
             targets: ["IndexStore"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-format.git", exact: "0.50800.0-SNAPSHOT-2022-12-29-a"),
         .package(url: "https://github.com/apple/indexstore-db.git", branch: "release/5.9"),
@@ -26,10 +27,17 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
                 .product(name: "IndexStoreDB", package: "indexstore-db"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Files", package: "Files")
             ]),
         .testTarget(
             name: "IndexStoreTests",
-            dependencies: ["IndexStore"]),
+            dependencies: [
+                "IndexStore"
+            ],
+            resources: [
+                .copy("Configurations")
+            ]
+        ),
     ]
 )
