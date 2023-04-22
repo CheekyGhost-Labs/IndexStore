@@ -11,6 +11,15 @@ public extension IndexStore {
 
     // MARK: - All Declarations
 
+    /// Will return any declaration symbols matching the given type query that match the `.protocol`, `.class`, `.enum`, `.struct`, or `.typealias` source kinds.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forDeclarationsMatching query: String,
         anchorStart: Bool = true,
@@ -31,6 +40,15 @@ public extension IndexStore {
 
     // MARK: - Declaration Specifics
 
+    /// Will return any `class` declaration symbols matching the given type query.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forClassesMatching query: String,
         anchorStart: Bool = true,
@@ -49,6 +67,15 @@ public extension IndexStore {
         )
     }
 
+    /// Will return any `protocol` declaration symbols matching the given type query.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forProtocolsMatching query: String,
         anchorStart: Bool = true,
@@ -67,6 +94,15 @@ public extension IndexStore {
         )
     }
 
+    /// Will return any `struct` declaration symbols matching the given type query.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forStructsMatching query: String,
         anchorStart: Bool = true,
@@ -85,6 +121,15 @@ public extension IndexStore {
         )
     }
 
+    /// Will return any `enum` declaration symbols matching the given type query.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forEnumerationsMatching query: String,
         anchorStart: Bool = true,
@@ -103,6 +148,15 @@ public extension IndexStore {
         )
     }
 
+    /// Will return any `typealias` declaration symbols matching the given type query.
+    ///
+    /// - Parameters:
+    ///   - query: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forTypealiasesMatching query: String,
         anchorStart: Bool = true,

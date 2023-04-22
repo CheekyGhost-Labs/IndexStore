@@ -11,13 +11,14 @@ import IndexStoreDB
 public extension IndexStore {
 
     /// Will return the source details for any  extension declarations/symbols within the store that extend the given source type.
+    ///
     /// - Parameters:
-    ///   - type: The source type being extended
-    ///   - anchorStart: <#anchorStart description#>
-    ///   - anchorEnd: <#anchorEnd description#>
-    ///   - includeSubsequence: <#includeSubsequence description#>
-    ///   - caseInsensitive: <#caseInsensitive description#>
-    /// - Returns: Array of ``SourceDetails`` instances.
+    ///   - type: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forExtensionsOfType type: String,
         anchorStart: Bool = true,
@@ -36,29 +37,17 @@ public extension IndexStore {
         )
     }
 
-    func sourceDetailsForExtensions() -> [SourceDetails] {
-        let sourceFiles = swiftSourceFiles()
-        let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
-        let usrs = rawResults.map(\.symbol.usr)
-        var results: [SourceDetails] = []
-        usrs.forEach {
-            let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
-            let relations: [SymbolRelation] = references.flatMap(\.relations)
-            // For each valid relation usr - resolve the symbol and transform into SourceDetail
-            relations.forEach { relation in
-                /*
-                 Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
-                 have the `.extendedBy`. Including `.definition` for safety.
-                 */
-                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
-                let transformed = symbols.compactMap(sourceDetailsFromOccurence)
-                // Append valid symbols to the result set
-                results.append(contentsOf: transformed)
-            }
-        }
-        return results
-    }
-
+    /// Will return the source details for any  empty extensions on  types matching  given query.
+    ///
+    /// **Note:** Empty extensions do not have a unique `usr`. The location and lines etc will be accurate,
+    /// however, the ``SourceDetails/usr`` property will reference the parent symbol.
+    /// - Parameters:
+    ///   - type: The type name to search for.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetails(
         forEmptyExtensionsOfType type: String,
         anchorStart: Bool = true,
@@ -88,6 +77,35 @@ public extension IndexStore {
         return results
     }
 
+    /// Will return the source details for any extensions of types.
+    ///
+    /// - Returns: Array of ``SourceDetails`` instances
+    func sourceDetailsForExtensions() -> [SourceDetails] {
+        let sourceFiles = swiftSourceFiles()
+        let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
+        let usrs = rawResults.map(\.symbol.usr)
+        var results: [SourceDetails] = []
+        usrs.forEach {
+            let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
+            let relations: [SymbolRelation] = references.flatMap(\.relations)
+            // For each valid relation usr - resolve the symbol and transform into SourceDetail
+            relations.forEach { relation in
+                /*
+                 Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
+                 have the `.extendedBy`. Including `.definition` for safety.
+                 */
+                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
+                let transformed = symbols.compactMap(sourceDetailsFromOccurence)
+                // Append valid symbols to the result set
+                results.append(contentsOf: transformed)
+            }
+        }
+        return results
+    }
+
+    /// Will return the source details for any empty extensions of types.
+    ///
+    /// - Returns: Array of ``SourceDetails`` instances
     func sourceDetailsForEmptyExtensions() -> [SourceDetails] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
