@@ -56,7 +56,7 @@ public enum SourceResolvingError: Equatable, LocalizedError {
                 "The contents of the resolved source path was not able to be read. Please review the `cause` and ensure adequate permissions are granted."
         case .unableToResolveSourceLine:
             return
-                "The contents of the resolved source path were found but the line in the source details instance was not resolvable. The reference is probably a cached reference but the file has been modified. Please ensure any indexing has completed and try again."
+                "The contents of the resolved source path were found but the line in the source symbols instance was not resolvable. The reference is probably a cached reference but the file has been modified. Please ensure any indexing has completed and try again."
         }
     }
 }

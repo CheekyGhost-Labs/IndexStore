@@ -47,7 +47,7 @@ final class SourceResolvingErrorTests: XCTestCase {
             "The source reference is probably cached in the index but the file has been removed. Please restore the file or ignore the declaration",
             "The contents of the resolved source path is empty. The source reference is probably cached in the index but the contents has been removed. This is treated as an error due to the reference not being present.",
             "The contents of the resolved source path was not able to be read. Please review the `cause` and ensure adequate permissions are granted.",
-            "The contents of the resolved source path were found but the line in the source details instance was not resolvable. The reference is probably a cached reference but the file has been modified. Please ensure any indexing has completed and try again.",
+            "The contents of the resolved source path were found but the line in the source symbols instance was not resolvable. The reference is probably a cached reference but the file has been modified. Please ensure any indexing has completed and try again.",
         ]
         for (index, error) in errors.enumerated() {
             XCTAssertEqual(error.recoverySuggestion, expectedFailureReasons[index])

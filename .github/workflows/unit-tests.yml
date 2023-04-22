@@ -1,14 +1,6 @@
 name: Build and Test
 
-on:
-  pull_request:
-    branches:
-      - main
-      - develop
-  push:
-    branches:
-      - main
-      - develop
+on: [push]
 
 jobs:
 
@@ -26,5 +18,8 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
       - name: Test
         run: swift test

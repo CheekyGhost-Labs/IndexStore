@@ -23,16 +23,20 @@ public struct SourceLocation: Equatable, CustomStringConvertible {
     /// The UTF-8 byte offset into the file where this location resides.
     public let offset: Int
 
+    /// `Bool` whether the source location is part of the system/platform.
+    public let isSystem: Bool
+
     /// `Bool` indicating whether the `path` resolves to a stale or missing location.
     public let isStale: Bool
 
     // MARK: - Lifecycle
 
-    public init(path: String, line: Int, column: Int, offset: Int, isStale: Bool) {
+    public init(path: String, line: Int, column: Int, offset: Int, isSystem: Bool, isStale: Bool) {
         self.path = path
         self.line = line
         self.column = column
         self.offset = offset
+        self.isSystem = isSystem
         self.isStale = isStale
     }
 
@@ -41,6 +45,7 @@ public struct SourceLocation: Equatable, CustomStringConvertible {
         line = symbol.location.line
         column = symbol.location.utf8Column
         offset = symbol.location.utf8Column
+        isSystem = symbol.location.isSystem
         isStale = FileManager.default.fileExists(atPath: path)
     }
 
