@@ -19,14 +19,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forDeclarationsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.protocol, .class, .enum, .struct, .typealias],
@@ -48,14 +48,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forClassesMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.class],
@@ -75,14 +75,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forProtocolsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.protocol],
@@ -102,14 +102,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forStructsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.struct],
@@ -129,14 +129,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forEnumerationsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.enum],
@@ -156,14 +156,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forTypealiasesMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.typealias],

@@ -14,7 +14,7 @@ final class IndexStoreTests: IndexStoreTestCase {
     // MARK: - Tests: Direct
 
     // NOTE: Expensive task time wise
-    func test_sourceDetailsForSourceKinds_rootClass_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForSourceKinds_rootClass_willReturnExpectedValues() throws {
 //        let results = instanceUnderTest.sourceDetails(forSourceKinds: [.protocol])
 //        XCTAssertEqual(results.count, 8)
 //        let targetResult = results[0]
@@ -35,14 +35,14 @@ final class IndexStoreTests: IndexStoreTestCase {
 //        XCTAssertEqual(extensionResult.location.offset, 11)
     }
 
-    func test_sourceDetailsInSourceFiles_protocols_willReturnExpectedValues() {
+    func test_sourceSymbolsInSourceFiles_protocols_willReturnExpectedValues() {
 //        let samplesDir = "\(instanceUnderTest.configuration.projectDirectory)/Tests/IndexStoreTests/Samples"
 //        let sourceFiles = instanceUnderTest.swiftSourceFiles(inProjectDirectory: samplesDir)
 //        let results = instanceUnderTest.sourceDetails(inSourceFiles: sourceFiles, kinds: [.protocol])
 
     }
 
-    func test_sourceDetailsInSourceFiles_extensions_willReturnExpectedValues() {
+    func test_sourceSymbolsInSourceFiles_extensions_willReturnExpectedValues() {
 //        let samplesDir = "\(instanceUnderTest.configuration.projectDirectory)/Tests/IndexStoreTests/Samples"
 //        let sourceFiles = instanceUnderTest.swiftSourceFiles(inProjectDirectory: samplesDir)
 //        let results = instanceUnderTest.sourceDetails(inSourceFiles: sourceFiles, kinds: [.extension])
@@ -51,7 +51,7 @@ final class IndexStoreTests: IndexStoreTestCase {
 
     // MARK: - Tests: Declarations
 
-    func test_sourceDetailsForDeclarations_rootClass_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForDeclarations_rootClass_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forDeclarationsMatching: "RootClass")
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
@@ -66,7 +66,7 @@ final class IndexStoreTests: IndexStoreTestCase {
 
     // MARK: - Declarations: Classes
 
-    func test_sourceDetailsForClasses_root_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForClasses_root_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forClassesMatching: "RootClass")
         let expectedPathSuffix = pathSuffix("Classes.swift")
         XCTAssertEqual(results.count, 1)
@@ -80,7 +80,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 7)
     }
 
-    func test_sourceDetailsForClasses_nested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForClasses_nested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forClassesMatching: "NestedClass")
         let expectedPathSuffix = pathSuffix("Classes.swift")
         XCTAssertEqual(results.count, 1)
@@ -95,7 +95,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForClasses_doubleNested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForClasses_doubleNested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forClassesMatching: "DoubleNestedClass")
         let expectedPathSuffix = pathSuffix("Classes.swift")
         XCTAssertEqual(results.count, 1)
@@ -112,14 +112,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 15)
     }
 
-    func test_sourceDetailsForClasses_notClassType_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForClasses_notClassType_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forClassesMatching: "RootStruct")
         XCTAssertEqual(results.count, 0)
     }
 
     // MARK: - Tests: Declarations: Structs
 
-    func test_sourceDetailsForStructs_root_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForStructs_root_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forStructsMatching: "RootStruct")
         let expectedPathSuffix = pathSuffix("Structs.swift")
         XCTAssertEqual(results.count, 1)
@@ -133,7 +133,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 8)
     }
 
-    func test_sourceDetailsForStructs_nested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForStructs_nested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forStructsMatching: "NestedStruct")
         let expectedPathSuffix = pathSuffix("Structs.swift")
         XCTAssertEqual(results.count, 1)
@@ -148,7 +148,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 12)
     }
 
-    func test_sourceDetailsForStructs_doubleNested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForStructs_doubleNested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forStructsMatching: "DoubleNestedStruct")
         let expectedPathSuffix = pathSuffix("Structs.swift")
         XCTAssertEqual(results.count, 1)
@@ -165,7 +165,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 16)
     }
 
-    func test_sourceDetailsForStructs_Inheritence_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForStructs_Inheritence_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forStructsMatching: "InheritenceStruct")
         let expectedPathSuffix = pathSuffix("Inheritence.swift")
         XCTAssertEqual(results.count, 1)
@@ -193,14 +193,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertTrue(nextInheritence.location.path.hasSuffix("Protocols.swift"))
     }
 
-    func test_sourceDetailsForStructs_notStructType_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForStructs_notStructType_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forStructsMatching: "RootClass")
         XCTAssertEqual(results.count, 0)
     }
 
     // MARK: - Tests: Declarations: Enums
 
-    func test_sourceDetailsForEnumerations_root_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForEnumerations_root_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forEnumerationsMatching: "RootEnum")
         let expectedPathSuffix = pathSuffix("Enums.swift")
         XCTAssertEqual(results.count, 1)
@@ -214,7 +214,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 6)
     }
 
-    func test_sourceDetailsForEnumerations_nested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForEnumerations_nested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forEnumerationsMatching: "NestedEnum")
         let expectedPathSuffix = pathSuffix("Enums.swift")
         XCTAssertEqual(results.count, 3)
@@ -247,7 +247,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(classEnum.location.offset, 10)
     }
 
-    func test_sourceDetailsForEnumerations_doubleNested_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForEnumerations_doubleNested_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forEnumerationsMatching: "DoubleNestedEnum")
         let expectedPathSuffix = pathSuffix("Enums.swift")
         XCTAssertEqual(results.count, 1)
@@ -264,14 +264,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 14)
     }
 
-    func test_sourceDetailsForEnumerations_notEnumType_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForEnumerations_notEnumType_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forEnumerationsMatching: "RootClass")
         XCTAssertEqual(results.count, 0)
     }
 
     // MARK: - Tests: Declarations: Protocols
 
-    func test_sourceDetailsForProtocols_basic_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForProtocols_basic_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forProtocolsMatching: "RootProtocol")
         let expectedPathSuffix = pathSuffix("Protocols.swift")
         XCTAssertEqual(results.count, 1)
@@ -285,7 +285,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 10)
     }
 
-    func test_sourceDetailsForProtocols_system_inheritence_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForProtocols_system_inheritence_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forProtocolsMatching: "ProtocolWithSystemInheritence")
         let expectedPathSuffix = pathSuffix("Protocols.swift")
         XCTAssertEqual(results.count, 1)
@@ -299,7 +299,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 10)
     }
 
-    func test_sourceDetailsForProtocols_custom_inheritence_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForProtocols_custom_inheritence_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forProtocolsMatching: "ProtocolWithInheritence")
         let expectedPathSuffix = pathSuffix("Protocols.swift")
         XCTAssertEqual(results.count, 1)
@@ -313,14 +313,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 10)
     }
 
-    func test_sourceDetailsForProtocols_notProtocolType_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForProtocols_notProtocolType_willReturnExpectedValues() throws {
         let results = instanceUnderTest.sourceDetails(forProtocolsMatching: "ProtocolName")
         XCTAssertEqual(results.count, 0)
     }
 
     // MARK: - Tests: Extension
 
-    func test_sourceDetailsForType_extension_class_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_extension_class_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootClass",
             kinds: [.extension],
@@ -338,7 +338,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForType_extension_struct_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_extension_struct_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootStruct",
             kinds: [.extension],
@@ -356,7 +356,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForType_extension_enum_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_extension_enum_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootEnum",
             kinds: [.extension],
@@ -374,7 +374,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForType_extension_protocol_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_extension_protocol_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "RootProtocol",
             kinds: [.extension],
@@ -392,7 +392,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForType_extension_multiple_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_extension_multiple_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(
             matchingType: "ProtocolWithSystemInheritence",
             kinds: [.extension],
@@ -418,7 +418,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(lastResult.location.offset, 11)
     }
 
-    func test_sourceDetailsExtendingType_willReturnExpectedValues() {
+    func test_sourceSymbolsExtendingType_willReturnExpectedValues() {
         let results = instanceUnderTest.sourceDetails(forExtensionsOfType: "ProtocolWithSystemInheritence")
         let expectedPathSuffix = pathSuffix("Extensions.swift")
         XCTAssertEqual(results.count, 2)
@@ -440,7 +440,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(lastResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForEmptyExtensionsOfType_willReturnExpectedValues() {
+    func test_sourceSymbolsForEmptyExtensionsOfType_willReturnExpectedValues() {
         let results = instanceUnderTest.sourceDetails(forEmptyExtensionsOfType: "RootClass")
         let expectedPathSuffix = pathSuffix("Extensions.swift")
         XCTAssertEqual(results.count, 1)
@@ -454,14 +454,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(firstResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForExtensions_willReturnExpectedValues() {
+    func test_sourceSymbolsForExtensions_willReturnExpectedValues() {
         // let results = instanceUnderTest.sourceDetailsForExtensions()
 
     }
 
     // MARK: - Tests: TypeAlias
 
-    func test_sourceDetailsForType_typeAlias_root_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_typeAlias_root_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "RootAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
@@ -475,7 +475,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
-    func test_sourceDetailsForType_typeAlias_nested_enum_many_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_typeAlias_nested_enum_many_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "NestedAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 2)
@@ -499,7 +499,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(barResult.location.offset, 15)
     }
 
-    func test_sourceDetailsForType_typeAlias_nested_struct_single_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_typeAlias_nested_struct_single_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "StructAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
@@ -514,7 +514,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(fooResult.location.offset, 15)
     }
 
-    func test_sourceDetailsForType_typeAlias_nested_class_single_willReturnExpectedValues() throws {
+    func test_sourceSymbolsForType_typeAlias_nested_class_single_willReturnExpectedValues() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "ClassAlias", kinds: [.typealias])
         let expectedPathSuffix = pathSuffix("Typealias.swift")
         XCTAssertEqual(results.count, 1)
@@ -529,7 +529,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(fooResult.location.offset, 15)
     }
 
-    func test_sourceDetailsForType_typeAlias_structName_willReturnNoResults() throws {
+    func test_sourceSymbolsForType_typeAlias_structName_willReturnNoResults() throws {
         let results = instanceUnderTest.queryIndexStoreSymbols(matchingType: "FooBar", kinds: [.typealias])
         XCTAssertEqual(results.count, 0)
     }
@@ -550,7 +550,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         let validDetails = instanceUnderTest.queryIndexStoreSymbols(matchingType: "SourceAlias", kinds: [.typealias])[0]
         let location = SourceLocation(
             path: validDetails.location.path, line: 100, column: 0, offset: 0, isSystem: false, isStale: false)
-        let details = SourceDetails(
+        let details = SourceSymbol(
             name: validDetails.name,
             usr: validDetails.usr,
             sourceKind: validDetails.sourceKind,
@@ -586,7 +586,7 @@ final class IndexStoreTests: IndexStoreTestCase {
     func test_sourceContentsForDetails_missingFile_willThrowError() throws {
         let location = SourceLocation(
             path: "file://missing/file.swift", line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
-        let details = SourceDetails(
+        let details = SourceSymbol(
             name: "SourceAlias",
             usr: "",
             sourceKind: .typealias,
@@ -606,7 +606,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         let emptyPath = validDetails.location.path.replacingOccurrences(
             of: "SourceContents.swift", with: "EmptySource.swift")
         let location = SourceLocation(path: emptyPath, line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
-        let details = SourceDetails(
+        let details = SourceSymbol(
             name: "SourceAlias",
             usr: "",
             sourceKind: .typealias,
@@ -680,7 +680,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
     }
 
-    func test_sourceDetailsForFunctionsMatching_willReturnExpectedResults() throws {
+    func test_sourceSymbolsForFunctionsMatching_willReturnExpectedResults() throws {
         // let results = instanceUnderTest.sourceDetails(forFunctionsMatching: "performOperation")
     }
 }

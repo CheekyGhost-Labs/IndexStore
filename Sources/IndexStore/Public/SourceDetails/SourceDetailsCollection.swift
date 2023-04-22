@@ -12,8 +12,8 @@ public struct SourceDetailsCollection: Sequence, Equatable {
 
     // MARK: - Properties
 
-    /// Array of `SourceDetails` representing the parent heirachy of a `SourceDetails`.
-    private(set) public var items: [SourceDetails] = [] {
+    /// Array of ``SourceSymbol`` representing the parent heirachy of a ``SourceSymbol`` instances.
+    private(set) public var items: [SourceSymbol] = [] {
         didSet {
             lastCount = items.count
         }
@@ -28,17 +28,17 @@ public struct SourceDetailsCollection: Sequence, Equatable {
 
     // MARK: - Lifecycle
 
-    public init(items: [SourceDetails]) {
+    public init(items: [SourceSymbol]) {
         self.items = items
     }
 
     // MARK: - Sequence
 
-    public mutating func append(_ item: SourceDetails) {
+    public mutating func append(_ item: SourceSymbol) {
         items.append(item)
     }
 
-    public func makeIterator() -> AnyIterator<SourceDetails> {
+    public func makeIterator() -> AnyIterator<SourceSymbol> {
         var index = 0
 
         return AnyIterator {
@@ -73,7 +73,7 @@ public class SourceDetailsIterator: IteratorProtocol, Equatable {
 
     /// Will move to and return the next element in the iterator.
     /// - Returns: The next item in the iterator
-    @discardableResult public func next() -> SourceDetails? {
+    @discardableResult public func next() -> SourceSymbol? {
         defer { index += 1 }
         return index < collection.items.count ? collection.items[index] : nil
     }

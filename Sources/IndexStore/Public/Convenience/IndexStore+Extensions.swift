@@ -10,7 +10,7 @@ import IndexStoreDB
 
 public extension IndexStore {
 
-    /// Will return the source details for any  extension declarations/symbols within the store that extend the given source type.
+    /// Will return the source symbols for any  extension declarations/symbols within the store that extend the given source type.
     ///
     /// - Parameters:
     ///   - type: The type name to search for.
@@ -18,14 +18,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forExtensionsOfType type: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: type,
             kinds: [.extension],
@@ -37,7 +37,7 @@ public extension IndexStore {
         )
     }
 
-    /// Will return the source details for any  empty extensions on  types matching  given query.
+    /// Will return the source symbols for any  empty extensions on  types matching  given query.
     ///
     /// **Note:** Empty extensions do not have a unique `usr`. The location and lines etc will be accurate,
     /// however, the ``SourceDetails/usr`` property will reference the parent symbol.
@@ -47,14 +47,14 @@ public extension IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: Array of ``SourceDetails`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     func sourceDetails(
         forEmptyExtensionsOfType type: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         let rawResults = workspace.findWorkspaceSymbols(
             matching: type,
             roles: [.definition],
@@ -63,7 +63,7 @@ public extension IndexStore {
             includeSubsequence: includeSubsequence,
             caseInsensitive: caseInsensitive
         )
-        var results: [SourceDetails] = []
+        var results: [SourceSymbol] = []
         let usrs = rawResults.map(\.symbol.usr)
         usrs.forEach {
             let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
@@ -77,14 +77,14 @@ public extension IndexStore {
         return results
     }
 
-    /// Will return the source details for any extensions of types.
+    /// Will return the source symbols for any extensions of types.
     ///
-    /// - Returns: Array of ``SourceDetails`` instances
-    func sourceDetailsForExtensions() -> [SourceDetails] {
+    /// - Returns: Array of ``SourceSymbol`` instances
+    func sourceDetailsForExtensions() -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
         let usrs = rawResults.map(\.symbol.usr)
-        var results: [SourceDetails] = []
+        var results: [SourceSymbol] = []
         usrs.forEach {
             let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
             let relations: [SymbolRelation] = references.flatMap(\.relations)
@@ -103,13 +103,13 @@ public extension IndexStore {
         return results
     }
 
-    /// Will return the source details for any empty extensions of types.
+    /// Will return the source symbols for any empty extensions of types.
     ///
-    /// - Returns: Array of ``SourceDetails`` instances
-    func sourceDetailsForEmptyExtensions() -> [SourceDetails] {
+    /// - Returns: Array of ``SourceSymbol`` instances
+    func sourceDetailsForEmptyExtensions() -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
-        var results: [SourceDetails] = []
+        var results: [SourceSymbol] = []
         let usrs = rawResults.map(\.symbol.usr)
         usrs.forEach {
             let references = workspace.occurrences(ofUSR: $0, roles: [.reference])

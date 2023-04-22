@@ -11,7 +11,7 @@ import IndexStoreDB
 import Logging
 import TSCBasic
 
-/// Class abstracting `IndexStoreDB` functionality that serves ``SourceDetails`` results.
+/// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
 public final class IndexStore {
 
     // MARK: - Properties
@@ -71,7 +71,7 @@ public final class IndexStore {
     /// - Parameter details: The source declaration details to resolve for.
     /// - Returns: `String` if the source file exists and can be read.
     /// - Throws: ``SourceResolvingError``
-    public func declarationSource(forDetails details: SourceDetails) throws -> String {
+    public func declarationSource(forDetails details: SourceSymbol) throws -> String {
         let contents = try sourceContents(forDetails: details)
         let lines = contents.components(separatedBy: .newlines)
         let normalisedLine = max(0, details.location.line - 1)
@@ -89,7 +89,7 @@ public final class IndexStore {
     /// - Parameter details: The source declaration details to resolve for.
     /// - Returns: `String` if the source file exists and can be read.
     /// - Throws: ``SourceResolvingError``
-    public func sourceContents(forDetails details: SourceDetails) throws -> String {
+    public func sourceContents(forDetails details: SourceSymbol) throws -> String {
         let path = details.location.path
         guard FileManager.default.fileExists(atPath: path) else {
             throw SourceResolvingError.sourcePathDoesNotExist(path: path)
@@ -109,7 +109,7 @@ public final class IndexStore {
 
     // MARK: - Helpers: Internal
 
-    /// Will return source details  for any declarations/symbols matching the given type and whose declaration kind is contained in the given array.
+    /// Will return source symbols  for any declarations/symbols matching the given type and whose declaration kind is contained in the given array.
     /// - Parameters:
     ///   - type: The type to search for.
     ///   - kinds: Array of ``SourceKind`` types to restrict results to.
@@ -118,7 +118,7 @@ public final class IndexStore {
     ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: `Array` of ``SourceDetails`` objects.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func queryIndexStoreSymbols(
         matchingType type: String,
         kinds: [SourceKind] = SourceKind.allCases,
@@ -127,7 +127,7 @@ public final class IndexStore {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         caseInsensitive: Bool = false
-    ) -> [SourceDetails] {
+    ) -> [SourceSymbol] {
         logger.debug("Searching for symbol occurances with type `\(type)`: kinds `\(kinds)`")
         let symbolRoles = SymbolRole(rawValue: roles.rawValue)
         let rawResults = workspace.findWorkspaceSymbols(
@@ -138,7 +138,7 @@ public final class IndexStore {
             includeSubsequence: includeSubsequence,
             caseInsensitive: caseInsensitive
         )
-        var results: [SourceDetails] = rawResults.compactMap(sourceDetailsFromOccurence)
+        var results: [SourceSymbol] = rawResults.compactMap(sourceDetailsFromOccurence)
         // Extensions have to be resolved via USR name
         guard kinds.contains(.extension) else {
             logger.debug("`.extensions` kind not included - skipping extensions lookup")
@@ -168,17 +168,17 @@ public final class IndexStore {
     /// - Parameters:
     ///   - results: The results to filter.
     ///   - kinds: Array of `SourceKind` types to filter with.
-    /// - Returns: Array of ``SourceDetails`` instances
-    func resultsFilteredByKind(results: [SourceDetails], kinds: [SourceKind]) -> [SourceDetails] {
+    /// - Returns: Array of ``SourceSymbol`` instances
+    func resultsFilteredByKind(results: [SourceSymbol], kinds: [SourceKind]) -> [SourceSymbol] {
         results.filter { kinds.contains($0.sourceKind) }
     }
 
-    /// Transforms the given occurance into a source details instance.
+    /// Transforms the given occurance into a source symbols instance.
     ///
     /// **Note: **Will also look up any inheritence and parents. This can increase time.
     /// - Parameter occurance: The occurence to transform
-    /// - Returns: ``SourceDetails``
-    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceDetails {
+    /// - Returns: ``SourceSymbol``
+    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurance.symbol.kind)
         // Source location
@@ -190,7 +190,7 @@ public final class IndexStore {
         // Inheritence
         let inheritenceCollection = resolveInheritenceForOccurence(occurance)
         // Result
-        let result = SourceDetails(
+        let result = SourceSymbol(
             name: occurance.symbol.name,
             usr: occurance.symbol.usr,
             sourceKind: kind,
@@ -204,8 +204,8 @@ public final class IndexStore {
 
     /// Will resolve the immediate parent for the given occurrence.
     /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
-    /// - Returns: ``SourceDetails`` instance or `nil`
-    func resolveParentForOccurence(_ symbolOccurance: SymbolOccurrence) -> SourceDetails? {
+    /// - Returns: ``SourceSymbol`` instance or `nil`
+    func resolveParentForOccurence(_ symbolOccurance: SymbolOccurrence) -> SourceSymbol? {
         guard
             let childOfRelation = symbolOccurance.relations.first(where: {
                 $0.roles.contains(.childOf)
@@ -226,16 +226,16 @@ public final class IndexStore {
         return sourceDetailsFromOccurence(parentOccurence)
     }
 
-    /// Will resolve the source details representing the types the given occurence conforms to or inherits from.
+    /// Will resolve the source symbols representing the types the given occurence conforms to or inherits from.
     /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
-    /// - Returns: ``SourceDetails`` instance or `nil`
-    func resolveInheritenceForOccurence(_ occurance: SymbolOccurrence) -> [SourceDetails] {
+    /// - Returns: ``SourceSymbol`` instance or `nil`
+    func resolveInheritenceForOccurence(_ occurance: SymbolOccurrence) -> [SourceSymbol] {
         let sourceKind = SourceKind(symbolKind: occurance.symbol.kind)
         let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
         guard validSourceKinds.contains(sourceKind) else { return [] }
         logger.debug("resolving inheritence for source `\(occurance.symbol.name)`")
         let references = workspace.occurrences(relatedToUSR: occurance.symbol.usr, roles: [.baseOf])
-        var results: [SourceDetails] = []
+        var results: [SourceSymbol] = []
         references.forEach { ref in
             guard
                 !results.contains(where: { $0.usr == ref.symbol.usr }),
