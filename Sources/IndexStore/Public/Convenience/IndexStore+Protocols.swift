@@ -12,7 +12,7 @@ extension IndexStore {
     /// Will return source symbols  for any declarations/symbols within the store that conform to the given protocol.
     /// - Parameter protocolName: The protocol to search for.
     /// - Returns: Array of ``SourceSymbol``
-    public func sourceDetails(conformingToProtocol protocolName: String) -> [SourceSymbol] {
+    public func sourceSymbols(conformingToProtocol protocolName: String) -> [SourceSymbol] {
         let rawResults = workspace.findWorkspaceSymbols(matching: protocolName).filter { $0.symbol.kind == .protocol }
         let conformingTypes: [SourceSymbol] = rawResults.flatMap {
             let conforming = workspace.occurrences(ofUSR: $0.symbol.usr, roles: [.reference, .baseOf])

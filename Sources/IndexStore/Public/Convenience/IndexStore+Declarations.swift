@@ -13,14 +13,20 @@ public extension IndexStore {
 
     /// Will return any declaration symbols matching the given type query that match the `.protocol`, `.class`, `.enum`, `.struct`, or `.typealias` source kinds.
     ///
+    /// You can build at subsequence and case insensetive searches by configuring different values.
+    /// For example, given the declaration `class RootClass { ...`
+    /// - searching for `ootClass` with `anchorStart: false, includeSubsequence: true` will return the symbol
+    /// - searching for `ootClass` with `anchorStart: true, includeSubsequence: true` will **not** return the symbol
+    /// - searching for `rootclass` with `anchorStart: true, caseInsensitive: true` will return the symbol
+    /// etc
     /// - Parameters:
     ///   - query: The type name to search for.
-    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
-    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
+    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word Default is `true`.
+    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word. Default is `true`.
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forDeclarationsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -49,7 +55,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forClassesMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -76,7 +82,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forProtocolsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -103,7 +109,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forStructsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -130,7 +136,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forEnumerationsMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -157,7 +163,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forTypealiasesMatching query: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,

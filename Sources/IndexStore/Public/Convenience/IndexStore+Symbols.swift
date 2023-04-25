@@ -19,7 +19,7 @@ extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
-    public func sourceDetails(
+    public func sourceSymbols(
         forSourceMatchingType type: String,
         kinds: [SourceKind] = SourceKind.allCases,
         anchorStart: Bool = true,
@@ -46,7 +46,7 @@ extension IndexStore {
     ///   - kinds: The source kinds to search for.
     ///   - roles: The roles any symbols must match.
     /// - Returns: Array of ``SourceSymbol`` instances.
-    public func sourceDetails(forSourceKinds kinds: [SourceKind]) -> [SourceSymbol] {
+    public func sourceSymbols(forSourceKinds kinds: [SourceKind]) -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         return sourceDetails(inSourceFiles: sourceFiles, kinds: kinds)
     }
@@ -56,7 +56,7 @@ extension IndexStore {
     ///   - filePaths: Array of source file paths to search in.
     ///   - kinds: The source kinds to filter results with.
     /// - Returns: Array of ``SourceSymbol``
-    public func sourceDetails(inSourceFiles filePaths: [String], kinds: [SourceKind]) -> [SourceSymbol] {
+    public func sourceSymbols(inSourceFiles filePaths: [String], kinds: [SourceKind]) -> [SourceSymbol] {
         let rawResults = workspace.symbolsInSourceFiles(at: filePaths, roles: [.definition])
         var results: [SourceSymbol] = rawResults.compactMap(sourceDetailsFromOccurence)
         // Extensions have to be resolved via USR name

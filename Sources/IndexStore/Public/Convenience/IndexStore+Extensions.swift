@@ -19,7 +19,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forExtensionsOfType type: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -48,7 +48,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(
+    func sourceSymbols(
         forEmptyExtensionsOfType type: String,
         anchorStart: Bool = true,
         anchorEnd: Bool = true,
@@ -80,7 +80,7 @@ public extension IndexStore {
     /// Will return the source symbols for any extensions of types.
     ///
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetailsForExtensions() -> [SourceSymbol] {
+    func sourceSymbolsForExtensions() -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
         let usrs = rawResults.map(\.symbol.usr)
@@ -106,7 +106,7 @@ public extension IndexStore {
     /// Will return the source symbols for any empty extensions of types.
     ///
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetailsForEmptyExtensions() -> [SourceSymbol] {
+    func sourceSymbolsForEmptyExtensions() -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition])
         var results: [SourceSymbol] = []

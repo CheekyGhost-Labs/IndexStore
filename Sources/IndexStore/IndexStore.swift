@@ -178,7 +178,7 @@ public final class IndexStore {
     /// **Note: **Will also look up any inheritence and parents. This can increase time.
     /// - Parameter occurance: The occurence to transform
     /// - Returns: ``SourceSymbol``
-    func sourceDetailsFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
+    func sourceSymbolsFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurance.symbol.kind)
         // Source location

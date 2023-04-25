@@ -19,7 +19,7 @@ public extension IndexStore {
     ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
     ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetails(forFunctionsMatching query: String, caseInsensitive: Bool = false) -> [SourceSymbol] {
+    func sourceSymbols(forFunctionsMatching query: String, caseInsensitive: Bool = false) -> [SourceSymbol] {
         queryIndexStoreSymbols(
             matchingType: query,
             kinds: [.instanceMethod],
@@ -36,7 +36,7 @@ public extension IndexStore {
     /// **Note: ** The source files must be in within the index or no results for that source file will be returned.
     /// - Parameter filePaths: Array of source file paths to search in.
     /// - Returns: Array of ``SourceSymbol`` instances.
-    func sourceDetails(forFunctionsInSourceFiles filePaths: [String]) -> [SourceSymbol] {
+    func sourceSymbols(forFunctionsInSourceFiles filePaths: [String]) -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         let rawResults = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition, .canonical]).filter {
             $0.symbol.kind == .instanceMethod
@@ -50,7 +50,7 @@ public extension IndexStore {
     /// **Note: ** This method iteratest through **all** source files in the project. It can be **very time expensive** if you
     /// have a vast source file count. Filtering for source kinds is also done while iterating.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceDetailsForFunctions() -> [SourceSymbol] {
+    func sourceSymbolsForFunctions() -> [SourceSymbol] {
         let sourceFiles = swiftSourceFiles()
         return sourceDetails(forFunctionsInSourceFiles: sourceFiles)
     }
