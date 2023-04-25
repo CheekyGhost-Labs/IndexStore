@@ -11,7 +11,7 @@ import IndexStoreDB
 /// Enumeration of supported roles a source declaration can contain.
 ///
 /// **Note: ** These are mapped from the `IndexStoreDB.SymbolRole` option set.
-public struct SourceRole: OptionSet, Hashable {
+public struct SourceRole: OptionSet, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     public var rawValue: UInt64
     // Primary Roles
     public static let declaration: SourceRole = SourceRole(rawValue: SymbolRole.declaration.rawValue)
@@ -43,4 +43,32 @@ public struct SourceRole: OptionSet, Hashable {
     public init(rawValue: UInt64) {
         self.rawValue = rawValue
     }
+
+    // MARK: - Convenience
+
+    public var description: String {
+        var results: [String] = []
+        if contains(.declaration) { results.append("declaration") }
+        if contains(.definition) { results.append("definition") }
+        if contains(.reference) { results.append("reference") }
+        if contains(.read) { results.append("read") }
+        if contains(.write) { results.append("write") }
+        if contains(.call) { results.append("call") }
+        if contains(.dynamic) { results.append("dynamic") }
+        if contains(.addressOf) { results.append("addressOf") }
+        if contains(.implicit) { results.append("implicit") }
+        if contains(.childOf) { results.append("childOf") }
+        if contains(.baseOf) { results.append("baseOf") }
+        if contains(.overrideOf) { results.append("overrideOf") }
+        if contains(.receivedBy) { results.append("receivedBy") }
+        if contains(.calledBy) { results.append("calledBy") }
+        if contains(.extendedBy) { results.append("extendedBy") }
+        if contains(.accessorOf) { results.append("accessorOf") }
+        if contains(.containedBy) { results.append("containedBy") }
+        if contains(.ibTypeOf) { results.append("ibTypeOf") }
+        if contains(.specializationOf) { results.append("specializationOf") }
+        return results.joined(separator: ", ")
+    }
+
+    public var debugDescription: String { description }
 }

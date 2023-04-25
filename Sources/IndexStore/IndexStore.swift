@@ -43,8 +43,63 @@ public final class IndexStore {
 
     // MARK: - Public: Convenience
 
+    /// Will return source symbols  for any declarations/symbols matching the given query.
+    /// - Parameter query: The ``IndexStoreQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func querySymbols(_ query: IndexStoreQuery) -> [SourceSymbol] {
+        // Map to workspace expectations
+        let symbolKinds = query.kinds.map(\.indexSymbolKind)
+        let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
+
+        // Resolve raw results
+        var rawResults: OrderedSet<SymbolOccurrence> = []
+
+        // Direct index lookup
+        if query.sourceFiles == nil {
+            // Perform standard
+            guard let queryTerm = query.query, !queryTerm.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                logger.warning("Query term is `nil` or empty. Returning empty results as no source files provided.")
+                return []
+            }
+            logger.debug("Searching for symbols matching `\(queryTerm)`: kinds `\(query.kinds)`")
+            let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+            rawResults = workspace.querySymbols(
+                matching: queryTerm,
+                kinds: symbolKinds,
+                roles: symbolRoles,
+                anchorStart: query.anchorStart,
+                anchorEnd: query.anchorEnd,
+                includeSubsequence: query.includeSubsequence,
+                ignoreCase: query.ignoreCase,
+                restrictToLocation: targetDirectory
+            )
+        }
+        if let sourceFiles = query.sourceFiles {
+            if sourceFiles.isEmpty {
+                logger.warning("Source files is `nil` or empty. Returning empty results.")
+                return []
+            }
+            let queryLogMessage = (query.query != nil) ? "symbols matching \(query.query ?? "")" : "all symbols"
+            logger.debug("Searching in `\(sourceFiles.count)` files for \(queryLogMessage): kinds `\(query.kinds)`")
+            let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+            rawResults = workspace.querySymbols(
+                inSourceFiles: sourceFiles,
+                matching: query.query,
+                kinds: symbolKinds,
+                roles: symbolRoles,
+                anchorStart: query.anchorStart,
+                anchorEnd: query.anchorEnd,
+                includeSubsequence: query.includeSubsequence,
+                ignoreCase: query.ignoreCase,
+                restrictToLocation: targetDirectory
+            )
+        }
+        let results = rawResults.compactMap(sourceSymbolFromOccurence)
+        return results
+    }
+
     /// Will return all swift source file paths within the given project directory.
-    /// - Parameter projectRoot: The project directory
+    /// - Parameter projectRoot: The project directory to resolve source files from. Default is `Configuration.projectDirectory`
     /// - Returns: Array of source file path `String` types
     public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
         let projectRoot = projectRoot ?? configuration.projectDirectory
@@ -109,76 +164,12 @@ public final class IndexStore {
 
     // MARK: - Helpers: Internal
 
-    /// Will return source symbols  for any declarations/symbols matching the given type and whose declaration kind is contained in the given array.
-    /// - Parameters:
-    ///   - type: The type to search for.
-    ///   - kinds: Array of ``SourceKind`` types to restrict results to.
-    ///   - roles: ``SourceRole`` set types to restrict results to.
-    ///   - anchorStart: Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
-    ///   - anchorEnd: Bool wether to anchor the search term to the end bounds of a word or line. Default is `true`.
-    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
-    ///   - caseInsensitive: Bool whether to perform a case insensitive search. Default is `false`.
-    /// - Returns: `Array` of ``SourceSymbol`` objects.
-    public func queryIndexStoreSymbols(
-        matchingType type: String,
-        kinds: [SourceKind] = SourceKind.allCases,
-        roles: SourceRole = .all,
-        anchorStart: Bool = true,
-        anchorEnd: Bool = true,
-        includeSubsequence: Bool = false,
-        caseInsensitive: Bool = false
-    ) -> [SourceSymbol] {
-        logger.debug("Searching for symbol occurances with type `\(type)`: kinds `\(kinds)`")
-        let symbolRoles = SymbolRole(rawValue: roles.rawValue)
-        let rawResults = workspace.findWorkspaceSymbols(
-            matching: type,
-            roles: symbolRoles,
-            anchorStart: anchorStart,
-            anchorEnd: anchorEnd,
-            includeSubsequence: includeSubsequence,
-            caseInsensitive: caseInsensitive
-        )
-        var results: [SourceSymbol] = rawResults.compactMap(sourceDetailsFromOccurence)
-        // Extensions have to be resolved via USR name
-        guard kinds.contains(.extension) else {
-            logger.debug("`.extensions` kind not included - skipping extensions lookup")
-            return resultsFilteredByKind(results: results, kinds: kinds)
-        }
-        logger.debug("`.extensions` kind included - performing USR extension lookup")
-        let usrs = results.map(\.usr)
-        usrs.forEach {
-            let references = workspace.occurrences(ofUSR: $0, roles: [.reference])
-            let relations: [SymbolRelation] = references.flatMap(\.relations)
-            // For each valid relation usr - resolve the symbol and transform into SourceDetail
-            relations.forEach { relation in
-                /*
-                 Empty extensions will not resolve (which is ideal as it has no extended behavior), if it has declarations it will
-                 have the `.extendedBy`. Including `.definition` for safety.
-                 */
-                let symbols = workspace.occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
-                let transformed = symbols.compactMap(sourceDetailsFromOccurence)
-                // Append valid symbols to the result set
-                results.append(contentsOf: transformed)
-            }
-        }
-        return resultsFilteredByKind(results: results, kinds: kinds)
-    }
-
-    /// Will filter the given results by the given source kinds
-    /// - Parameters:
-    ///   - results: The results to filter.
-    ///   - kinds: Array of `SourceKind` types to filter with.
-    /// - Returns: Array of ``SourceSymbol`` instances
-    func resultsFilteredByKind(results: [SourceSymbol], kinds: [SourceKind]) -> [SourceSymbol] {
-        results.filter { kinds.contains($0.sourceKind) }
-    }
-
     /// Transforms the given occurance into a source symbols instance.
     ///
     /// **Note: **Will also look up any inheritence and parents. This can increase time.
     /// - Parameter occurance: The occurence to transform
     /// - Returns: ``SourceSymbol``
-    func sourceSymbolsFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
+    func sourceSymbolFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurance.symbol.kind)
         // Source location
@@ -223,7 +214,7 @@ public final class IndexStore {
         else {
             return nil
         }
-        return sourceDetailsFromOccurence(parentOccurence)
+        return sourceSymbolFromOccurence(parentOccurence)
     }
 
     /// Will resolve the source symbols representing the types the given occurence conforms to or inherits from.
@@ -233,17 +224,18 @@ public final class IndexStore {
         let sourceKind = SourceKind(symbolKind: occurance.symbol.kind)
         let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
         guard validSourceKinds.contains(sourceKind) else { return [] }
+        let symbolKinds = validSourceKinds.map(\.indexSymbolKind)
         logger.debug("resolving inheritence for source `\(occurance.symbol.name)`")
         let references = workspace.occurrences(relatedToUSR: occurance.symbol.usr, roles: [.baseOf])
         var results: [SourceSymbol] = []
         references.forEach { ref in
             guard
                 !results.contains(where: { $0.usr == ref.symbol.usr }),
-                ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name }),
-                let details = queryIndexStoreSymbols(matchingType: ref.symbol.name, kinds: validSourceKinds).first
+                ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name })
             else {
                 return
             }
+            let details = sourceSymbolFromOccurence(ref)
             results.append(details)
         }
         return results
