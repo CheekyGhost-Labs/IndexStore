@@ -10,34 +10,63 @@ import IndexStoreDB
 
 /// Enumeration of declaration types source kinds utilised when resolving source types.
 public enum SourceKind: String, CaseIterable, Equatable {
+    /// Represents an unsupported or unknown source kind.
     case unsupported
+    /// Represents a module, such as a Swift module or a C++ namespace.
     case module
+    /// Represents a namespace, such as in C++ code.
     case namespace
+    /// Represents a namespace alias, often found in C++ code.
     case namespaceAlias
+    /// Represents a preprocessor macro.
     case macro
+    /// Represents an enumeration type.
     case `enum`
+    /// Represents a structure type.
     case `struct`
+    /// Represents a class type.
     case `class`
+    /// Represents a protocol or interface type.
     case `protocol`
+    /// Represents an extension or category of a type.
     case `extension`
+    /// Represents a union type, often found in C or C++ code.
     case union
+    /// Represents a type alias, such as a `typealias` in Swift or a `typedef` in C++.
     case `typealias`
+    /// Represents a function or method.
     case function
+    /// Represents a variable, such as a global variable or a local variable in a function.
     case variable
+    /// Represents a field within a structure or class.
     case field
+    /// Represents an enumeration constant.
     case enumConstant
+    /// Represents an instance method of a class or structure.
     case instanceMethod
+    /// Represents a class method, often marked with the `class` keyword in Swift or a static method in C++.
     case classMethod
+    /// Represents a static method or function, often marked with the `static` keyword in Swift or C++.
     case staticMethod
+    /// Represents an instance property of a class or structure.
     case instanceProperty
+    /// Represents a class property, often marked with the `class` keyword in Swift.
     case classProperty
+    /// Represents a static property, often marked with the `static` keyword in Swift or C++.
     case staticProperty
+    /// Represents a constructor or initializer of a class or structure.
     case constructor
+    /// Represents a destructor or deinitializer of a class or structure.
     case destructor
+    /// Represents a conversion function, such as a custom type casting function.
     case conversionFunction
+    /// Represents a function or method parameter.
     case parameter
+    /// Represents a using declaration or directive, often found in C++ code.
     case using
+    /// Represents a concept, often found in C++20 code.
     case concept
+    /// Represents a documentation comment tag, such as a `@param` or `@return` tag in a documentation comment.
     case commentTag
 
     // MARK: - Convenience
@@ -77,7 +106,7 @@ public enum SourceKind: String, CaseIterable, Equatable {
         case .protocol:
             self = .protocol
         case .extension:
-            self = .extension
+            self = .`extension`
         case .union:
             self = .union
         case .typealias:
