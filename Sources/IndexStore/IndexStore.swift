@@ -224,18 +224,18 @@ public final class IndexStore {
         let sourceKind = SourceKind(symbolKind: occurance.symbol.kind)
         let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
         guard validSourceKinds.contains(sourceKind) else { return [] }
-        let symbolKinds = validSourceKinds.map(\.indexSymbolKind)
         logger.debug("resolving inheritence for source `\(occurance.symbol.name)`")
         let references = workspace.occurrences(relatedToUSR: occurance.symbol.usr, roles: [.baseOf])
         var results: [SourceSymbol] = []
         references.forEach { ref in
             guard
                 !results.contains(where: { $0.usr == ref.symbol.usr }),
-                ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name })
+                ref.relations.contains(where: { $0.symbol.name == occurance.symbol.name }),
+                let occurence = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition]).first
             else {
                 return
             }
-            let details = sourceSymbolFromOccurence(ref)
+            let details = sourceSymbolFromOccurence(occurence)
             results.append(details)
         }
         return results

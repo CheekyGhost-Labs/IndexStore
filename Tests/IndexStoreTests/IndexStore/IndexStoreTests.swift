@@ -18,7 +18,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         let sourceFiles = instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
         let query = IndexStoreQuery(sourceFiles: sourceFiles).withKinds([.class]).withRoles([.definition])
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 11)
+        XCTAssertEqual(results.count, 12)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
