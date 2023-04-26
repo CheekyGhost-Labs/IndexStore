@@ -53,7 +53,7 @@ public struct IndexStoreQuery {
 
     // MARK: - Builder
 
-    public func withQuery(_ query: String) -> IndexStoreQuery {
+    public func withQuery(_ query: String?) -> IndexStoreQuery {
         var result = self
         result.query = query
         return result

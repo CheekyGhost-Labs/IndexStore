@@ -34,7 +34,7 @@ public enum SourceKind: String, CaseIterable, Equatable {
     case union
     /// Represents a type alias, such as a `typealias` in Swift or a `typedef` in C++.
     case `typealias`
-    /// Represents a function or method.
+    /// Represents a function or method that does not belong to an instance or type.
     case function
     /// Represents a variable, such as a global variable or a local variable in a function.
     case variable
@@ -81,6 +81,25 @@ public enum SourceKind: String, CaseIterable, Equatable {
     /// - Returns: Array of ``SourceKind`` cases.
     public static func excluding(_ exclusions: [SourceKind]) -> [SourceKind] {
         allCases.filter { !exclusions.contains($0) }
+    }
+
+    /// Will return all source kind cases representing functions.
+    /// **Note: ** Valid function kinds are the following cases:
+    /// - ``SourceKind/instanceMethod``
+    /// - ``SourceKind/function``
+    /// - ``SourceKind/staticMethod``
+    /// - ``SourceKind/classMethod``
+    public static var allFunctions: [SourceKind] {
+        [.instanceMethod, .function, .variable, .staticMethod, .classMethod, .classProperty, .staticProperty]
+    }
+
+    /// Will return all source kind cases representing properties.
+    /// **Note: ** Valid function kinds are the following cases:
+    /// - ``SourceKind/variable``
+    /// - ``SourceKind/staticProperty``
+    /// - ``SourceKind/classProperty``
+    public static var properties: [SourceKind] {
+        [.variable, .classProperty, .staticProperty]
     }
 
     // MARK: - Lifecycle

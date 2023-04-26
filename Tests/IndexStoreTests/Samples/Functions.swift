@@ -4,6 +4,8 @@ class FunctionClass {
 
     func performOperation(withName: String) {}
 
+    func doTheThingo() {}
+
     class NestedFunctionClass {
 
         func performOperation(withAge: Int) {}
@@ -17,6 +19,7 @@ class FunctionClass {
 
 protocol FunctionRootProtocol {
     func performOperation(withName: String)
+    func doTheThings()
 }
 
 protocol FunctionProtocolWithSystemInheritence: Equatable {
@@ -31,4 +34,17 @@ protocol FunctionBaseProtocol {
 
 protocol FunctionProtocolWithInheritence: FunctionBaseProtocol {
     func performOperation(withName: String, age: Int, handler: @escaping (() -> Void))
+}
+
+struct Invocations {
+
+    let instance = FunctionClass()
+
+    init() {
+        instance.doTheThingo()
+    }
+}
+
+func isolatedFunction() {
+    // no-op
 }

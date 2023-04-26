@@ -645,7 +645,9 @@ final class IndexStoreTests: IndexStoreTestCase {
     }
 
     func test_sourceSymbolsForExtensions_willReturnExpectedValues() {
-        // let results = instanceUnderTest.sourceSymbolsForExtensions()
+        let results = instanceUnderTest.querySymbols(.functions("grumble"))
+        let invocations = instanceUnderTest.invocationsOfSymbol(results[0])
+        print(invocations)
 
     }
 }

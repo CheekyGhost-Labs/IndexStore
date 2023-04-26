@@ -24,8 +24,32 @@ public extension IndexStoreQuery {
     /// - Returns: ``IndexStoreQuery``
     static func functions(_ query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
-            .withKinds([.instanceMethod])
-            .withRoles([.definition, .canonical])
+            .withKinds(SourceKind.allFunctions)
+            .withRoles([.definition, .childOf, .canonical])
+            .withAnchorStart(false)
+            .withAnchorEnd(false)
+            .withInlcudeSubsequences(true)
+            .withIgnoringCase(false)
+    }
+
+    /// Will return a query configured to search for functions within the given source files.
+    ///
+    /// Defaults to:
+    /// - kinds: `[.instanceMethod]`
+    /// - roles: `[.definition, .canonical]]`
+    /// - anchorStart: `false`
+    /// - anchorEnd: `false`
+    /// - includeSubsequence: `true`
+    /// - ignoreCase: `false`
+    /// - Parameters:
+    ///   - sourceFiles: Array of source files to search for functions in.
+    ///   - query: Optional type name to search for.
+    /// - Returns: ``IndexStoreQuery``
+    static func functions(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+        IndexStoreQuery(sourceFiles: sourceFiles)
+            .withQuery(query)
+            .withKinds(SourceKind.allFunctions)
+            .withRoles([.definition, .childOf, .canonical])
             .withAnchorStart(false)
             .withAnchorEnd(false)
             .withInlcudeSubsequences(true)

@@ -315,7 +315,7 @@ public final class Workspace {
 
     func validateProjectDirectory(_ occurance: SymbolOccurrence, projectDirectory: String, canIgnore: Bool) -> Bool {
         let isProjectDirectory = occurance.location.path.contains(projectDirectory)
-        return isProjectDirectory || !canIgnore
+        return isProjectDirectory || canIgnore
     }
 
     func validateName(
