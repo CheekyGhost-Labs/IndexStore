@@ -102,7 +102,7 @@ public extension IndexStore {
     /// - Parameter protocolName: The name of the protocol to search for.
     /// - Returns: Array of ``SourceSymbol``
     func sourceSymbols(conformingToProtocol protocolName: String) -> [SourceSymbol] {
-        let query = IndexStoreQuery.protocolDeclarations(protocolName).withIgnoringCase(true)
+        let query = IndexStoreQuery.protocolDeclarations(matching: protocolName).withIgnoringCase(true)
         let symbols = querySymbols(query)
         return resolveSymbolsConformingToProtocolSymbols(symbols)
     }
@@ -113,7 +113,7 @@ public extension IndexStore {
     ///   - sourceFiles: The source files to search in.
     /// - Returns: Array of ``SourceSymbol``
     func sourceSymbols(conformingToProtocol protocolName: String, in sourceFiles: [String]) -> [SourceSymbol] {
-        let query = IndexStoreQuery.protocolDeclarations(protocolName).withSourceFiles(sourceFiles).withIgnoringCase(true)
+        let query = IndexStoreQuery.protocolDeclarations(matching: protocolName).withSourceFiles(sourceFiles).withIgnoringCase(true)
         let symbols = querySymbols(query)
         return resolveSymbolsConformingToProtocolSymbols(symbols)
     }

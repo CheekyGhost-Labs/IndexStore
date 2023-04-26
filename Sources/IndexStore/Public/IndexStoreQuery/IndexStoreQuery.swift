@@ -7,7 +7,8 @@
 
 import IndexStoreDB
 
-public struct IndexStoreQuery {
+/// Struct representing a query to give to an `IndexStore` instance to search for source symbols.
+public struct IndexStoreQuery: Equatable {
 
     // MARK: - Properties
 
@@ -77,9 +78,9 @@ public struct IndexStoreQuery {
         return result
     }
 
-    public func restrictingToProjectDirectory() -> IndexStoreQuery {
+    public func withRestrictingToProjectDirectory(_ flag: Bool) -> IndexStoreQuery {
         var result = self
-        result.restrictToProjectDirectory = true
+        result.restrictToProjectDirectory = flag
         return result
     }
 

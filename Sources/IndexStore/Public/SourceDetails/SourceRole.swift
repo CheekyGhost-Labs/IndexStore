@@ -11,7 +11,7 @@ import IndexStoreDB
 /// Enumeration of supported roles a source declaration can contain.
 ///
 /// **Note: ** These are mapped from the `IndexStoreDB.SymbolRole` option set.
-public struct SourceRole: OptionSet, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct SourceRole: OptionSet, Hashable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     public var rawValue: UInt64
 
     // Primary Roles

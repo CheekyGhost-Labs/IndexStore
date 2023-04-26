@@ -83,6 +83,17 @@ public enum SourceKind: String, CaseIterable, Equatable {
         allCases.filter { !exclusions.contains($0) }
     }
 
+    /// Will return all source kind cases representing common declarations.
+    /// **Note: ** Valid function kinds are the following cases:
+    /// - ``SourceKind/protocol``
+    /// - ``SourceKind/class``
+    /// - ``SourceKind/enum``
+    /// - ``SourceKind/struct``
+    /// - ``SourceKind/typealias``
+    public static var declarations: [SourceKind] {
+        [.protocol, .class, .enum, .struct, .typealias]
+    }
+
     /// Will return all source kind cases representing functions.
     /// **Note: ** Valid function kinds are the following cases:
     /// - ``SourceKind/instanceMethod``
@@ -90,7 +101,7 @@ public enum SourceKind: String, CaseIterable, Equatable {
     /// - ``SourceKind/staticMethod``
     /// - ``SourceKind/classMethod``
     public static var allFunctions: [SourceKind] {
-        [.instanceMethod, .function, .variable, .staticMethod, .classMethod, .classProperty, .staticProperty]
+        [.instanceMethod, .function, .staticMethod, .classMethod]
     }
 
     /// Will return all source kind cases representing properties.

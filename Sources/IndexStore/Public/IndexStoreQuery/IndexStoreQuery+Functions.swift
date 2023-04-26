@@ -14,8 +14,8 @@ public extension IndexStoreQuery {
     /// Will return a query configured to search for functions whose name matches the given query.
     ///
     /// Defaults to:
-    /// - kinds: `[.instanceMethod]`
-    /// - roles: `[.definition, .canonical]]`
+    /// - kinds:  [``SourceKind/instanceMethod``, ``SourceKind/function``, ``SourceKind/staticMethod``, ``SourceKind/classMethod``]
+    /// - roles: [``SourceRole/definition``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`
@@ -35,8 +35,8 @@ public extension IndexStoreQuery {
     /// Will return a query configured to search for functions within the given source files.
     ///
     /// Defaults to:
-    /// - kinds: `[.instanceMethod]`
-    /// - roles: `[.definition, .canonical]]`
+    /// - kinds:  [``SourceKind/instanceMethod``, ``SourceKind/function``, ``SourceKind/staticMethod``, ``SourceKind/classMethod``]
+    /// - roles: [``SourceRole/definition``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`

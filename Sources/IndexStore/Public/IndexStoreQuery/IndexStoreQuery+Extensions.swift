@@ -14,8 +14,8 @@ public extension IndexStoreQuery {
     /// Will return a query configured to search for extensions whose name matches the given query.
     ///
     /// Defaults to:
-    /// - kinds: `[.extension]`
-    /// - roles: `[.definition]]`
+    /// - kinds: [``SourceKind/extension``]
+    /// - roles: [``SourceRole/definition``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`
@@ -35,8 +35,8 @@ public extension IndexStoreQuery {
     /// Will return a query configured to search for extensions within the given source files.
     ///
     /// Defaults to:
-    /// - kinds: `[.extension]`
-    /// - roles: `[.definition]]`
+    /// - kinds: [``SourceKind/extension``]
+    /// - roles: [``SourceRole/definition``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`
@@ -46,7 +46,7 @@ public extension IndexStoreQuery {
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
     /// - Returns: ``IndexStoreQuery``
-    static func extensions(in sourceFiles: [String], matching query: String?) -> IndexStoreQuery {
+    static func extensions(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.extension])
