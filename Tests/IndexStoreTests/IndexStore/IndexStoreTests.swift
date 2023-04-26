@@ -9,16 +9,50 @@ import XCTest
 import Files
 @testable import IndexStore
 
-final class IndexStoreTests: IndexStoreTestCase {
+final class IndexStoreTests: XCTestCase {
+
+    // MARK: - Properties
+
+    var instanceUnderTest: IndexStore!
+
+    var sampleSourceFilePaths: [String] {
+        instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
+    }
+
+    // MARK: - Lifecycle
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let configuration = try loadDefaultConfiguration()
+        instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
+    }
+
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
+        instanceUnderTest = nil
+    }
+
+    // MARK: - Helpers
+
+    func loadDefaultConfiguration() throws -> Configuration {
+        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
+        let configUrl = URL(fileURLWithPath: configPath)
+        let data = try Data(contentsOf: configUrl)
+        let decoded = try JSONDecoder().decode(Configuration.self, from: data)
+        return decoded
+    }
+
+    func pathSuffix(_ sourceName: String) -> String {
+        "IndexStore/Tests/IndexStoreTests/Samples/\(sourceName)"
+    }
 
     // MARK: - Tests: Direct
 
     // NOTE: Expensive task time wise
     func test_querySymbols_inSourceFiles_classes_willReturnExpectedValues() throws {
-        let sourceFiles = instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
-        let query = IndexStoreQuery.classDeclarations(in: sourceFiles)
+        let query = IndexStoreQuery.classDeclarations(in: sampleSourceFilePaths)
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 12)
+        XCTAssertEqual(results.count, 11)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
@@ -297,7 +331,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.name, "ProtocolWithInheritence")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
-        XCTAssertEqual(targetResult.location.line, 11)
+        XCTAssertEqual(targetResult.location.line, 9)
         XCTAssertEqual(targetResult.location.column, 10)
         XCTAssertEqual(targetResult.location.offset, 10)
     }
@@ -306,8 +340,6 @@ final class IndexStoreTests: IndexStoreTestCase {
         let results = instanceUnderTest.querySymbols(.protocolDeclarations(matching: "ProtocolName"))
         XCTAssertEqual(results.count, 0)
     }
-
-    // MARK: - TODO: Typealias
 
     // MARK: - Tests: Extension
 
@@ -486,6 +518,14 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(results.count, 0)
     }
 
+    // MARK: - Tests: Properties
+
+    // TODO: Property query tests
+
+    // MARK: - Tests: Functions
+
+    // TODO: Function query tests
+
     // MARK: - Tests: Source Getting
 
     func test_querySymbols_typealias_willReturnExpectedDeclaration() throws {
@@ -580,8 +620,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(
-            targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritence", "RootProtocol"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritence", "RootProtocol"])
         targetResult = results[1]
         XCTAssertNil(targetResult.parent)
         XCTAssertEqual(targetResult.name, "InheritenceClass")
@@ -590,8 +629,31 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.line, 8)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(
-            targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritence"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritence"])
+    }
+
+    func test_typesConformingToProtocol_inSourceFiles_withSystemInheritence() throws {
+        let sourceFiles = instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
+        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritence", in: sourceFiles)
+        XCTAssertEqual(results.count, 2)
+        var targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "InheritenceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertEqual(targetResult.location.line, 3)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritence", "RootProtocol"])
+        targetResult = results[1]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "InheritenceClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertEqual(targetResult.location.line, 8)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritence"])
     }
 
     func test_typesConformingToProtocol_withCustomInheritence() throws {
@@ -605,8 +667,7 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.line, 17)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(
-            targetResult.inheritance.map(\.name), ["ProtocolWithInheritence", "RootProtocol"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithInheritence", "RootProtocol"])
         targetResult = results[1]
         XCTAssertNil(targetResult.parent)
         XCTAssertEqual(targetResult.name, "CustomInheritenceClass")
@@ -615,21 +676,16 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(targetResult.location.line, 22)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(
-            targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithInheritence"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithInheritence"])
         let inheritedInheritence = try XCTUnwrap(results[1].inheritance.last?.inheritance.first)
         XCTAssertNil(inheritedInheritence.parent)
         XCTAssertEqual(inheritedInheritence.name, "BaseProtocol")
         XCTAssertEqual(inheritedInheritence.sourceKind, .protocol)
         XCTAssertTrue(inheritedInheritence.location.path.hasSuffix("Protocols.swift"))
-        XCTAssertEqual(inheritedInheritence.location.line, 9)
+        XCTAssertEqual(inheritedInheritence.location.line, 7)
         XCTAssertEqual(inheritedInheritence.location.column, 10)
         XCTAssertEqual(inheritedInheritence.location.offset, 10)
         XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
-    }
-
-    func test_sourceSymbolsForFunctionsMatching_willReturnExpectedResults() throws {
-        // let results = instanceUnderTest.sourceSymbols(forFunctionsMatching: "performOperation")
     }
 
     func test_sourceSymbolsForEmptyExtensionsOfType_willReturnExpectedValues() {
@@ -646,7 +702,38 @@ final class IndexStoreTests: IndexStoreTestCase {
         XCTAssertEqual(firstResult.location.offset, 11)
     }
 
-    func test_sourceSymbolsForExtensions_willReturnExpectedValues() {
-        // no-op
+    func test_functions_inSourceFiles_invokedInTestCase_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
+        let invokedNames = ["standardTestCaseInvocation()", "subclassTestCaseInvocation()"]
+        // Invoked
+        results.filter { invokedNames.contains($0.name) }.forEach {
+            XCTAssertTrue(instanceUnderTest.isSymbolInvokedByTestCase($0))
+        }
+        // Not Invoked
+        results.filter { !invokedNames.contains($0.name) }.forEach {
+            XCTAssertFalse(instanceUnderTest.isSymbolInvokedByTestCase($0))
+        }
+    }
+
+    func test_function_invokedInTestCase() throws {
+        let results = instanceUnderTest.querySymbols(.functions("standardTestCaseInvocation"))
+        let function = try XCTUnwrap(results.first)
+        XCTAssertTrue(instanceUnderTest.isSymbolInvokedByTestCase(function))
+    }
+
+    func test_function_invokedInTestCaseSubclass() throws {
+        let results = instanceUnderTest.querySymbols(.functions("subclassTestCaseInvocation"))
+        let function = try XCTUnwrap(results.first)
+        XCTAssertTrue(instanceUnderTest.isSymbolInvokedByTestCase(function))
+    }
+
+    func test_function_notInvokedInTestCaseSubclass() throws {
+        let results = instanceUnderTest.querySymbols(.functions("notInvokedInTestCase"))
+        let function = try XCTUnwrap(results.first)
+        XCTAssertFalse(instanceUnderTest.isSymbolInvokedByTestCase(function))
+    }
+
+    func test_invocationsOfSymbol_willReturnExpectedResults() throws {
+        // TODO: finish tests
     }
 }

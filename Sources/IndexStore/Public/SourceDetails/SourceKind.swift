@@ -107,10 +107,11 @@ public enum SourceKind: String, CaseIterable, Equatable {
     /// Will return all source kind cases representing properties.
     /// **Note: ** Valid function kinds are the following cases:
     /// - ``SourceKind/variable``
+    /// - ``SourceKind/instanceProperty``
     /// - ``SourceKind/staticProperty``
     /// - ``SourceKind/classProperty``
     public static var properties: [SourceKind] {
-        [.variable, .classProperty, .staticProperty]
+        [.variable, .instanceProperty, .classProperty, .staticProperty]
     }
 
     // MARK: - Lifecycle

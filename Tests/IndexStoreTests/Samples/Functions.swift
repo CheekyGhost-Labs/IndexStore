@@ -2,17 +2,17 @@ import Foundation
 
 class FunctionClass {
 
-    func performOperation(withName: String) {}
+    func performFunction(withPerson: (name: String, age: Int)) {}
 
-    func doTheThingo() {}
+    func standardTestCaseInvocation() {}
 
     class NestedFunctionClass {
 
-        func performOperation(withAge: Int) {}
+        func subclassTestCaseInvocation() {}
 
         class DoubleNestedFunctionClass {
 
-            func performOperation(withName: String, age: Int) {}
+            func notInvokedInTestCase() {}
         }
     }
 }
@@ -41,7 +41,7 @@ struct Invocations {
     let instance = FunctionClass()
 
     init() {
-        instance.doTheThingo()
+        instance.performFunction(withPerson: ("name", 20))
     }
 }
 

@@ -52,7 +52,7 @@ public extension IndexStore {
             return []
         }
         var results: [SourceSymbol] = []
-        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.receivedBy, .calledBy])
+        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy])
         for symbol in conforming {
             let sourceSymbol = sourceSymbolFromOccurence(symbol)
             results.append(sourceSymbol)
@@ -87,10 +87,22 @@ public extension IndexStore {
                 // Check if the parent is a function that starts with `test` (unit testing convention)
                 if let parent, parent.name.starts(with: "test") {
                     testFunctionFound = true
-                } else if testFunctionFound, let parent, parent.inheritance.contains(where: { $0.name == "XCTestCase" }) {
+                } else if testFunctionFound, let parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase"){
                     return true
                 }
                 parent = parent?.parent
+            }
+        }
+        return false
+    }
+
+    func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
+        if symbol.inheritance.contains(where: { $0.name == name }) {
+            return true
+        }
+        for inherited in symbol.inheritance {
+            if recursiveInheritenceCheck(symbol: inherited, name: name) {
+                return true
             }
         }
         return false
