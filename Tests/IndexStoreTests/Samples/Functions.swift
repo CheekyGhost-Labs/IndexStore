@@ -2,21 +2,24 @@ import Foundation
 
 class FunctionClass {
 
-    func performOperation(withName: String) {}
+    func performFunction(withPerson: (name: String, age: Int)) {}
+
+    func standardTestCaseInvocation() {}
 
     class NestedFunctionClass {
 
-        func performOperation(withAge: Int) {}
+        func subclassTestCaseInvocation() {}
 
         class DoubleNestedFunctionClass {
 
-            func performOperation(withName: String, age: Int) {}
+            func notInvokedInTestCase() {}
         }
     }
 }
 
 protocol FunctionRootProtocol {
     func performOperation(withName: String)
+    func doTheThings()
 }
 
 protocol FunctionProtocolWithSystemInheritence: Equatable {
@@ -31,4 +34,17 @@ protocol FunctionBaseProtocol {
 
 protocol FunctionProtocolWithInheritence: FunctionBaseProtocol {
     func performOperation(withName: String, age: Int, handler: @escaping (() -> Void))
+}
+
+struct Invocations {
+
+    let instance = FunctionClass()
+
+    init() {
+        instance.performFunction(withPerson: ("name", 20))
+    }
+}
+
+func isolatedFunction() {
+    // no-op
 }
