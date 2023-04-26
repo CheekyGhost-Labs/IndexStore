@@ -9,3 +9,5 @@ class RootClass {
         }
     }
 }
+
+class SampleClass {}

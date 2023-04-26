@@ -11,6 +11,33 @@ import XCTest
 
 final class SourceSymbolTests: XCTestCase {
 
+    // MARK: - Properties
+
+    var indexStore: IndexStore!
+
+    // MARK: - Lifecycle
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let configuration = try loadDefaultConfiguration()
+        indexStore = IndexStore(configuration: configuration, logger: .test)
+    }
+
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
+        indexStore = nil
+    }
+
+    // MARK: - Helpers
+
+    func loadDefaultConfiguration() throws -> Configuration {
+        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
+        let configUrl = URL(fileURLWithPath: configPath)
+        let data = try Data(contentsOf: configUrl)
+        let decoded = try JSONDecoder().decode(Configuration.self, from: data)
+        return decoded
+    }
+
     // MARK: - Tests
 
     func test_description_returnsExpectedValue() {
@@ -26,8 +53,7 @@ final class SourceSymbolTests: XCTestCase {
     }
 
     func test_sourceSymbols_parentIterator_willReturnExpectedValue() throws {
-        let sourceResolver = try IndexStore(configuration: Configuration(projectDirectory: ""), logger: .test)
-        let results = sourceResolver.queryIndexStoreSymbols(matchingType: "DoubleNestedStruct", kinds: [.struct])
+        let results = indexStore.querySymbols(.structDeclarations(matching: "DoubleNestedStruct"))
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
         let iterator = targetResult.parentsIterator
