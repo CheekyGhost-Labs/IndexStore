@@ -16,7 +16,9 @@ final class IndexStoreTests: XCTestCase {
     var instanceUnderTest: IndexStore!
 
     var sampleSourceFilePaths: [String] {
-        instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
+        instanceUnderTest.swiftSourceFiles().filter {
+            $0.contains("IndexStoreTests/Samples") && !$0.contains("InvocationTestCase")
+        }
     }
 
     // MARK: - Lifecycle
