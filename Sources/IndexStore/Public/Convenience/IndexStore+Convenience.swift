@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  IndexStore+Convenience.swift
 //
 //
 //  Created by Michael O'Brien on 21/4/2023.
@@ -96,6 +96,11 @@ extension IndexStore {
         return false
     }
 
+    /// Will recursively assess the inheritence stack of the given symbol and return `true` when the `name` property of an inherited symbol matches the given term.
+    /// - Parameters:
+    ///   - symbol: The symbol to assess.
+    ///   - name: The name to match with.
+    /// - Returns: `Bool`
     public func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
         if symbol.inheritance.contains(where: { $0.name == name }) {
             return true
@@ -104,6 +109,48 @@ extension IndexStore {
             return true
         }
         return false
+    }
+
+    // MARK: - Convenience: Classes
+
+    /// Will search for classes that match the given class name, then resolve any source symbols for declarations that subclass the given class.
+    /// - Parameter className: The name of the class to search for.
+    /// - Returns: Array of ``SourceSymbol``
+    public func sourceSymbols(subclassing className: String) -> [SourceSymbol] {
+        let query = IndexStoreQuery.classDeclarations(matching: className).withIgnoringCase(true)
+        let symbols = querySymbols(query)
+        return resolveSymbolsSubclassingClassSymbols(symbols)
+    }
+
+    /// Will search for classes that match the given class name, then resolve any source symbols for declarations that subclass the given class.
+    /// - Parameters:
+    ///   - className: The name of the class to search for.
+    ///   - sourceFiles: The source files to search in.
+    /// - Returns: Array of ``SourceSymbol``
+    public func sourceSymbols(subclassing className: String, in sourceFiles: [String]) -> [SourceSymbol] {
+        let query = IndexStoreQuery.classDeclarations(matching: className).withSourceFiles(sourceFiles).withIgnoringCase(true)
+        let symbols = querySymbols(query)
+        return resolveSymbolsSubclassingClassSymbols(symbols)
+    }
+
+    /// Performs the symbol lookups to find symbols subclassing the given class symbols.
+    /// - Parameter symbols: The symbols to search for.
+    /// - Returns: Array of ``SourceSymbol`` instances
+    internal func resolveSymbolsSubclassingClassSymbols(_ symbols: [SourceSymbol]) -> [SourceSymbol] {
+        let subclassingTypes: [SourceSymbol] = symbols.flatMap {
+            let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.reference, .baseOf])
+            let validUsrs: [String] = subclasses.flatMap {
+                guard $0.roles == [.reference, .baseOf] else {
+                    return [String]()
+                }
+                return $0.relations.map(\.symbol.usr)
+            }
+            let occurances = validUsrs.flatMap {
+                return workspace.occurrences(ofUSR: $0, roles: [.definition])
+            }
+            return occurances.compactMap(sourceSymbolFromOccurence)
+        }
+        return subclassingTypes
     }
 
     // MARK: - Convenience: Protocols

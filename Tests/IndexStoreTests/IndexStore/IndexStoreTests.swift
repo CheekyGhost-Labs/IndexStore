@@ -528,7 +528,23 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Functions
 
-    // TODO: Function query tests
+    func test_functions_matchingQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.functions("executeOrder"))
+        print(results.count)
+        // todo: finish
+    }
+
+    func test_functions_inSourceFiles_withQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths, matching: "TestCaseInvocation"))
+        print(results.count)
+        // todo: finish
+    }
+
+    func test_functions_inSourceFiles_noQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
+        print(results.count)
+        // todo: finish
+    }
 
     // MARK: - Tests: Source Getting
 
@@ -611,7 +627,7 @@ final class IndexStoreTests: XCTestCase {
         }
     }
 
-    // MARK: Tests: Convenience
+    // MARK: Tests: Convenience: Protocol Conformance
 
     func test_typesConformingToProtocol_withSystemInheritence() throws {
         let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritence")
@@ -692,6 +708,8 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
     }
 
+    // MARK: Tests: Convenience: Empty Extensions
+
     func test_sourceSymbolsForEmptyExtensionsOfType_willReturnExpectedValues() {
         let results = instanceUnderTest.sourceSymbols(forEmptyExtensionsMatching: .classDeclarations(matching: "RootClass"))
         let expectedPathSuffix = pathSuffix("Extensions.swift")
@@ -705,6 +723,8 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(firstResult.location.column, 11)
         XCTAssertEqual(firstResult.location.offset, 11)
     }
+
+    // MARK: Tests: Convenience: Function Invocations
 
     func test_functions_inSourceFiles_invokedInTestCase_willReturnExpectedResults() throws {
         let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
@@ -737,7 +757,9 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertFalse(instanceUnderTest.isSymbolInvokedByTestCase(function))
     }
 
+    // MARK: Tests: Convenience: Symbol Invocations
+
     func test_invocationsOfSymbol_willReturnExpectedResults() throws {
-        // TODO: finish tests
+        // todo: finish
     }
 }
