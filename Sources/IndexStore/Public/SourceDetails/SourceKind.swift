@@ -9,7 +9,7 @@ import Foundation
 import IndexStoreDB
 
 /// Enumeration of declaration types source kinds utilised when resolving source types.
-public enum SourceKind: String, CaseIterable, Equatable {
+public enum SourceKind: String, CaseIterable, Hashable, Equatable {
     /// Represents an unsupported or unknown source kind.
     case unsupported
     /// Represents a module, such as a Swift module or a C++ namespace.

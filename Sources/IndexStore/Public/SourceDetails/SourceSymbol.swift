@@ -8,7 +8,7 @@
 import Foundation
 
 /// Result returned by a ``IndexStore`` instance containing details about a resolved source type.
-public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable {
+public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Hashable {
 
     // MARK: - Properties
 
@@ -88,12 +88,12 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable {
     // MARK: - Conformance: Identifiable
 
     public var id: String {
-        "\(usr):\(name):\(location.path):\(location.line):\(location.column)"
+        "\(usr)::\(name)::\(location.path)::\(location.line)::\(location.column)"
     }
 
     // MARK: - Conformance: CustomStringConvertible
 
     public var description: String {
-        "\(name) | \(sourceKind) | \(location.description)"
+        "\(name) - \(sourceKind) | \(location.description)"
     }
 }

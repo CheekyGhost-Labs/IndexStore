@@ -7,6 +7,7 @@
 
 import Foundation
 import IndexStoreDB
+import TSCBasic
 
 extension IndexStore {
 
@@ -117,7 +118,8 @@ extension IndexStore {
     /// - Parameter className: The name of the class to search for.
     /// - Returns: Array of ``SourceSymbol``
     public func sourceSymbols(subclassing className: String) -> [SourceSymbol] {
-        let query = IndexStoreQuery.classDeclarations(matching: className).withIgnoringCase(true)
+        let query = IndexStoreQuery.allDeclarations(matching: className)
+            .withRestrictingToProjectDirectory(false)
         let symbols = querySymbols(query)
         return resolveSymbolsSubclassingClassSymbols(symbols)
     }
@@ -128,8 +130,14 @@ extension IndexStore {
     ///   - sourceFiles: The source files to search in.
     /// - Returns: Array of ``SourceSymbol``
     public func sourceSymbols(subclassing className: String, in sourceFiles: [String]) -> [SourceSymbol] {
-        let query = IndexStoreQuery.classDeclarations(matching: className).withSourceFiles(sourceFiles).withIgnoringCase(true)
+        // Resolve symbols for the given class name within the given source files
+        let query = IndexStoreQuery(query: className)
+            .withKinds(SourceKind.declarations)
+            .withSourceFiles(sourceFiles)
+            .withRoles([.baseOf])
+            .withRestrictingToProjectDirectory(false)
         let symbols = querySymbols(query)
+        // Target class
         return resolveSymbolsSubclassingClassSymbols(symbols)
     }
 
@@ -137,8 +145,9 @@ extension IndexStore {
     /// - Parameter symbols: The symbols to search for.
     /// - Returns: Array of ``SourceSymbol`` instances
     internal func resolveSymbolsSubclassingClassSymbols(_ symbols: [SourceSymbol]) -> [SourceSymbol] {
-        let subclassingTypes: [SourceSymbol] = symbols.flatMap {
-            let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.reference, .baseOf])
+        var results: OrderedSet<SourceSymbol> = []
+        symbols.forEach {
+            let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.definition, .declaration, .baseOf])
             let validUsrs: [String] = subclasses.flatMap {
                 guard $0.roles == [.reference, .baseOf] else {
                     return [String]()
@@ -146,11 +155,20 @@ extension IndexStore {
                 return $0.relations.map(\.symbol.usr)
             }
             let occurances = validUsrs.flatMap {
-                return workspace.occurrences(ofUSR: $0, roles: [.definition])
+                return workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
             }
-            return occurances.compactMap(sourceSymbolFromOccurence)
+            occurances.forEach { occurence in
+                guard
+                    occurence.location.path.contains(configuration.projectDirectory),
+                    !results.contains(where: { $0.usr == occurence.symbol.usr })
+                else {
+                    return
+                }
+                let symbol = sourceSymbolFromOccurence(occurence)
+                results.append(symbol)
+            }
         }
-        return subclassingTypes
+        return results.contents
     }
 
     // MARK: - Convenience: Protocols
@@ -180,7 +198,7 @@ extension IndexStore {
     /// - Returns: Array of ``SourceSymbol`` instances
     internal func resolveSymbolsConformingToProtocolSymbols(_ symbols: [SourceSymbol]) -> [SourceSymbol] {
         let conformingTypes: [SourceSymbol] = symbols.flatMap {
-            let conforming = workspace.occurrences(ofUSR: $0.usr, roles: [.reference, .baseOf])
+            let conforming = workspace.occurrences(ofUSR: $0.usr, roles: [.baseOf])
             let validUsrs: [String] = conforming.flatMap {
                 guard $0.roles == [.reference, .baseOf] else {
                     return [String]()

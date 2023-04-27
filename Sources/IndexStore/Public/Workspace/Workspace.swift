@@ -136,9 +136,7 @@ public final class Workspace {
             subsequence: includeSubsequence,
             ignoreCase: ignoreCase
         ) { [self] in
-            if validateRoles($0, roles: roles, canIgnore: false),
-                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
-            {
+            if validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
                 symbolOccurrenceResults.append($0)
             }
             return true
@@ -183,10 +181,7 @@ public final class Workspace {
         var filtered: [SymbolOccurrence] = []
         // Filter Results
         rawResults.forEach {
-            guard
-                validateRoles($0, roles: roles, canIgnore: false),
-                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
-            else {
+            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else {
                 return
             }
             // Kind match
@@ -279,9 +274,7 @@ public final class Workspace {
         var results: OrderedSet<SymbolOccurrence> = []
         symbols.forEach {
             index.forEachSymbolOccurrence(byUSR: $0.usr, roles: roles) { occurence in
-                if roles.contains(occurence.roles) || occurence.roles.contains(roles) {
-                    results.append(occurence)
-                }
+                results.append(occurence)
                 return true
             }
         }
@@ -326,8 +319,8 @@ public final class Workspace {
     // MARK: - Helpers: Validation
 
     func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
-        let roleMatch = roles.contains(occurance.roles) || occurance.roles.contains(roles)
-        return roleMatch || canIgnore
+//        let roleMatch = roles.contains(occurance.roles) || occurance.roles.contains(roles)
+        return occurance.roles <= roles || canIgnore
     }
 
     func validateKinds(_ occurance: SymbolOccurrence, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {

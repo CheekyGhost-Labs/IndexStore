@@ -41,15 +41,31 @@ final class SourceSymbolTests: XCTestCase {
     // MARK: - Tests
 
     func test_description_returnsExpectedValue() {
-        let location = SourceLocation(path: "test-path", line: 123, column: 12, offset: 12, isSystem: false, isStale: true)
+        let location = SourceLocation(
+            path: "test-path",
+            moduleName: "test-module",
+            line: 123,
+            column: 12,
+            offset: 12,
+            isSystem: false,
+            isStale: true
+        )
         let details = SourceSymbol(name: "test-name", usr: "test-usr", sourceKind: .enum, roles: .declaration, location: location)
-        XCTAssertEqual(details.description, "test-name | enum | test-path:123:12")
+        XCTAssertEqual(details.description, "test-name - enum | test-module::test-path::123::12")
     }
 
     func test_id_returnsExpectedValue() {
-        let location = SourceLocation(path: "test-path", line: 123, column: 12, offset: 12, isSystem: false, isStale: true)
+        let location = SourceLocation(
+            path: "test-path",
+            moduleName: "test-module",
+            line: 123,
+            column: 12,
+            offset: 12,
+            isSystem: false,
+            isStale: true
+        )
         let details = SourceSymbol(name: "test-name", usr: "test-usr", sourceKind: .enum, roles: .declaration, location: location)
-        XCTAssertEqual(details.id, "test-usr:test-name:test-path:123:12")
+        XCTAssertEqual(details.id, "test-usr::test-name::test-path::123::12")
     }
 
     func test_sourceSymbols_parentIterator_willReturnExpectedValue() throws {
