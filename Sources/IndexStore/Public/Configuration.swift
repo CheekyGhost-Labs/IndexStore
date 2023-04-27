@@ -118,7 +118,7 @@ public struct Configuration: Decodable {
         let projectDirectory = try processInfo.environmentVariable(name: EnvironmentKeys.PWD)
         let buildRoot = projectDirectory + "/.build/debug"
         let buildRootPath = try AbsolutePath(validating: buildRoot)
-        return "\(buildRootPath.pathString)/Index/Store"
+        return "\(buildRootPath.pathString)/index/store"
     }
 
     /// Will return the provided value if not `nil`, otherwise will run the `xcode-select -p` command to get the xcode path.
