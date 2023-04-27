@@ -5,8 +5,9 @@
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
-import XCTest
 import Files
+import XCTest
+
 @testable import IndexStore
 
 final class IndexStoreTests: XCTestCase {
@@ -27,6 +28,7 @@ final class IndexStoreTests: XCTestCase {
         try super.setUpWithError()
         let configuration = try loadDefaultConfiguration()
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
+        instanceUnderTest.pollForChangesAndWait()
     }
 
     override func tearDownWithError() throws {
