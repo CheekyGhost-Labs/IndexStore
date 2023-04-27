@@ -1,12 +1,12 @@
 //
 //  SourceRoleTests.swift
-//  
+//
 //
 //  Created by Michael O'Brien on 27/4/2023.
 //
 
-import XCTest
 import IndexStore
+import XCTest
 
 final class SourceRoleTests: XCTestCase {
 

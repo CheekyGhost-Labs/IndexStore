@@ -5,8 +5,8 @@
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
-import Foundation
 import Files
+import Foundation
 import IndexStoreDB
 import Logging
 import TSCBasic
@@ -243,8 +243,7 @@ public final class IndexStore {
             }
             let occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .baseOf, .canonical])
             let filtered = occurences.filter {
-                $0.roles.contains(.definition) ||
-                $0.roles.contains(.declaration) && $0.roles.contains(.canonical)
+                $0.roles.contains(.definition) || $0.roles.contains(.declaration) && $0.roles.contains(.canonical)
             }
             guard let target = filtered.first else { return }
             let details = sourceSymbolFromOccurence(target)

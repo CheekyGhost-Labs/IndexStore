@@ -137,7 +137,8 @@ public final class Workspace {
             ignoreCase: ignoreCase
         ) { [self] in
             if validateRoles($0, roles: roles, canIgnore: false),
-                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
+                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
+            {
                 symbolOccurrenceResults.append($0)
             }
             return true
@@ -312,7 +313,8 @@ public final class Workspace {
                 symbols.forEach {
                     if validateRoles($0, roles: roles, canIgnore: true),
                         validateKinds($0, kinds: kinds, canIgnore: false),
-                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
+                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
+                    {
                         results.append($0)
                     }
                 }

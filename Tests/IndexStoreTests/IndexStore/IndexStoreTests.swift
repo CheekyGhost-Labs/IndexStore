@@ -5,8 +5,9 @@
 //  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
 //
 
-import XCTest
 import Files
+import XCTest
+
 @testable import IndexStore
 
 final class IndexStoreTests: XCTestCase {
