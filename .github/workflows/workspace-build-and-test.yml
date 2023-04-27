@@ -4,13 +4,13 @@ on: [push]
 
 jobs:
   build:
-    name: Build and Test default scheme using any available Mac Device
+    name: Build and Test on Mac
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
-        run: xcodebuild build-for-testing -scheme "IndexStore" -workspace "IndexStore.xcworkspace" -destination "platform=macOS"
+        run: xcodebuild -scheme "IndexStore" -workspace "IndexStore.xcworkspace" -destination "platform=macOS"
       - name: Test
         run: xcodebuild test-without-building -scheme "IndexStore" -workspace "IndexStore.xcworkspace" -destination "platform=macOS"
