@@ -32,6 +32,10 @@ public final class Workspace {
     /// The source code index (if loaded)
     private(set) public var index: IndexStoreDB?
 
+    /// Bool whether any index store changes should be listened for.
+    /// Defaults to `true`. When initialised with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
+    public let listenToUnitEvents: Bool
+
     /// Logger instance for any debug or console output.
     public let logger: Logger
 
@@ -43,12 +47,14 @@ public final class Workspace {
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
+    ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. This is assigned to `false` when
     ///   - logger: `Logger` instance for any debug or console output.
     public init(
         libIndexStorePath: String,
         projectDirectory: String,
         indexStorePath: String,
         indexDatabasePath: String,
+        listenToUnitEvents: Bool,
         logger: Logger
     ) {
         self.libIndexStorePath = libIndexStorePath
@@ -56,6 +62,7 @@ public final class Workspace {
         self.indexStorePath = indexStorePath
         self.indexDatabasePath = indexDatabasePath
         self.logger = logger
+        self.listenToUnitEvents = listenToUnitEvents
         try? loadIndexStore()
     }
 
@@ -69,12 +76,19 @@ public final class Workspace {
         self.indexStorePath = configuration.indexStorePath
         self.indexDatabasePath = configuration.indexDatabasePath
         self.libIndexStorePath = configuration.libIndexStorePath
+        self.listenToUnitEvents = !configuration.isRunningUnitTests
         self.logger = logger
         // Create index store instance
         try? loadIndexStore()
     }
 
     // MARK: - Helpers: IndexStore
+
+    /// Will poll the underlying index store for any changes and wait for them to be processed.
+    /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
+    public func pollForChangesAndWait(isInitialScan: Bool) {
+        index?.pollForUnitChangesAndWait(isInitialScan: isInitialScan)
+    }
 
     /// Will attempt to load the index store based on the current path settings.
     ///
@@ -85,7 +99,12 @@ public final class Workspace {
         let storePath = URL(fileURLWithPath: indexStorePath).path
         let databasePath = URL(fileURLWithPath: indexDatabasePath).path
         do {
-            index = try IndexStoreDB(storePath: storePath, databasePath: databasePath, library: lib, listenToUnitEvents: true)
+            index = try IndexStoreDB(
+                storePath: storePath,
+                databasePath: databasePath,
+                library: lib,
+                listenToUnitEvents: listenToUnitEvents
+            )
             index?.pollForUnitChangesAndWait(isInitialScan: true)
             logger.info("Opened IndexStoreDB at \(indexDatabasePath) with store path \(indexStorePath)")
         } catch {
@@ -94,9 +113,9 @@ public final class Workspace {
         }
     }
 
-    // MARK: - Helpers: Public
+    // MARK: - Helpers: Internal
 
-    public func querySymbols(
+    func querySymbols(
         matching: String,
         kinds: [IndexSymbolKind],
         roles: SymbolRole = .all,
@@ -118,7 +137,8 @@ public final class Workspace {
             ignoreCase: ignoreCase
         ) { [self] in
             if validateRoles($0, roles: roles, canIgnore: false),
-                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
+                validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
+            {
                 symbolOccurrenceResults.append($0)
             }
             return true
@@ -143,7 +163,7 @@ public final class Workspace {
         return results
     }
 
-    public func querySymbols(
+    func querySymbols(
         inSourceFiles sourceFiles: [String],
         matching: String?,
         kinds: [IndexSymbolKind],
@@ -208,7 +228,7 @@ public final class Workspace {
     ///   - usr: The usr of the source symbol to search for.
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
-    public func occurrences(ofUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
+    func occurrences(ofUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let results = index.occurrences(ofUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
@@ -220,7 +240,7 @@ public final class Workspace {
     ///   - usr: The usr of the source symbol to search for relations to.
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
-    public func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
+    func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
@@ -293,7 +313,8 @@ public final class Workspace {
                 symbols.forEach {
                     if validateRoles($0, roles: roles, canIgnore: true),
                         validateKinds($0, kinds: kinds, canIgnore: false),
-                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
+                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
+                    {
                         results.append($0)
                     }
                 }

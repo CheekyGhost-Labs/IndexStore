@@ -38,6 +38,7 @@ enum ProcessInfoError: LocalizedError, Equatable {
 struct EnvironmentKeys {
     static let PWD = "PWD"
     static let xcodeBuiltProducts = "__XCODE_BUILT_PRODUCTS_DIR_PATHS"
+    static let testConfigurationPath = "XCTestConfigurationFilePath"
 }
 
 extension ProcessInfo {

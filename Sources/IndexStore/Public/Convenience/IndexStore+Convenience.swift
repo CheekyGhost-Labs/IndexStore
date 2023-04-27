@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Michael O'Brien on 21/4/2023.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import IndexStoreDB
 
-public extension IndexStore {
+extension IndexStore {
 
     // MARK: - Convenience: Extensions
 
@@ -17,7 +17,7 @@ public extension IndexStore {
     /// **Note: ** The provided query will have the `kinds` and `roles` modified to enable the search.
     /// - Parameter query: The query to search with.
     /// - Returns: Array of ``SourceSymbol`` instances
-    func sourceSymbols(forEmptyExtensionsMatching query: IndexStoreQuery) -> [SourceSymbol] {
+    public func sourceSymbols(forEmptyExtensionsMatching query: IndexStoreQuery) -> [SourceSymbol] {
         let symbols = querySymbols(query)
         var results: [SourceSymbol] = []
         symbols.forEach {
@@ -45,7 +45,7 @@ public extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: Array of `SourceSymbol` instances
-    func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
+    public func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
         let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
         guard validSourceKinds.contains(symbol.sourceKind) else {
             logger.warning("symbol with kind `\(symbol.sourceKind) is not valid for this method. Returning empty results.")
@@ -72,7 +72,7 @@ public extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: `Bool`
-    func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
+    public func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
         let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
         guard validSourceKinds.contains(symbol.sourceKind) else {
             logger.warning("symbol with kind `\(symbol.sourceKind) is not valid for this method. Returning empty results.")
@@ -87,7 +87,7 @@ public extension IndexStore {
                 // Check if the parent is a function that starts with `test` (unit testing convention)
                 if let parent, parent.name.starts(with: "test") {
                     testFunctionFound = true
-                } else if testFunctionFound, let parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase"){
+                } else if testFunctionFound, let parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase") {
                     return true
                 }
                 parent = parent?.parent
@@ -96,14 +96,12 @@ public extension IndexStore {
         return false
     }
 
-    func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
+    public func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
         if symbol.inheritance.contains(where: { $0.name == name }) {
             return true
         }
-        for inherited in symbol.inheritance {
-            if recursiveInheritenceCheck(symbol: inherited, name: name) {
-                return true
-            }
+        for inherited in symbol.inheritance where recursiveInheritenceCheck(symbol: inherited, name: name) {
+            return true
         }
         return false
     }
@@ -113,7 +111,7 @@ public extension IndexStore {
     /// Will search for protocols that match the given protocol name, then resolve any source symbols  for declarations that conform to the given protocol.
     /// - Parameter protocolName: The name of the protocol to search for.
     /// - Returns: Array of ``SourceSymbol``
-    func sourceSymbols(conformingToProtocol protocolName: String) -> [SourceSymbol] {
+    public func sourceSymbols(conformingToProtocol protocolName: String) -> [SourceSymbol] {
         let query = IndexStoreQuery.protocolDeclarations(matching: protocolName).withIgnoringCase(true)
         let symbols = querySymbols(query)
         return resolveSymbolsConformingToProtocolSymbols(symbols)
@@ -124,7 +122,7 @@ public extension IndexStore {
     ///   - protocolName: The name of the protocol to search for.
     ///   - sourceFiles: The source files to search in.
     /// - Returns: Array of ``SourceSymbol``
-    func sourceSymbols(conformingToProtocol protocolName: String, in sourceFiles: [String]) -> [SourceSymbol] {
+    public func sourceSymbols(conformingToProtocol protocolName: String, in sourceFiles: [String]) -> [SourceSymbol] {
         let query = IndexStoreQuery.protocolDeclarations(matching: protocolName).withSourceFiles(sourceFiles).withIgnoringCase(true)
         let symbols = querySymbols(query)
         return resolveSymbolsConformingToProtocolSymbols(symbols)

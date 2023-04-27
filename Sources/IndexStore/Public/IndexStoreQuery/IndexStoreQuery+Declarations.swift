@@ -1,13 +1,13 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Michael O'Brien on 25/4/2023.
 //
 
 import Foundation
 
-public extension IndexStoreQuery {
+extension IndexStoreQuery {
 
     // MARK: - All Declarations
 
@@ -22,7 +22,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func allDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func allDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds(SourceKind.declarations)
             .withRoles([.definition])
@@ -46,7 +46,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func allDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func allDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds(SourceKind.declarations)
@@ -68,7 +68,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func classDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func classDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds([.class])
             .withRoles([.definition])
@@ -91,7 +91,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func classDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func classDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.class])
@@ -113,7 +113,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func structDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func structDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds([.struct])
             .withRoles([.definition])
@@ -136,7 +136,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func structDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func structDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.struct])
@@ -158,7 +158,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func enumDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func enumDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds([.enum])
             .withRoles([.definition])
@@ -181,7 +181,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func enumDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func enumDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.enum])
@@ -203,7 +203,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func typealiasDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func typealiasDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds([.typealias])
             .withRoles([.definition])
@@ -226,7 +226,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func typealiasDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func typealiasDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.typealias])
@@ -248,7 +248,7 @@ public extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func protocolDeclarations(matching query: String) -> IndexStoreQuery {
+    public static func protocolDeclarations(matching query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds([.protocol])
             .withRoles([.definition])
@@ -271,7 +271,7 @@ public extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for declarations in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    static func protocolDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    public static func protocolDeclarations(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds([.protocol])
