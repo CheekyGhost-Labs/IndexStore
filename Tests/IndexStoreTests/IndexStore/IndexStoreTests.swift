@@ -27,6 +27,7 @@ final class IndexStoreTests: XCTestCase {
         try super.setUpWithError()
         let configuration = try loadDefaultConfiguration()
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
+        instanceUnderTest.pollForChangesAndWait()
     }
 
     override func tearDownWithError() throws {

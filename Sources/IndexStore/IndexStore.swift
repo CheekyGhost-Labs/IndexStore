@@ -43,6 +43,12 @@ public final class IndexStore {
 
     // MARK: - Public: Convenience
 
+    /// Will poll the underlying index store for any changes and wait for them to be processed.
+    /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
+    public func pollForChangesAndWait() {
+        workspace.pollForChangesAndWait(isInitialScan: false)
+    }
+
     /// Will return source symbols  for any declarations/symbols matching the given query.
     /// - Parameter query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
@@ -162,14 +168,14 @@ public final class IndexStore {
         }
     }
 
-    // MARK: - Helpers: Internal
+    // MARK: - Helpers: Transforming and Resolving
 
     /// Transforms the given occurance into a source symbols instance.
     ///
     /// **Note: **Will also look up any inheritence and parents. This can increase time.
     /// - Parameter occurance: The occurence to transform
     /// - Returns: ``SourceSymbol``
-    func sourceSymbolFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
+    public func sourceSymbolFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurance.symbol.kind)
         // Source location
@@ -196,7 +202,7 @@ public final class IndexStore {
     /// Will resolve the immediate parent for the given occurrence.
     /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    func resolveParentForOccurence(_ symbolOccurance: SymbolOccurrence) -> SourceSymbol? {
+    public func resolveParentForOccurence(_ symbolOccurance: SymbolOccurrence) -> SourceSymbol? {
         guard !symbolOccurance.location.isSystem else { return nil }
         guard
             let childOfRelation = symbolOccurance.relations.first(where: {
@@ -220,7 +226,7 @@ public final class IndexStore {
     /// Will resolve the source symbols representing the types the given occurence conforms to or inherits from.
     /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    func resolveInheritenceForOccurence(_ occurence: SymbolOccurrence) -> [SourceSymbol] {
+    public func resolveInheritenceForOccurence(_ occurence: SymbolOccurrence) -> [SourceSymbol] {
         guard !occurence.location.isSystem else { return [] }
         let sourceKind = SourceKind(symbolKind: occurence.symbol.kind)
         let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]

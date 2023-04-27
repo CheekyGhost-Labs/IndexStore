@@ -23,6 +23,10 @@ public struct Configuration: Decodable {
     /// The path to the libIndexStore dlyib.
     public let libIndexStorePath: String
 
+    /// Internal flag indicating whether or not the process is running with an `XCTestConfigurationFilePath`.
+    /// **Note: ** This is derived from the active `ProcessInfo`. It does not support overriding at the moment.
+    public let isRunningUnitTests: Bool
+
     // MARK: - Codable
 
     enum CodingKeys: CodingKey {
@@ -43,6 +47,7 @@ public struct Configuration: Decodable {
         indexDatabasePath = Self.resolveIndexDatabasePath(provided: databasePath)
         indexStorePath = try Self.resolveIndexStorePath(provided: storePath)
         libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexPath)
+        self.isRunningUnitTests = Self.resolveIsRunningTests()
     }
 
     // MARK: - Lifecycle
@@ -65,6 +70,7 @@ public struct Configuration: Decodable {
         self.indexDatabasePath = Self.resolveIndexDatabasePath(provided: indexDatabasePath)
         self.libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexStorePath)
         self.indexStorePath = try Self.resolveIndexStorePath(provided: indexStorePath)
+        self.isRunningUnitTests = Self.resolveIsRunningTests()
     }
 
     // MARK: Defaults Helpers
@@ -75,6 +81,14 @@ public struct Configuration: Decodable {
     static func resolveIndexDatabasePath(provided: String?) -> String {
         if let provided { return provided }
         return "\(NSTemporaryDirectory())index_\(getpid())"
+    }
+
+    /// Will return the provided value if not `nil`, otherwise will return a path within the temporary directory.
+    /// - Parameter provided: The provided value to assess.
+    /// - Returns: `String`
+    static func resolveIsRunningTests() -> Bool {
+        let processInfo = ProcessInfo()
+        return processInfo.environment.keys.contains(EnvironmentKeys.testConfigurationPath)
     }
 
     /// Will return the provided value if not `nil`, otherwise will return the ideal build products value from the provided process info instance.
