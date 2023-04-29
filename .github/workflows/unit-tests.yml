@@ -24,4 +24,4 @@ jobs:
       - name: Build
         run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
       - name: Test
-        run: xcodebuild test -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
+        run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES

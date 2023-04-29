@@ -2,7 +2,7 @@
 //  SourceSymbolCollectionTests.swift
 //  IndexStoreTests
 //
-//  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
+//  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
 import XCTest
@@ -14,7 +14,15 @@ final class SourceSymbolCollectionTests: XCTestCase {
     // MARK: - Tests
 
     func test_makeIterator_willReturnExpectedValue() throws {
-        let location = SourceLocation(path: "path", line: 0, column: 0, offset: 0, isSystem: false, isStale: false)
+        let location = SourceLocation(
+            path: "path",
+            moduleName: "module",
+            line: 0,
+            column: 0,
+            offset: 0,
+            isSystem: false,
+            isStale: false
+        )
         let items: [SourceSymbol] = [
             SourceSymbol(name: "0", usr: "0", sourceKind: .struct, roles: .declaration, location: location),
             SourceSymbol(name: "1", usr: "1", sourceKind: .struct, roles: .declaration, location: location),
