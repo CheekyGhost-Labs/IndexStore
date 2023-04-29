@@ -84,12 +84,10 @@ extension IndexStore {
         symbols.forEach { symbol in
             let baseOfRelations = workspace.occurrences(ofUSR: symbol.usr, roles: [.baseOf]).flatMap(\.relations)
             let declarationSymbols = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition, .declaration])
-            let validSymbols = declarationSymbols.filter { declaration in
-                baseOfRelations.contains(where: { $0.symbol.usr == declaration.symbol.usr })
-            }
-            validSymbols.forEach {
-                let symbol = sourceSymbolFromOccurence($0)
-                results.append(symbol)
+            declarationSymbols.forEach { declaration in
+                guard baseOfRelations.contains(where: { $0.symbol.usr == declaration.symbol.usr }) else { return }
+                let sourceSymbol = sourceSymbolFromOccurence(declaration)
+                results.append(sourceSymbol)
             }
         }
         return results.contents
