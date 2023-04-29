@@ -39,12 +39,34 @@ protocol FunctionProtocolWithInheritence: FunctionBaseProtocol {
 struct Invocations {
 
     let instance = FunctionClass()
+    let otherInstance = InvocationsConformance()
 
     init() {
         instance.performFunction(withPerson: ("name", 20))
+    }
+
+    func sample() {
+        otherInstance.sampleInvocation()
+        otherInstance.performOperation(withName: "test")
     }
 }
 
 func isolatedFunction() {
     // no-op
+}
+
+struct InvocationsConformance: FunctionRootProtocol {
+
+    func sampleInvocation() {
+        let instance = FunctionClass()
+        instance.performFunction(withPerson: ("name", 20))
+    }
+
+    func performOperation(withName: String) {
+        // no-op
+    }
+
+    func executeOrder() {
+        // no-op
+    }
 }

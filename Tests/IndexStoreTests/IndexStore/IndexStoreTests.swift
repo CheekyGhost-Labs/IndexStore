@@ -530,8 +530,8 @@ final class IndexStoreTests: XCTestCase {
 
     func test_functions_matchingQuery_willReturnExpectedResults() throws {
         let results = instanceUnderTest.querySymbols(.functions("executeOrder"))
-        XCTAssertEqual(results.count, 1)
-        let function = try XCTUnwrap(results.first)
+        XCTAssertEqual(results.count, 2)
+        var function = try XCTUnwrap(results.first)
         // Function
         XCTAssertEqual(function.name, "executeOrder()")
         XCTAssertEqual(function.sourceKind, .instanceMethod)
@@ -540,12 +540,28 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(function.location.offset, 10)
         XCTAssertTrue(function.location.path.hasSuffix("Functions.swift"))
         // Parent
-        let functionParent = try XCTUnwrap(function.parent)
+        var functionParent = try XCTUnwrap(function.parent)
         XCTAssertEqual(functionParent.name, "FunctionRootProtocol")
         XCTAssertEqual(functionParent.sourceKind, .protocol)
         XCTAssertEqual(functionParent.location.line, 20)
         XCTAssertEqual(functionParent.location.column, 10)
         XCTAssertEqual(functionParent.location.offset, 10)
+        XCTAssertTrue(functionParent.location.path.hasSuffix("Functions.swift"))
+        function = try XCTUnwrap(results.last)
+        // Function
+        XCTAssertEqual(function.name, "executeOrder()")
+        XCTAssertEqual(function.sourceKind, .instanceMethod)
+        XCTAssertEqual(function.location.line, 69)
+        XCTAssertEqual(function.location.column, 10)
+        XCTAssertEqual(function.location.offset, 10)
+        XCTAssertTrue(function.location.path.hasSuffix("Functions.swift"))
+        // Parent
+        functionParent = try XCTUnwrap(function.parent)
+        XCTAssertEqual(functionParent.name, "InvocationsConformance")
+        XCTAssertEqual(functionParent.sourceKind, .struct)
+        XCTAssertEqual(functionParent.location.line, 58)
+        XCTAssertEqual(functionParent.location.column, 8)
+        XCTAssertEqual(functionParent.location.offset, 8)
         XCTAssertTrue(functionParent.location.path.hasSuffix("Functions.swift"))
     }
 
@@ -612,7 +628,13 @@ final class IndexStoreTests: XCTestCase {
             "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
             "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
             "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::6",
+            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
+            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
+            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
+            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
+            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
             "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
             "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
             "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
@@ -967,10 +989,41 @@ final class IndexStoreTests: XCTestCase {
     // MARK: Tests: Convenience: Symbol Invocations
 
     func test_invocationsOfSymbols_functions_willReturnExpectedResults() throws {
-        // todo: finish
+        let functions = instanceUnderTest.querySymbols(.functions("sampleInvocation"))
+        XCTAssertEqual(functions.count, 1)
+        let function = try XCTUnwrap(functions.first)
+        let invocations = instanceUnderTest.invocationsOfSymbol(function)
+        XCTAssertEqual(invocations.count, 1)
+        let invocation = try XCTUnwrap(invocations.first)
+        XCTAssertEqual(invocation.name, "sampleInvocation()")
+        XCTAssertEqual(invocation.sourceKind, .instanceMethod)
+        XCTAssertEqual(invocation.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(invocation.location.path.hasSuffix("Functions.swift"))
+        XCTAssertEqual(invocation.location.line, 49)
+        XCTAssertEqual(invocation.location.column, 23)
+        XCTAssertEqual(invocation.location.offset, 23)
+        // Parent (Function)
+        var parent = try XCTUnwrap(invocation.parent)
+        XCTAssertEqual(parent.name, "sample()")
+        XCTAssertEqual(parent.sourceKind, .instanceMethod)
+        XCTAssertEqual(parent.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(parent.location.path.hasSuffix("Functions.swift"))
+        XCTAssertEqual(parent.location.line, 48)
+        XCTAssertEqual(parent.location.column, 10)
+        XCTAssertEqual(parent.location.offset, 10)
+        // Parent -> Parent (Struct)
+        parent = try XCTUnwrap(parent.parent)
+        XCTAssertNil(parent.parent)
+        XCTAssertEqual(parent.name, "Invocations")
+        XCTAssertEqual(parent.sourceKind, .struct)
+        XCTAssertEqual(parent.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(parent.location.path.hasSuffix("Functions.swift"))
+        XCTAssertEqual(parent.location.line, 39)
+        XCTAssertEqual(parent.location.column, 8)
+        XCTAssertEqual(parent.location.offset, 8)
     }
 
     func test_invocationsOfSymbols_properties_willReturnExpectedResults() throws {
-        // todo: finish
+        // todo: add property invocation tests
     }
 }
