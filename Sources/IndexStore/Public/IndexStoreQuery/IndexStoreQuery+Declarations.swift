@@ -2,7 +2,7 @@
 //  IndexStore+Declarations.swift
 //
 //
-//  Created by Michael O'Brien on 25/4/2023.
+//  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
 import Foundation

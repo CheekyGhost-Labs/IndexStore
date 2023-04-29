@@ -2,7 +2,7 @@
 //  AnyError.swift
 //  IndexStoreTests
 //
-//  Copyright (c) CheekyGhost Labs 2022. All Rights Reserved.
+//  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
 import Foundation
