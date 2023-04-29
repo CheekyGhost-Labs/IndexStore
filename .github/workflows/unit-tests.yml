@@ -21,6 +21,8 @@ jobs:
       - name: Create test configuration
         run: chmod +x ./build_configuration.sh && ./build_configuration.sh
         shell: bash
+      - name: Clean
+        run: xcodebuild clean
       - name: Build
         run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
       - name: Test
