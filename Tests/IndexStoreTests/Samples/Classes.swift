@@ -11,3 +11,10 @@ class RootClass {
 }
 
 class SampleClass {}
+
+class OtherInheritenceSubclass: InheritenceClass {
+
+    func sample()  {
+        // no-op
+    }
+}

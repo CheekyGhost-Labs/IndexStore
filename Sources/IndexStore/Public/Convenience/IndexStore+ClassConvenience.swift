@@ -80,15 +80,18 @@ extension IndexStore {
     ///   - sourceFiles: The source files to search in.
     /// - Returns: Array of ``SourceSymbole``
     internal func resolveSymbolsSubclassingClassSymbols(_ symbols: [SourceSymbol], in sourceFiles: [String]) -> [SourceSymbol] {
-        let conformingTypes: [SourceSymbol] = symbols.flatMap { symbol in
+        var results: OrderedSet<SourceSymbol> = []
+        symbols.forEach { symbol in
+            let baseOfRelations = workspace.occurrences(ofUSR: symbol.usr, roles: [.baseOf]).flatMap(\.relations)
             let declarationSymbols = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition, .declaration])
             let validSymbols = declarationSymbols.filter { declaration in
-                declaration.relations.contains(where: {
-                    $0.symbol.usr == symbol.usr && $0.roles.contains(.baseOf)
-                })
+                baseOfRelations.contains(where: { $0.symbol.usr == declaration.symbol.usr })
             }
-            return validSymbols.compactMap(sourceSymbolFromOccurence)
+            validSymbols.forEach {
+                let symbol = sourceSymbolFromOccurence($0)
+                results.append(symbol)
+            }
         }
-        return conformingTypes
+        return results.contents
     }
 }

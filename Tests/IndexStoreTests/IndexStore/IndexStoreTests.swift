@@ -922,40 +922,35 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceSymbolsSubclassing_withCustomInheritence() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "ProtocolWithInheritence")
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass")
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "CustomInheritenceStruct")
-        XCTAssertEqual(targetResult.sourceKind, .struct)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 17)
-        XCTAssertEqual(targetResult.location.column, 8)
-        XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithInheritence", "RootProtocol"])
-        targetResult = try XCTUnwrap(results.last)
-        XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "CustomInheritenceClass")
+        XCTAssertEqual(targetResult.name, "InheritenceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
-        XCTAssertEqual(targetResult.location.line, 22)
+        XCTAssertEqual(targetResult.location.line, 31)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithInheritence"])
-        let inheritedInheritence = try XCTUnwrap(results[1].inheritance.last?.inheritance.first)
-        XCTAssertNil(inheritedInheritence.parent)
-        XCTAssertEqual(inheritedInheritence.name, "BaseProtocol")
-        XCTAssertEqual(inheritedInheritence.sourceKind, .protocol)
-        XCTAssertTrue(inheritedInheritence.location.path.hasSuffix("Protocols.swift"))
-        XCTAssertEqual(inheritedInheritence.location.line, 7)
-        XCTAssertEqual(inheritedInheritence.location.column, 10)
-        XCTAssertEqual(inheritedInheritence.location.offset, 10)
-        XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        targetResult = try XCTUnwrap(results.last)
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
+        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
     }
 
     // MARK: Tests: Convenience: Symbol Invocations
 
-    func test_invocationsOfSymbol_willReturnExpectedResults() throws {
+    func test_invocationsOfSymbols_functions_willReturnExpectedResults() throws {
+        // todo: finish
+    }
+
+    func test_invocationsOfSymbols_properties_willReturnExpectedResults() throws {
         // todo: finish
     }
 }
