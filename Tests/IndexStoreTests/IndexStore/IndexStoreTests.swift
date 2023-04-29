@@ -56,7 +56,7 @@ final class IndexStoreTests: XCTestCase {
     func test_querySymbols_inSourceFiles_classes_willReturnExpectedValues() throws {
         let query = IndexStoreQuery.classDeclarations(in: sampleSourceFilePaths)
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 13)
+        XCTAssertEqual(results.count, 14)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
@@ -593,6 +593,7 @@ final class IndexStoreTests: XCTestCase {
         // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
         // revisit once time allows to avoid the description match.
         let expected: [String] = [
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Classes.swift::17::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::10::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::18::10",
@@ -867,8 +868,8 @@ final class IndexStoreTests: XCTestCase {
 
     func test_sourceSymbolsSubclassing_query_willReturnExpectedResults() throws {
         let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass")
-        XCTAssertEqual(results.count, 1)
-        let targetResult = try XCTUnwrap(results.first)
+        XCTAssertEqual(results.count, 2)
+        var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
         XCTAssertEqual(targetResult.name, "InheritenceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
@@ -877,12 +878,31 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        targetResult = try XCTUnwrap(results.last)
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
+        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
     }
 
     func test_sourceSymbolsSubclassing_inSourceFiles_willReturnExpectedResults() throws {
         let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass", in: sampleSourceFilePaths)
-        XCTAssertEqual(results.count, 1)
-        let targetResult = try XCTUnwrap(results.first)
+        XCTAssertEqual(results.count, 2)
+        var targetResult = try XCTUnwrap(results.first)
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
+        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+
+        targetResult = try XCTUnwrap(results.last)
         XCTAssertNil(targetResult.parent)
         XCTAssertEqual(targetResult.name, "InheritenceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
