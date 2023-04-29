@@ -19,7 +19,7 @@ class FunctionClass {
 
 protocol FunctionRootProtocol {
     func performOperation(withName: String)
-    func doTheThings()
+    func executeOrder()
 }
 
 protocol FunctionProtocolWithSystemInheritence: Equatable {

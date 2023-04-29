@@ -27,3 +27,17 @@ class CustomInheritenceClass: RootProtocol, ProtocolWithInheritence {
         true
     }
 }
+
+class InheritenceSubclass: InheritenceClass {
+
+    func sample()  {
+        // no-op
+    }
+}
+
+class SystemInheritenceSubclass: NSObject {
+
+    override init() {
+        super.init()
+    }
+}
