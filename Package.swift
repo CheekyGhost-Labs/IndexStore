@@ -41,3 +41,6 @@ let package = Package(
         ),
     ]
 )
+package.dependencies.append(
+    .package(url: "https://github.com/SwiftPackageIndex/SPIManifest.git", from: "0.12.0")
+)
