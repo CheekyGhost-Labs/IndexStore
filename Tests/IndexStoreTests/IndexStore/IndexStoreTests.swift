@@ -1411,7 +1411,6 @@ final class IndexStoreTests: XCTestCase {
 
     func test_invocationsOfSymbols_properties_willReturnExpectedResults() throws {
         let properties = instanceUnderTest.querySymbols(.properties("sampleProperty"))
-        let descriptions = properties.map(\.description)
         // Declarations (empty)
         XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(properties[0]), [])
         XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(properties[1]), [])
