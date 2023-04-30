@@ -18,7 +18,7 @@ extension IndexStoreQuery {
     /// - roles: [``SourceRole/definition``, ``SourceRole/declaration``, ``SourceRole/childOf``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
-    /// - includeSubsequence: `true`
+    /// - includeSubsequence: `false` // will still include partial matches
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
@@ -28,7 +28,7 @@ extension IndexStoreQuery {
             .withRoles([.definition, .childOf, .canonical])
             .withAnchorStart(false)
             .withAnchorEnd(false)
-            .withInlcudeSubsequences(true)
+            .withInlcudeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -39,7 +39,7 @@ extension IndexStoreQuery {
     /// - roles: [``SourceRole/definition``, ``SourceRole/declaration``, ``SourceRole/childOf``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
-    /// - includeSubsequence: `true`
+    /// - includeSubsequence: `false` // will still include partial matches
     /// - ignoreCase: `false`
     /// - Parameters:
     ///   - sourceFiles: Array of source files to search for functions in.

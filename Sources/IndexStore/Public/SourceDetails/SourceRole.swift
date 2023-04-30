@@ -109,7 +109,8 @@ public struct SourceRole: OptionSet, Hashable, Equatable, CustomStringConvertibl
         if contains(.containedBy) { results.append("containedBy") }
         if contains(.ibTypeOf) { results.append("ibTypeOf") }
         if contains(.specializationOf) { results.append("specializationOf") }
-        return results.joined(separator: ", ")
+        let joined = results.joined(separator: "|")
+        return results.count == 1 ? joined : "[\(joined)]"
     }
 
     public var debugDescription: String { description }

@@ -9,6 +9,16 @@ import XCTest
 
 class SampleTestCase: XCTestCase {
 
+    var baseProperty: String = ""
+
+    static var basePropertyTwo: String = ""
+}
+
+extension XCTestCase {
+
+    func extendedMethod() {
+        // no-op
+    }
 }
 
 final class InvocationTestCase: SampleTestCase {

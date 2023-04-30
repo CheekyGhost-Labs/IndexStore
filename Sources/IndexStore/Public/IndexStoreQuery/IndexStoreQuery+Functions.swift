@@ -15,7 +15,7 @@ extension IndexStoreQuery {
     ///
     /// Defaults to:
     /// - kinds:  [``SourceKind/instanceMethod``, ``SourceKind/function``, ``SourceKind/staticMethod``, ``SourceKind/classMethod``]
-    /// - roles: [``SourceRole/definition``, ``SourceRole/declaration``, ``SourceRole/childOf``, ``SourceRole/canonical``]
+    /// - roles: [``SourceRole/definition``, ``SourceRole/childOf``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`
@@ -36,7 +36,7 @@ extension IndexStoreQuery {
     ///
     /// Defaults to:
     /// - kinds:  [``SourceKind/instanceMethod``, ``SourceKind/function``, ``SourceKind/staticMethod``, ``SourceKind/classMethod``]
-    /// - roles: [``SourceRole/definition``, ``SourceRole/declaration``, ``SourceRole/childOf``, ``SourceRole/canonical``]
+    /// - roles: [``SourceRole/definition``, ``SourceRole/childOf``, ``SourceRole/canonical``]
     /// - anchorStart: `false`
     /// - anchorEnd: `false`
     /// - includeSubsequence: `true`
