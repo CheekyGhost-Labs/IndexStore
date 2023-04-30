@@ -136,7 +136,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/5.9"),
+    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/1.0"),
 ]
 ```
 
