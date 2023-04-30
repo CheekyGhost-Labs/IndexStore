@@ -60,13 +60,13 @@ Once you have a configured `IndexStore` instance, you can begin querying for sym
 
 1. Import `IndexStore`:
 
-```
+```swift
 import IndexStore
 ```
 
 2. Use the `IndexStore` instance to query for symbols, occurrences, or other information:
 
-```
+```swift
 // Query for functions by name
 let results = indexStore.querySymbols(.functions("someFunctionName"))
 
@@ -97,31 +97,31 @@ IndexStore provides convenience methods for common static analysis tasks:
 
 - Find symbols conforming to a specific protocol:
 
-```
+```swift
 let conformingSymbols = indexStore.sourceSymbols(conformingToProtocol: "SomeProtocol")
 ```
 
 - Find symbols subclassing a specific class:
 
-```
+```swift
 let subclassingSymbols = indexStore.sourceSymbols(subclassing: "SomeClass")
 ```
 
 - Find invocations of a specific symbol:
 
-```
+```swift
 let invocations = indexStore.invocationsOfSymbol(someSymbol)
 ```
 
 - Check if a symbol is invoked by a test case:
 
-```
+```swift
 let isInvokedByTestCase = indexStore.isSymbolInvokedByTestCase(someSymbol)
 ```
 
 - Identify empty extensions:
 
-```
+```swift
 let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "SomeType")
 ```
 
@@ -131,7 +131,7 @@ let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "Some
 
 Add the following to your `Package.swift` file:
 
-```
+```swift
 dependencies: [
     .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", from: "1.0.0")
 ]
@@ -167,13 +167,13 @@ Please feel free to create a pull request:
 
 2. **Clone the forked repository**: After forking, clone your forked repository to your local machine so you can make changes.
 
-```
+```shell
 git clone https://github.com/CheekyGhost-Labs/IndexStore.git
 ```
 
 3. **Create a new branch**: Before making changes, create a new branch for your feature or bug fix. Use a descriptive name that reflects the purpose of your changes.
 
-```
+```shell
 git checkout -b your-feature-branch
 ```
 
@@ -192,13 +192,13 @@ git commit -m "Bug: Fixing issue where awesome query was not including awesome"
 
 7. **Pull the latest changes from the upstream**: Before submitting your changes, make sure to pull the latest changes from the upstream repository and merge them into your branch. This helps to avoid any potential merge conflicts.
 
-```
+```shell
 git pull origin develop
 ```
 
 8. **Push your changes**: Push your changes to your forked repository on GitHub.
 
-```
+```shell
 git push origin your-feature-branch
 ```
 
