@@ -4,15 +4,23 @@ IndexStore is a library providing that provides a query-based approach for searc
 
 With this library, you can easily search for and analyze symbols in your code, making it a powerful tool for building developer tools, static analyzers, and code refactoring utilities.
 
+<br />
 
-### Workflows:
+## Note:
+
+The [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) is not considered stable yet as it has no resolvable semvar tags. This project points at a release branch found on the repo and is actively maintained.
+
+<br />
+
+## Workflows:
 
 |  Branch  |  Status  |
 |:---------|:------:|
 | main | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
 | develop | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
 
-### Features:
+<br />
+## Features:
 
 - Query symbols and occurrences in your Swift source code
 - Find the occurrences and references of symbols
@@ -125,6 +133,7 @@ let isInvokedByTestCase = indexStore.isSymbolInvokedByTestCase(someSymbol)
 let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "SomeType")
 ```
 
+<br />
 ## Installation
 
 ### Swift Package Manager
@@ -137,10 +146,12 @@ dependencies: [
 ]
 ```
 
+<br />
 ## License
 
 IndexStore is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
 
+<br />
 ## Contribution
 
 ### Submitting a Bug Report
@@ -162,7 +173,7 @@ Due to [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) repo
 The approach IndexStore takes for releases is:
 - main: contains the latest stable release
 - develop: contains the latest stable changes pending release
-- release/<version>: contains released code
+- release/<major>.minor: contains released code
 
 A release branch will have a semantic version without accounting for patch updates. For example
 
@@ -173,9 +184,11 @@ release/1.1
 
 - any `patch` changes (bug fixes and improvements that don't change the public interface) will be pulled into the appropriate release branch as needed.
 
-- any `minor` updates (publicly visibile changes that are backwards compatible) will get their own release branch.
+- any `minor` updates (publicly visible changes that are backwards compatible) will get their own release branch.
 
-- any `major` updates (publicly visibile changes that are **not** backwards compatible) will get their own release branch.
+- any `major` updates (publicly visible changes that are **not** backwards compatible) will get their own release branch.
+
+Releases will still be tagged for when the [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) becomes stable. This will also allow us to manage patch releases easier too.
 
 For the most part, pull requests should be made against the `develop` branch to coordinate releases with multiple features and fixes. This also provides a means to test from the `develop` branch in the wild to further test pending releases. Once a release is ready it will be merged into `main` and release branches created/updated from the `main` branch.
 
