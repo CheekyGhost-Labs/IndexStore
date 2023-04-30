@@ -27,14 +27,13 @@ public struct IndexStoreQuery: Equatable {
     /// Bool whether to restrict search results to symbols with a location within the project directory. Default is `true`.
     public var restrictToProjectDirectory: Bool = true
 
-    /// Bool wether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    /// Bool whether to anchor the search term to the starting bounds of a word or line Default is `true`.
     public var anchorStart: Bool = true
 
-    /// Bool wether to anchor the search term to the ending bounds of a word or line Default is `true`.
+    /// Bool whether to anchor the search term to the ending bounds of a word or line Default is `true`.
     public var anchorEnd: Bool = true
 
     /// Bool whether to include symbol names that contain the term as a substring. Default is `false`.
-    /// **Note: ** If this is set to `true` then the `anchorStart` and `anchorEnd` will be ignored and treated as `false`.
     public var includeSubsequence: Bool = false
 
     /// Bool whether to perform a case insensitive search. Default is `false`.

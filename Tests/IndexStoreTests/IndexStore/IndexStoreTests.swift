@@ -367,6 +367,98 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.location.offset, 11)
     }
 
+    func test_querySymbols_extension_class_inSourceFiles_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.extensions(in: sampleTestCaseFiles, matching: "XCTestCase"))
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "XCTestCase")
+        XCTAssertEqual(targetResult.sourceKind, .extension)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("InvocationTestCase.swift")))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 11)
+        XCTAssertEqual(targetResult.location.offset, 11)
+    }
+
+    func test_querySymbols_extension_systemClass_inSourceFiles_additionalKinds_valid_willReturnExpectedResults() throws {
+        let kinds = [SourceKind.extension] + SourceKind.declarations
+        let query = IndexStoreQuery.extensions(in: sampleTestCaseFiles, matching: "XCTestCase").withKinds(kinds)
+        let results = instanceUnderTest.querySymbols(query)
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "XCTestCase")
+        XCTAssertEqual(targetResult.sourceKind, .extension)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(pathSuffix("InvocationTestCase.swift")))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 11)
+        XCTAssertEqual(targetResult.location.offset, 11)
+    }
+
+    func test_querySymbols_extension_customClass_inSourceFiles_additionalKinds_noMatchesInSource_willReturnEmptyValues() throws {
+        let query = IndexStoreQuery.extensions(in: sampleTestCaseFiles, matching: "RootClass").withKinds([.extension, .class]).withSourceFiles(sampleTestCaseFiles)
+        let results = instanceUnderTest.querySymbols(query)
+        XCTAssertEqual(results, [])
+    }
+
+    func test_querySymbols_extension_customClass_inSourceFiles_additionalKinds_matchesInSource_willReturnEmptyValues() throws {
+        let query = IndexStoreQuery.extensions(in: sampleSourceFilePaths, matching: "RootClass").withKinds([.extension, .class])
+        let results = instanceUnderTest.querySymbols(query)
+        XCTAssertEqual(results.count, 2)
+        var targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
+        XCTAssertEqual(targetResult.location.line, 3)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        targetResult = results[1]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .extension)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Extensions.swift"))
+        XCTAssertEqual(targetResult.location.line, 8)
+        XCTAssertEqual(targetResult.location.column, 11)
+        XCTAssertEqual(targetResult.location.offset, 11)
+    }
+
+    func test_querySymbols_extension_customClass_additionalKinds_partialMatches_willReturnEmptyValues() throws {
+        let query = IndexStoreQuery.extensions(ofType: "RootClass").withKinds([.extension, .struct])
+        let results = instanceUnderTest.querySymbols(query)
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .extension)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Extensions.swift"))
+        XCTAssertEqual(targetResult.location.line, 8)
+        XCTAssertEqual(targetResult.location.column, 11)
+        XCTAssertEqual(targetResult.location.offset, 11)
+    }
+
+    func test_querySymbols_extension_customClass_additionalKinds_willReturnEmptyValues() throws {
+        let query = IndexStoreQuery.extensions(ofType: "RootClass").withKinds([.extension, .class])
+        let results = instanceUnderTest.querySymbols(query)
+        XCTAssertEqual(results.count, 2)
+        var targetResult = results[0]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
+        XCTAssertEqual(targetResult.location.line, 3)
+        XCTAssertEqual(targetResult.location.column, 7)
+        XCTAssertEqual(targetResult.location.offset, 7)
+        targetResult = results[1]
+        XCTAssertNil(targetResult.parent)
+        XCTAssertEqual(targetResult.name, "RootClass")
+        XCTAssertEqual(targetResult.sourceKind, .extension)
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Extensions.swift"))
+        XCTAssertEqual(targetResult.location.line, 8)
+        XCTAssertEqual(targetResult.location.column, 11)
+        XCTAssertEqual(targetResult.location.offset, 11)
+    }
+
     func test_querySymbols_extension_struct_willReturnExpectedValues() throws {
         let results = instanceUnderTest.querySymbols(.extensions(ofType: "RootStruct"))
         let expectedPathSuffix = pathSuffix("Extensions.swift")
@@ -766,7 +858,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertFalse(property.location.isSystem)
         XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
         XCTAssertFalse(property.location.isStale)
-        XCTAssertEqual(property.location.line, 19)
+        XCTAssertEqual(property.location.line, 26)
         XCTAssertEqual(property.location.column, 9)
         XCTAssertEqual(property.location.offset, 9)
         XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
@@ -777,7 +869,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertFalse(propertyParent.location.isStale)
         XCTAssertFalse(propertyParent.location.isSystem)
         XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
-        XCTAssertEqual(propertyParent.location.line, 17)
+        XCTAssertEqual(propertyParent.location.line, 24)
         XCTAssertEqual(propertyParent.location.column, 13)
         XCTAssertEqual(propertyParent.location.offset, 13)
         XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
@@ -790,7 +882,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertFalse(property.location.isSystem)
         XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
         XCTAssertFalse(property.location.isStale)
-        XCTAssertEqual(property.location.line, 28)
+        XCTAssertEqual(property.location.line, 35)
         XCTAssertEqual(property.location.column, 9)
         XCTAssertEqual(property.location.offset, 9)
         XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
@@ -801,7 +893,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertFalse(propertyParent.location.isStale)
         XCTAssertFalse(propertyParent.location.isSystem)
         XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
-        XCTAssertEqual(propertyParent.location.line, 26)
+        XCTAssertEqual(propertyParent.location.line, 33)
         XCTAssertEqual(propertyParent.location.column, 13)
         XCTAssertEqual(propertyParent.location.offset, 13)
         XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
@@ -1354,5 +1446,21 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(invocation.location.offset, 9)
         XCTAssertTrue(invocation.location.path.hasSuffix("Properties.swift"))
         print(descriptions)
+    }
+
+    // MARK: - Tests: Invalid queries
+
+    func test_invocationsOfSymbols_invalidKind_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.sourceSymbols(subclassing: "NSObject")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(targetResult), [])
+    }
+
+    func test_query_emptySourceFiles_willReturnEmptyResults() throws {
+        XCTAssertEqual(instanceUnderTest.querySymbols(.classDeclarations(in: [])), [])
+        XCTAssertEqual(instanceUnderTest.querySymbols(.classDeclarations(in: [], matching: "RootClass")), [])
+        let query = IndexStoreQuery.classDeclarations(matching: "RootClass").withQuery(nil)
+        XCTAssertEqual(instanceUnderTest.querySymbols(query), [])
     }
 }

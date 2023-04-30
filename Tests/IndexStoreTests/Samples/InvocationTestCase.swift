@@ -14,6 +14,13 @@ class SampleTestCase: XCTestCase {
     static var basePropertyTwo: String = ""
 }
 
+extension XCTestCase {
+
+    func extendedMethod() {
+        // no-op
+    }
+}
+
 final class InvocationTestCase: SampleTestCase {
 
     let instance: FunctionClass = .init()
