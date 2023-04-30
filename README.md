@@ -1,6 +1,9 @@
 # IndexStore
 
-Library providing an abstraction around the [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) that provides a query-based approach for searching for symbols within an indexed code base.
+IndexStore is a library providing that provides a query-based approach for searching for and working with source symbols within an indexed code base. It is built on top of the [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db), which provides access to the index data produced by the swift compiler.
+
+With this library, you can easily search for and analyze symbols in your code, making it a powerful tool for building developer tools, static analyzers, and code refactoring utilities.
+
 
 ### Workflows:
 
@@ -8,3 +11,201 @@ Library providing an abstraction around the [Apple IndexStoreDB Library](https:/
 |:---------|:------:|
 | main | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
 | develop | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
+
+### Features:
+
+- Query symbols and occurrences in your Swift source code
+- Find the occurrences and references of symbols
+- Access detailed information about symbols, such as their USR, source file location, parent, inheritance, and more
+- Access detailed information about symbols (location, kind, parent, etc.)
+- Filter and customize queries with various options, such as restricting to the project directory or specific source files
+- Supports both Swift and Objective-C code
+- Retrieve symbols conforming to a specific protocol
+- Retrieve symbols subclassing a specific class
+- Find invocations of a specific symbol
+- Check if a symbol is invoked by a test case
+- Identify empty extensions
+
+### Getting Started:
+
+To use `IndexStore` in your project, you'll need to instantiate an index with a valid `Configuration` instance.
+
+The `Configuration` holds, among other things, paths to the project directory, libIndexStore, and IndexStoreDB database. The only required value to get started is the `projectDirectory` location, which is the working directory of the project you are assessing.
+
+By default the configuration will automatically resolve the required `indexStorePath` and `libIndexStorePath` based on the running process. This will use `xcode-select` and `ProcessInfo().environment` to derive the index store details for the project within the `projectDirectory`.
+
+You can also override this by providing your own values.
+
+#### Instantiating:
+
+Once you have your configuration ready, you can create an `IndexStore` instance:
+
+```swift
+// Manual Configuration
+let configuration = Configuration(projectDirectory: "path/to/project/root")
+instanceUnderTest = IndexStore(configuration: configuration)
+```
+
+The `Configuration` is also `Decodable` and can be built from a JSON file:
+
+```swift
+let configuration = try Configuration.fromJson(at: configPath)
+instanceUnderTest = IndexStore(configuration: configuration)
+```
+
+#### Basic Usage
+
+Once you have a configured `IndexStore` instance, you can begin querying for symbols:
+
+
+1. Import `SwiftIndexStore`:
+
+```
+import IndexStore
+```
+
+2. Use the `IndexStore` instance to query for symbols, occurrences, or other information:
+
+```
+// Query for functions by name
+let results = indexStore.querySymbols(.functions("someFunctionName"))
+
+// Find all class symbols
+let classSymbols = indexStore.querySymbols(.kinds([.class]))
+
+// Find all extensions of a type
+let results = indexStore.querySymbols(.extensions(ofType: "MyClass"))
+
+// Find all extensions of a class within specific source files
+let results = indexStore.querySymbols(.extensions(in: ["path", "path], matching: "XCTest"))
+
+// Find all invocations of a function symbol
+let function = indexStore.querySymbols(.functions("someFunctionName"))[0]
+let results = indexStore.invocationsOfSymbol(function)
+
+// Find all symbols declared in a specific file
+let symbols = indexStore.querySymbols(
+    .withSourceFiles(["/path/to/your/project/SourceFile.swift"])
+    .withKinds(SourceKind.allCases)
+    .withRoles(.all)
+)
+```
+
+#### Convenience Methods
+
+IndexStore provides convenience methods for common static analysis tasks:
+
+- Find symbols conforming to a specific protocol:
+
+```
+let conformingSymbols = indexStore.sourceSymbols(conformingToProtocol: "SomeProtocol")
+```
+
+- Find symbols subclassing a specific class:
+
+```
+let subclassingSymbols = indexStore.sourceSymbols(subclassing: "SomeClass")
+```
+
+- Find invocations of a specific symbol:
+
+```
+let invocations = indexStore.invocationsOfSymbol(someSymbol)
+```
+
+- Check if a symbol is invoked by a test case:
+
+```
+let isInvokedByTestCase = indexStore.isSymbolInvokedByTestCase(someSymbol)
+```
+
+- Identify empty extensions:
+
+```
+let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "SomeType")
+```
+
+## Installation
+
+### Swift Package Manager
+
+Add the following to your `Package.swift` file:
+
+```
+dependencies: [
+    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", from: "1.0.0")
+]
+```
+
+## License
+
+IndexStore is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
+
+## Contribution
+
+### Submitting a Bug Report
+
+Swift Markdown tracks all bug reports with [GitHub Issues](https://github.com/CheekyGhost-Labs/IndexStore/issues).
+You can use the "IndexStore" component for issues and feature requests specific to IndexStore.
+When you submit a bug report we ask that you are descriptive and include as much information as possible to document or re-create the issue.
+
+### Submitting a Feature Request
+
+For feature requests, please feel free to file a [GitHub issue](https://github.com/CheekyGhost-Labs/IndexStore/issues/new)
+
+Don't hesitate to submit a feature request if you see a way IndexStore can be improved to better meet your needs.
+
+### Contributing to IndexStore
+
+IndexStore follows [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+
+For any non-emergency updates we merge any pull requests into the `develop` branch to coordinate releases with multiple features and fixes. This also provides a means to test from the `develop` branch in the wild to further test pending releases.
+
+Please feel free to create a pull request:
+
+1. **Fork the repository**: Start by creating a fork of the project to your own GitHub account.
+
+2. **Clone the forked repository**: After forking, clone your forked repository to your local machine so you can make changes.
+
+```
+git clone https://github.com/CheekyGhost-Labs/IndexStore.git
+```
+
+3. **Create a new branch**: Before making changes, create a new branch for your feature or bug fix. Use a descriptive name that reflects the purpose of your changes.
+
+```
+git checkout -b your-feature-branch
+```
+
+4. **Follow the Swift Language Guide**: Ensure that your code adheres to the [Swift Language Guide](https://swift.org/documentation/api-design-guidelines/) for styling and syntax conventions.
+
+5. **Make your changes**: Implement your feature or bug fix, following the project's code style and best practices. Don't forget to add tests and update documentation as needed.
+
+6. **Commit your changes**: Commit your changes with a descriptive and concise commit message. Use the imperative mood, and explain what your commit does, rather than what you did.
+
+```shell
+# Feature
+git commit -m "Feature: Adding convenience method for resolving awesomeness"
+# Bug
+git commit -m "Bug: Fixing issue where awesome query was not including awesome"
+```
+
+7. **Pull the latest changes from the upstream**: Before submitting your changes, make sure to pull the latest changes from the upstream repository and merge them into your branch. This helps to avoid any potential merge conflicts.
+
+```
+git pull origin develop
+```
+
+8. **Push your changes**: Push your changes to your forked repository on GitHub.
+
+```
+git push origin your-feature-branch
+```
+
+9. **Submit a pull request**: Finally, create a pull request from your forked repository to the original repository, targeting the `develop` branch. Fill in the pull request template with the necessary details, and wait for the project maintainers to review your contribution.
+
+### Unit Testing
+
+Please ensure you add unit tests for any changes. The aim is not `100%` coverage, but rather meaningful test coverage that ensures your changes are behaving as expected without negatively effecting existing behavior.
+
+Please note that the project maintainers may ask you to make changes to your contribution or provide additional information. Be open to feedback and willing to make adjustments as needed. Once your pull request is approved and merged, your changes will become part of the project!
