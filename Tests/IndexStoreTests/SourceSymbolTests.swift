@@ -19,23 +19,14 @@ final class SourceSymbolTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        let configuration = try loadDefaultConfiguration()
+        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
+        let configuration = try IndexStore.Configuration.fromJson(at: configPath)
         indexStore = IndexStore(configuration: configuration, logger: .test)
     }
 
     override func tearDownWithError() throws {
         try super.tearDownWithError()
         indexStore = nil
-    }
-
-    // MARK: - Helpers
-
-    func loadDefaultConfiguration() throws -> Configuration {
-        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
-        let configUrl = URL(fileURLWithPath: configPath)
-        let data = try Data(contentsOf: configUrl)
-        let decoded = try JSONDecoder().decode(Configuration.self, from: data)
-        return decoded
     }
 
     // MARK: - Tests

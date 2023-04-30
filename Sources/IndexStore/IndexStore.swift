@@ -129,29 +129,29 @@ public final class IndexStore {
     ///     }
     /// ```
     /// the result will be `"    enum Foo {"`
-    /// - Parameter details: The source declaration details to resolve for.
+    /// - Parameter symbol: The source symbol details to resolve for.
     /// - Returns: `String` if the source file exists and can be read.
     /// - Throws: ``SourceResolvingError``
-    public func declarationSource(forDetails details: SourceSymbol) throws -> String {
-        let contents = try sourceContents(forDetails: details)
+    public func declarationSource(forSymbol symbol: SourceSymbol) throws -> String {
+        let contents = try sourceContents(forSymbol: symbol)
         let lines = contents.components(separatedBy: .newlines)
-        let normalisedLine = max(0, details.location.line - 1)
+        let normalisedLine = max(0, symbol.location.line - 1)
         guard normalisedLine < lines.count else {
             throw SourceResolvingError.unableToResolveSourceLine(
-                name: details.name,
-                path: details.location.path,
-                line: details.location.line
+                name: symbol.name,
+                path: symbol.location.path,
+                line: symbol.location.line
             )
         }
         return lines[normalisedLine]
     }
 
     /// Will return the **full source contents** from the source file holding with the given source declaration details.
-    /// - Parameter details: The source declaration details to resolve for.
+    /// - Parameter symbol: The source symbol details to resolve for.
     /// - Returns: `String` if the source file exists and can be read.
     /// - Throws: ``SourceResolvingError``
-    public func sourceContents(forDetails details: SourceSymbol) throws -> String {
-        let path = details.location.path
+    public func sourceContents(forSymbol symbol: SourceSymbol) throws -> String {
+        let path = symbol.location.path
         guard FileManager.default.fileExists(atPath: path) else {
             throw SourceResolvingError.sourcePathDoesNotExist(path: path)
         }
