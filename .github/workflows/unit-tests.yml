@@ -28,16 +28,3 @@ jobs:
 
       - name: Test
         run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
-
-      - name: Code Coverage Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: coverage/**/coverage.cobertura.xml
-          badge: true
-          fail_below_min: false
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: true
-          indicators: true
-          output: both
-          thresholds: '80 90'
