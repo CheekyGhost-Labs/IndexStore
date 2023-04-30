@@ -1,12 +1,12 @@
 //
 //  IndexStoreQueryTests.swift
-//  
+//
 //
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
-import XCTest
 import IndexStore
+import XCTest
 
 final class IndexStoreQueryTests: XCTestCase {
 

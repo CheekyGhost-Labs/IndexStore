@@ -32,7 +32,8 @@ final class IndexStoreTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        let configuration = try loadDefaultConfiguration()
+        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
+        let configuration = try Configuration.fromJson(at: configPath)
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
         instanceUnderTest.pollForChangesAndWait()
     }
@@ -43,14 +44,6 @@ final class IndexStoreTests: XCTestCase {
     }
 
     // MARK: - Helpers
-
-    func loadDefaultConfiguration() throws -> Configuration {
-        let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
-        let configUrl = URL(fileURLWithPath: configPath)
-        let data = try Data(contentsOf: configUrl)
-        let decoded = try JSONDecoder().decode(Configuration.self, from: data)
-        return decoded
-    }
 
     func pathSuffix(_ sourceName: String) -> String {
         "IndexStore/Tests/IndexStoreTests/Samples/\(sourceName)"
@@ -1038,7 +1031,7 @@ final class IndexStoreTests: XCTestCase {
             "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
             "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
             "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10"
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10",
         ]
         let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
         let descriptions = results.map(\.description)
@@ -1445,7 +1438,6 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(invocation.location.column, 9)
         XCTAssertEqual(invocation.location.offset, 9)
         XCTAssertTrue(invocation.location.path.hasSuffix("Properties.swift"))
-        print(descriptions)
     }
 
     // MARK: - Tests: Invalid queries

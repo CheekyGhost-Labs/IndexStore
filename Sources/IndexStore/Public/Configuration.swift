@@ -50,6 +50,15 @@ public struct Configuration: Decodable {
         self.isRunningUnitTests = Self.resolveIsRunningTests()
     }
 
+    /// Will attempt to decode a configuration instance from the file at the given path.
+    /// - Parameter path: The path of the file to decode from.
+    /// - Returns: `Configuration`
+    public static func fromJson(at path: String) throws -> Configuration {
+        let configUrl = URL(fileURLWithPath: path)
+        let data = try Data(contentsOf: configUrl)
+        return try JSONDecoder().decode(Configuration.self, from: data)
+    }
+
     // MARK: - Lifecycle
 
     /// Will initialize a new configuration instance with the given details.
