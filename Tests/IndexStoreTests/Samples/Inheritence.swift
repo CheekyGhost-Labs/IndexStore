@@ -30,7 +30,7 @@ class CustomInheritenceClass: RootProtocol, ProtocolWithInheritence {
 
 class InheritenceSubclass: InheritenceClass {
 
-    func sample()  {
+    func sample() {
         // no-op
     }
 }

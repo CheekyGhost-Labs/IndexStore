@@ -356,8 +356,7 @@ public final class Workspace {
                 let symbols = occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
                 // Append valid symbols to the result set
                 symbols.forEach {
-                    if
-                        validateKinds($0, kinds: kinds, canIgnore: false),
+                    if validateKinds($0, kinds: kinds, canIgnore: false),
                         validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
                     {
                         results.append($0)
@@ -371,7 +370,6 @@ public final class Workspace {
     // MARK: - Helpers: Validation
 
     func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
-//        let roleMatch = roles.contains(occurance.roles) || occurance.roles.contains(roles)
         return occurance.roles <= roles || canIgnore
     }
 

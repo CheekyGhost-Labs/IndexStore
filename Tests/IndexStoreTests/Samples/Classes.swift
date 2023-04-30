@@ -14,7 +14,7 @@ class SampleClass {}
 
 class OtherInheritenceSubclass: InheritenceClass {
 
-    func sample()  {
+    func sample() {
         // no-op
     }
 }
