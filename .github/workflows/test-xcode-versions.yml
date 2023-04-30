@@ -1,0 +1,26 @@
+name: Test Previous Swift Versions
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: Xcode ${{ matrix.xcode }}
+    strategy:
+      matrix:
+        xcode: ["14.0", "latest-stable"]
+    runs-on: macos-latest
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode }}
+      - uses: actions/checkout@v3
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
+
+      - name: Build
+        run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
+
+      - name: Test
+        run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
