@@ -82,7 +82,7 @@ let classSymbols = indexStore.querySymbols(.kinds([.class]))
 let results = indexStore.querySymbols(.extensions(ofType: "MyClass"))
 
 // Find all extensions of a class within specific source files
-let results = indexStore.querySymbols(.extensions(in: ["path", "path], matching: "XCTest"))
+let results = indexStore.querySymbols(.extensions(in: ["path", "path"], matching: "XCTest"))
 
 // Find all invocations of a function symbol
 let function = indexStore.querySymbols(.functions("someFunctionName"))[0]
