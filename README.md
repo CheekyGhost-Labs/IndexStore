@@ -133,7 +133,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", from: "1.0.0")
+    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/5.9"),
 ]
 ```
 
@@ -157,11 +157,31 @@ Don't hesitate to submit a feature request if you see a way IndexStore can be im
 
 ### Contributing to IndexStore
 
-IndexStore follows [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+Due to [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) repo using branches for releases rather than tagging stable versions, the IndexStore repo can't follow the traditional semvar and [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) approach.
 
-For any non-emergency updates we merge any pull requests into the `develop` branch to coordinate releases with multiple features and fixes. This also provides a means to test from the `develop` branch in the wild to further test pending releases.
+The approach IndexStore takes for releases is:
+- main: contains the latest stable release
+- develop: contains the latest stable changes pending release
+- release/<version>: contains released code
 
-Please feel free to create a pull request:
+A release branch will have a semantic version without accounting for patch updates. For example
+
+```shell
+release/1.0
+release/1.1
+```
+
+- any `patch` changes (bug fixes and improvements that don't change the public interface) will be pulled into the appropriate release branch as needed.
+
+- any `minor` updates (publicly visibile changes that are backwards compatible) will get their own release branch.
+
+- any `major` updates (publicly visibile changes that are **not** backwards compatible) will get their own release branch.
+
+For the most part, pull requests should be made against the `develop` branch to coordinate releases with multiple features and fixes. This also provides a means to test from the `develop` branch in the wild to further test pending releases. Once a release is ready it will be merged into `main` and release branches created/updated from the `main` branch.
+
+If a fix for an older version is being made, the pull request can be made against the intended release branch, and the change can be worked into the other branches with the help of maintainers as needed.
+
+To get started:
 
 1. **Fork the repository**: Start by creating a fork of the project to your own GitHub account.
 
