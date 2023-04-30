@@ -9,6 +9,9 @@ import XCTest
 
 class SampleTestCase: XCTestCase {
 
+    var baseProperty: String = ""
+
+    static var basePropertyTwo: String = ""
 }
 
 final class InvocationTestCase: SampleTestCase {

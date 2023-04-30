@@ -31,7 +31,7 @@ extension IndexStore {
             return []
         }
         var results: [SourceSymbol] = []
-        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy])
+        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy, .write, .read])
         for symbol in conforming {
             let sourceSymbol = sourceSymbolFromOccurence(symbol)
             results.append(sourceSymbol)

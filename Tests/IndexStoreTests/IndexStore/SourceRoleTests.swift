@@ -53,4 +53,9 @@ final class SourceRoleTests: XCTestCase {
         XCTAssertEqual(SourceRole.ibTypeOf.debugDescription, "ibTypeOf")
         XCTAssertEqual(SourceRole.specializationOf.debugDescription, "specializationOf")
     }
+
+    func test_description_multiple_willReturnExpectedValues() throws {
+        let sourceRole: SourceRole = [.definition, .reference]
+        XCTAssertEqual(sourceRole.description, "[definition|reference]")
+    }
 }

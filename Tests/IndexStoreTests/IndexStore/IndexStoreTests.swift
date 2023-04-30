@@ -22,6 +22,12 @@ final class IndexStoreTests: XCTestCase {
         }
     }
 
+    var sampleTestCaseFiles: [String] {
+        instanceUnderTest.swiftSourceFiles().filter {
+            $0.contains("IndexStoreTests/Samples") && $0.contains("InvocationTestCase")
+        }
+    }
+
     // MARK: - Lifecycle
 
     override func setUpWithError() throws {
@@ -56,7 +62,7 @@ final class IndexStoreTests: XCTestCase {
     func test_querySymbols_inSourceFiles_classes_willReturnExpectedValues() throws {
         let query = IndexStoreQuery.classDeclarations(in: sampleSourceFilePaths)
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 14)
+        XCTAssertEqual(results.count, 16)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
@@ -524,7 +530,282 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Properties
 
-    // TODO: Property query tests
+    func test_properties_matchingQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.properties("sampleProperty"))
+        XCTAssertEqual(results.count, 5)
+        var property = try XCTUnwrap(results.first)
+        // PropertiesProtocol::sampleProperty
+        XCTAssertEqual(property.name, "sampleProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 12)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("Properties.swift"))
+        // sampleProperty::PropertiesProtocol Parent
+        var propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "PropertiesProtocol")
+        XCTAssertEqual(propertyParent.sourceKind, .protocol)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 10)
+        XCTAssertEqual(propertyParent.location.column, 10)
+        XCTAssertEqual(propertyParent.location.offset, 10)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("Properties.swift"))
+        //
+        property = results[1]
+        // PropertiesStruct::sampleProperty
+        XCTAssertEqual(property.name, "sampleProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 19)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("Properties.swift"))
+        // sampleProperty::PropertiesStruct Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "PropertiesStruct")
+        XCTAssertEqual(propertyParent.sourceKind, .struct)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 17)
+        XCTAssertEqual(propertyParent.location.column, 8)
+        XCTAssertEqual(propertyParent.location.offset, 8)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("Properties.swift"))
+        //
+        property = results[2]
+        // PropertiesStruct::sampleProperty
+        XCTAssertEqual(property.name, "sampleProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 26)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("Properties.swift"))
+        // sampleProperty::PropertiesStruct Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "PropertiesClass")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 24)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("Properties.swift"))
+        //
+        property = results[3]
+        // PropertiesConformance::sampleProperty
+        XCTAssertEqual(property.name, "sampleProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 34)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("Properties.swift"))
+        // sampleProperty::PropertiesConformance Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "PropertiesConformance")
+        XCTAssertEqual(propertyParent.sourceKind, .struct)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 32)
+        XCTAssertEqual(propertyParent.location.column, 8)
+        XCTAssertEqual(propertyParent.location.offset, 8)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("Properties.swift"))
+        //
+        property = results[4]
+        // PropertiesConformance::sampleProperty
+        XCTAssertEqual(property.name, "sampleProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 45)
+        XCTAssertEqual(property.location.column, 18)
+        XCTAssertEqual(property.location.offset, 18)
+        XCTAssertTrue(property.location.path.hasSuffix("Properties.swift"))
+        // sampleProperty::PropertiesConformance Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "PropertiesSubclass")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 43)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("Properties.swift"))
+    }
+
+    func test_properties_inSourceFiles_matchingQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.properties(in: sampleTestCaseFiles, matching: "baseProperty"))
+        XCTAssertEqual(results.count, 2)
+        var property = results[0]
+        // SampleTestCase::baseProperty
+        XCTAssertEqual(property.name, "baseProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 12)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // baseProperty::SampleTestCase Parent
+        var propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "SampleTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 10)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+        //
+        property = results[1]
+        // SampleTestCase::basePropertyTwo
+        XCTAssertEqual(property.name, "basePropertyTwo")
+        XCTAssertEqual(property.sourceKind, .staticProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 14)
+        XCTAssertEqual(property.location.column, 16)
+        XCTAssertEqual(property.location.offset, 16)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // basePropertyTwo::SampleTestCase Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "SampleTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 10)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+    }
+
+    func test_properties_inSourceFiles_noQuery_willReturnExpectedResults() throws {
+        let results = instanceUnderTest.querySymbols(.properties(in: sampleTestCaseFiles))
+        XCTAssertEqual(results.count, 4)
+        var property = results[0]
+        // SampleTestCase::baseProperty
+        XCTAssertEqual(property.name, "baseProperty")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 12)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // baseProperty::SampleTestCase Parent
+        var propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "SampleTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 10)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+        //
+        property = results[1]
+        // SampleTestCase::basePropertyTwo
+        XCTAssertEqual(property.name, "basePropertyTwo")
+        XCTAssertEqual(property.sourceKind, .staticProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 14)
+        XCTAssertEqual(property.location.column, 16)
+        XCTAssertEqual(property.location.offset, 16)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // basePropertyTwo::SampleTestCase Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "SampleTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 10)
+        XCTAssertEqual(propertyParent.location.column, 7)
+        XCTAssertEqual(propertyParent.location.offset, 7)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+        //
+        property = results[2]
+        // InvocationTestCase::basePropertyTwo
+        XCTAssertEqual(property.name, "instance")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 19)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // basePropertyTwo::InvocationTestCase Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "InvocationTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 17)
+        XCTAssertEqual(propertyParent.location.column, 13)
+        XCTAssertEqual(propertyParent.location.offset, 13)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+        //
+        property = results[3]
+        // StandardTestCase::basePropertyTwo
+        XCTAssertEqual(property.name, "instance")
+        XCTAssertEqual(property.sourceKind, .instanceProperty)
+        XCTAssertTrue(property.inheritance.isEmpty)
+        XCTAssertFalse(property.location.isSystem)
+        XCTAssertEqual(property.location.moduleName, "IndexStoreTests")
+        XCTAssertFalse(property.location.isStale)
+        XCTAssertEqual(property.location.line, 28)
+        XCTAssertEqual(property.location.column, 9)
+        XCTAssertEqual(property.location.offset, 9)
+        XCTAssertTrue(property.location.path.hasSuffix("InvocationTestCase.swift"))
+        // basePropertyTwo::StandardTestCase Parent
+        propertyParent = try XCTUnwrap(property.parent)
+        XCTAssertEqual(propertyParent.name, "StandardTestCase")
+        XCTAssertEqual(propertyParent.sourceKind, .class)
+        XCTAssertFalse(propertyParent.location.isStale)
+        XCTAssertFalse(propertyParent.location.isSystem)
+        XCTAssertEqual(propertyParent.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(propertyParent.location.line, 26)
+        XCTAssertEqual(propertyParent.location.column, 13)
+        XCTAssertEqual(propertyParent.location.offset, 13)
+        XCTAssertTrue(propertyParent.location.path.hasSuffix("InvocationTestCase.swift"))
+    }
 
     // MARK: - Tests: Functions
 
@@ -567,8 +848,6 @@ final class IndexStoreTests: XCTestCase {
 
     func test_functions_inSourceFiles_withQuery_willReturnExpectedResults() throws {
         let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths, matching: "TestCaseInvocation"))
-        print(results.count)
-        // todo: finish
         XCTAssertEqual(results.count, 2)
         var function = results[0]
         // Function
@@ -645,7 +924,29 @@ final class IndexStoreTests: XCTestCase {
             "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
             "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
             "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10"
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10"
         ]
         let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
         let descriptions = results.map(\.description)
@@ -1024,6 +1325,34 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_invocationsOfSymbols_properties_willReturnExpectedResults() throws {
-        // todo: add property invocation tests
+        let properties = instanceUnderTest.querySymbols(.properties("sampleProperty"))
+        let descriptions = properties.map(\.description)
+        // Declarations (empty)
+        XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(properties[0]), [])
+        XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(properties[1]), [])
+        XCTAssertEqual(instanceUnderTest.invocationsOfSymbol(properties[2]), [])
+        //
+        var invocations = instanceUnderTest.invocationsOfSymbol(properties[3])
+        XCTAssertEqual(invocations.count, 1)
+        var invocation = invocations[0]
+        XCTAssertEqual(invocation.name, "sampleProperty")
+        XCTAssertEqual(invocation.sourceKind, .instanceProperty)
+        XCTAssertEqual(invocation.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(invocation.location.line, 39)
+        XCTAssertEqual(invocation.location.column, 9)
+        XCTAssertEqual(invocation.location.offset, 9)
+        XCTAssertTrue(invocation.location.path.hasSuffix("Properties.swift"))
+        //
+        invocations = instanceUnderTest.invocationsOfSymbol(properties[4])
+        XCTAssertEqual(invocations.count, 1)
+        invocation = invocations[0]
+        XCTAssertEqual(invocation.name, "sampleProperty")
+        XCTAssertEqual(invocation.sourceKind, .instanceProperty)
+        XCTAssertEqual(invocation.location.moduleName, "IndexStoreTests")
+        XCTAssertEqual(invocation.location.line, 60)
+        XCTAssertEqual(invocation.location.column, 9)
+        XCTAssertEqual(invocation.location.offset, 9)
+        XCTAssertTrue(invocation.location.path.hasSuffix("Properties.swift"))
+        print(descriptions)
     }
 }
