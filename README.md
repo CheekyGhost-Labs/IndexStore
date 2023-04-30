@@ -58,7 +58,7 @@ instanceUnderTest = IndexStore(configuration: configuration)
 Once you have a configured `IndexStore` instance, you can begin querying for symbols:
 
 
-1. Import `SwiftIndexStore`:
+1. Import `IndexStore`:
 
 ```
 import IndexStore
