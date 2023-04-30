@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - develop
+      - 'release/**'
   push:
     branches:
       - main
       - develop
+      - 'release/**'
 
 jobs:
 
