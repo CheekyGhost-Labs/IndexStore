@@ -1041,8 +1041,8 @@ final class IndexStoreTests: XCTestCase {
     // MARK: - Tests: Source Getting
 
     func test_querySymbols_typealias_willReturnExpectedDeclaration() throws {
-        let details = instanceUnderTest.querySymbols(.typealiasDeclarations(matching: "SourceAlias"))
-        let sourceLines = try details.map { try instanceUnderTest.declarationSource(forDetails: $0) }
+        let symbols = instanceUnderTest.querySymbols(.typealiasDeclarations(matching: "SourceAlias"))
+        let sourceLines = try symbols.map { try instanceUnderTest.declarationSource(forSymbol: $0) }
         let expectedLines = [
             "    typealias SourceAlias = String",
             "    enum Bar { typealias SourceAlias = Int }",
@@ -1061,7 +1061,7 @@ final class IndexStoreTests: XCTestCase {
             isSystem: false,
             isStale: false
         )
-        let details = SourceSymbol(
+        let symbol = SourceSymbol(
             name: validDetails.name,
             usr: validDetails.usr,
             sourceKind: validDetails.sourceKind,
@@ -1073,7 +1073,7 @@ final class IndexStoreTests: XCTestCase {
             path: validDetails.location.path,
             line: 100
         )
-        XCTAssertThrowsError(try instanceUnderTest.declarationSource(forDetails: details)) { error in
+        XCTAssertThrowsError(try instanceUnderTest.declarationSource(forSymbol: symbol)) { error in
             XCTAssertEqual(error as? SourceResolvingError, expectedError)
         }
     }
@@ -1089,8 +1089,8 @@ final class IndexStoreTests: XCTestCase {
             }
 
             """#
-        let details = instanceUnderTest.querySymbols(.typealiasDeclarations(matching: "SourceAlias"))[0]
-        let sourceContents = try instanceUnderTest.sourceContents(forDetails: details)
+        let symbol = instanceUnderTest.querySymbols(.typealiasDeclarations(matching: "SourceAlias"))[0]
+        let sourceContents = try instanceUnderTest.sourceContents(forSymbol: symbol)
         XCTAssertEqual(sourceContents, expectedContents)
     }
 
@@ -1104,7 +1104,7 @@ final class IndexStoreTests: XCTestCase {
             isSystem: false,
             isStale: false
         )
-        let details = SourceSymbol(
+        let symbol = SourceSymbol(
             name: "SourceAlias",
             usr: "",
             sourceKind: .typealias,
@@ -1112,7 +1112,7 @@ final class IndexStoreTests: XCTestCase {
             location: location
         )
         let expectedError = SourceResolvingError.sourcePathDoesNotExist(path: location.path)
-        XCTAssertThrowsError(try instanceUnderTest.sourceContents(forDetails: details)) { error in
+        XCTAssertThrowsError(try instanceUnderTest.sourceContents(forSymbol: symbol)) { error in
             XCTAssertEqual(error as? SourceResolvingError, expectedError)
         }
     }
@@ -1129,7 +1129,7 @@ final class IndexStoreTests: XCTestCase {
             isSystem: false,
             isStale: false
         )
-        let details = SourceSymbol(
+        let symbol = SourceSymbol(
             name: "SourceAlias",
             usr: "",
             sourceKind: .typealias,
@@ -1137,7 +1137,7 @@ final class IndexStoreTests: XCTestCase {
             location: location
         )
         let expectedError = SourceResolvingError.sourceContentsIsEmpty(path: emptyPath)
-        XCTAssertThrowsError(try instanceUnderTest.sourceContents(forDetails: details)) { error in
+        XCTAssertThrowsError(try instanceUnderTest.sourceContents(forSymbol: symbol)) { error in
             XCTAssertEqual(error as? SourceResolvingError, expectedError)
         }
     }
