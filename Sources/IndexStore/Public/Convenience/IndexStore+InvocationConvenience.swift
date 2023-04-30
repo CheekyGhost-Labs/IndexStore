@@ -1,5 +1,5 @@
 //
-//  IndexStore+Convenience.swift
+//  IndexStore+InvocationConvenience.swift
 //  IndexStore
 //
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
@@ -10,28 +10,6 @@ import IndexStoreDB
 import TSCBasic
 
 extension IndexStore {
-
-    // MARK: - Convenience: Extensions
-
-    /// Will return any source symbols for any **empty** extensions on types matching the given query.
-    ///
-    /// **Note: ** The provided query will have the `kinds` and `roles` modified to enable the search.
-    /// - Parameter query: The query to search with.
-    /// - Returns: Array of ``SourceSymbol`` instances
-    public func sourceSymbols(forEmptyExtensionsMatching query: IndexStoreQuery) -> [SourceSymbol] {
-        let symbols = querySymbols(query)
-        var results: [SourceSymbol] = []
-        symbols.forEach {
-            let references = workspace.occurrences(ofUSR: $0.usr, roles: [.reference])
-            references.forEach { reference in
-                guard reference.roles.contains([.reference]) && reference.relations.isEmpty else { return }
-                var details = sourceSymbolFromOccurence(reference)
-                details.sourceKind = .`extension`
-                results.append(details)
-            }
-        }
-        return results
-    }
 
     // MARK: - Convenience: Invocations
 
@@ -53,7 +31,7 @@ extension IndexStore {
             return []
         }
         var results: [SourceSymbol] = []
-        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy])
+        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy, .write, .read])
         for symbol in conforming {
             let sourceSymbol = sourceSymbolFromOccurence(symbol)
             results.append(sourceSymbol)
@@ -74,13 +52,7 @@ extension IndexStore {
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: `Bool`
     public func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
-        let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
-        guard validSourceKinds.contains(symbol.sourceKind) else {
-            logger.warning("symbol with kind `\(symbol.sourceKind) is not valid for this method. Returning empty results.")
-            return false
-        }
-        let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy])
-        let haystack = conforming.map(sourceSymbolFromOccurence)
+        let haystack = invocationsOfSymbol(symbol)
         var testFunctionFound: Bool = false
         for result in haystack {
             var parent: SourceSymbol? = result.parent

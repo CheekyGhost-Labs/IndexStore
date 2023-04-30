@@ -22,4 +22,11 @@ final class ProcessInfoExtensionTests: XCTestCase {
         let result = try? ProcessInfo().environmentVariable(name: EnvironmentKeys.PWD)
         XCTAssertNotNil(result)
     }
+
+    func test_processInfoError_willOutputExpectedDescriptions() throws {
+        let error = ProcessInfoError.unableToFindValueForKey("test")
+        XCTAssertEqual(error.code, 0)
+        XCTAssertEqual(error.failureReason, "Unable to resolve value for key: `test`")
+        XCTAssertEqual(error.recoverySuggestion, "Review the `environment` property to ensure expected values are present. Environment values change depending on where the process is running from")
+    }
 }

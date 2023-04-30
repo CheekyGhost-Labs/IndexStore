@@ -115,6 +115,19 @@ public final class Workspace {
 
     // MARK: - Helpers: Internal
 
+    /// Will query the index for any symbols that match the given query parameters.
+    ///
+    /// **Note: ** This is a direct index search.
+    /// - Parameters:
+    ///   - matching: Type or name query to filter results by.
+    ///   - kinds: Array of kinds to restrict results to.
+    ///   - roles: Set of roles to restrict roles to.
+    ///   - anchorStart: Bool whether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool whether to anchor the search term to the ending bounds of a word or line Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - ignoreCase: Bool whether to perform a case insensitive search. Default is `false`.
+    ///   - directory: Optional directory to restrict results to (based on `location.path`)
+    /// - Returns: `OrderedSet` of `SymbolOccurrence` instances.
     func querySymbols(
         matching: String,
         kinds: [IndexSymbolKind],
@@ -141,26 +154,21 @@ public final class Workspace {
             }
             return true
         }
-        let filtered = symbolOccurrenceResults.filter {
-            kinds == [.extension] || kinds.contains($0.symbol.kind)
-        }
-        // Extensions have to be resolved via USR name
-        guard kinds.contains(.extension) else {
-            logger.debug("`.extensions` kind not included - skipping extensions lookup")
-            return OrderedSet<SymbolOccurrence>(filtered)
-        }
-        // If just looking for extensions can keep an empty result set to only populate extensions, otherwise include filtered results.
-        var results: OrderedSet<SymbolOccurrence> = []
-        if kinds != [.extension] {
-            results = OrderedSet<SymbolOccurrence>(filtered)
-        }
-        logger.debug("`.extensions` kind included - performing USR extension lookup")
-        let extensions = resolveExtensionsOnOccurrences(symbolOccurrenceResults, kinds: kinds, roles: roles, restrictToLocation: directory)
-        extensions.forEach { results.append($0) }
-        logger.debug("-- `\(results.count)` results")
-        return results
+        return processQueryResults(symbolOccurrenceResults, kinds: kinds, roles: roles, restrictToLocation: directory)
     }
 
+    /// Will search for symbols within the given array of source files, then filter based on the given parameters.
+    /// - Parameters:
+    ///   - sourceFiles: Optional array of source files to restrict searching to.
+    ///   - matching: Optional type or name query to filter results by.
+    ///   - kinds: Array of kinds to restrict results to.
+    ///   - roles: Set of roles to restrict roles to.
+    ///   - anchorStart: Bool whether to anchor the search term to the starting bounds of a word or line Default is `true`.
+    ///   - anchorEnd: Bool whether to anchor the search term to the ending bounds of a word or line Default is `true`.
+    ///   - includeSubsequence: Bool whether to include symbol names that contain the term as a substring. Default is `false`.
+    ///   - ignoreCase: Bool whether to perform a case insensitive search. Default is `false`.
+    ///   - directory: Optional directory to restrict results to (based on `location.path`)
+    /// - Returns: `OrderedSet` of `SymbolOccurrence` instances.
     func querySymbols(
         inSourceFiles sourceFiles: [String],
         matching: String?,
@@ -172,50 +180,37 @@ public final class Workspace {
         ignoreCase: Bool = false,
         restrictToLocation directory: String?
     ) -> OrderedSet<SymbolOccurrence> {
+        // Source file lookups only let you search for symbols and roles. When searching for extensions, the project directory may not
+        // match a referenced symbol. The approach here is to search for symbols, then filter by project, kinds, and name, then grab any
+        // extensions (if searching for extensions). Extension lookups are also filtered by kinds and project
         guard !sourceFiles.isEmpty else {
             logger.warning("sourceFiles is empty. Returning empty results")
             return []
         }
         let targetDirectory = directory ?? ""
         let rawResults = symbolsInSourceFiles(at: sourceFiles, roles: roles)
-        var filtered: [SymbolOccurrence] = []
+        var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         // Filter Results
         rawResults.forEach {
+            // Location check
             guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else {
                 return
             }
-            // Kind match
-            guard kinds == [.extension] || kinds.contains($0.symbol.kind) else { return }
             // Name match (if present)
-            var shouldInclude: Bool = true
-            if let matching, !matching.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                shouldInclude = validateName(
-                    $0,
-                    term: matching,
-                    anchorStart: anchorStart,
-                    anchorEnd: anchorEnd,
-                    includeSubsequence: includeSubsequence,
-                    ignoreCase: ignoreCase
-                )
-            }
-            if shouldInclude { filtered.append($0) }
+            let nameMatch = validateName(
+                $0,
+                term: matching,
+                anchorStart: anchorStart,
+                anchorEnd: anchorEnd,
+                includeSubsequence: includeSubsequence,
+                ignoreCase: ignoreCase
+            )
+            if nameMatch { symbolOccurrenceResults.append($0) }
         }
-        // Extensions have to be resolved via USR name
-        guard kinds.contains(.extension) else {
-            logger.debug("`.extensions` kind not included - skipping extensions lookup")
-            return OrderedSet<SymbolOccurrence>(filtered)
-        }
-        // If just looking for extensions can keep an empty result set to only populate extensions, otherwise include filtered results.
-        var results: OrderedSet<SymbolOccurrence> = []
-        if kinds != [.extension] {
-            results = OrderedSet<SymbolOccurrence>(filtered)
-        }
-        logger.debug("`.extensions` kind included - performing USR extension lookup")
-        let extensions = resolveExtensionsOnOccurrences(rawResults, kinds: kinds, roles: roles, restrictToLocation: directory)
-        extensions.forEach { results.append($0) }
-        logger.debug("-- `\(results.count)` results")
-        return results
+        return processQueryResults(symbolOccurrenceResults, kinds: kinds, roles: roles, restrictToLocation: directory)
     }
+
+    // MARK: - Helpers: Querying
 
     /// Will return any symbol occurences of the given USR identifier.
     ///
@@ -239,6 +234,53 @@ public final class Workspace {
         guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
+    }
+
+    // MARK: - Helpers: Result processing
+
+    /// Will take the given raw set of symbols and filter based on the given parameters. Will also perform any extension lookups if required.
+    /// - Parameters:
+    ///   - occurrences: Set of `SymbolOccurrence` instances to process.
+    ///   - kinds: Array of kinds to restrict results to.
+    ///   - roles: Set of roles to restrict roles to.
+    ///   - directory: Optional directory to restrict results to (based on `location.path`)
+    /// - Returns: `OrderedSet` of `SymbolOccurrence` instances
+    func processQueryResults(
+        _ occurrences: OrderedSet<SymbolOccurrence>,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .all,
+        restrictToLocation directory: String?
+    ) -> OrderedSet<SymbolOccurrence> {
+        let notExtensionKinds = kinds.filter { $0 != .`extension` }
+        var results: OrderedSet<SymbolOccurrence> = []
+        // Extensions have to be resolved via USR name
+        guard kinds.contains(.extension) else {
+            occurrences.forEach {
+                // Kind match
+                var kindsMatch = !notExtensionKinds.isEmpty && notExtensionKinds.contains($0.symbol.kind)
+                if kinds.contains(.extension), $0.symbol.kind == .extension {
+                    kindsMatch = true
+                }
+                if kindsMatch {
+                    results.append($0)
+                }
+            }
+            logger.debug("`.extensions` kind not included - skipping extensions lookup")
+            return results
+        }
+        // If just looking for extensions can keep an empty result set to only populate extensions, otherwise include filtered results.
+        if kinds != [.extension] {
+            occurrences.forEach {
+                if kinds.contains($0.symbol.kind) {
+                    results.append($0)
+                }
+            }
+        }
+        logger.debug("`.extensions` kind included - performing USR extension lookup")
+        let extensions = resolveExtensionsOnOccurrences(occurrences, kinds: kinds, roles: roles, restrictToLocation: directory)
+        extensions.forEach { results.append($0) }
+        logger.debug("-- `\(results.count)` results")
+        return results
     }
 
     // MARK: - Helpers: Source file resolving
@@ -283,6 +325,13 @@ public final class Workspace {
 
     // MARK: - Helpers: Extensions
 
+    /// Will resolve any extension symbols for the given array of occurrences.
+    /// - Parameters:
+    ///   - symbolOccurrences: Set of `SymbolOccurrence` instances to search with.
+    ///   - kinds: Array of `IndexSymbolKind` cases to restrict results to.
+    ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
+    ///   - directory: Optional directory to restrict results to (based on `location.path`)
+    /// - Returns: `OrderedSet` of `SymbolOccurrence` instances.
     func resolveExtensionsOnOccurrences(
         _ symbolOccurrences: OrderedSet<SymbolOccurrence>,
         kinds: [IndexSymbolKind],
@@ -291,9 +340,12 @@ public final class Workspace {
     ) -> OrderedSet<SymbolOccurrence> {
         var results: OrderedSet<SymbolOccurrence> = []
         let targetDirectory = directory ?? ""
-        let usrs = symbolOccurrences.map { $0.symbol.usr }
-        usrs.forEach {
-            let references = occurrences(ofUSR: $0, roles: [.reference])
+        symbolOccurrences.forEach {
+            if $0.symbol.kind == .extension {
+                results.append($0)
+                return
+            }
+            let references = occurrences(ofUSR: $0.symbol.usr, roles: [.reference, .extendedBy])
             let relations: [SymbolRelation] = references.flatMap(\.relations)
             // For each valid relation usr - resolve the symbol and transform into SourceDetail
             relations.forEach { relation in
@@ -304,7 +356,7 @@ public final class Workspace {
                 let symbols = occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
                 // Append valid symbols to the result set
                 symbols.forEach {
-                    if validateRoles($0, roles: roles, canIgnore: true),
+                    if
                         validateKinds($0, kinds: kinds, canIgnore: false),
                         validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
                     {
@@ -334,12 +386,13 @@ public final class Workspace {
 
     func validateName(
         _ occurance: SymbolOccurrence,
-        term: String,
+        term: String?,
         anchorStart: Bool,
         anchorEnd: Bool,
         includeSubsequence: Bool,
         ignoreCase: Bool
     ) -> Bool {
+        guard let term, !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
         let needle = ignoreCase ? term.lowercased() : term
         let haystack = ignoreCase ? occurance.symbol.name.lowercased() : occurance.symbol.name
         if anchorStart {
