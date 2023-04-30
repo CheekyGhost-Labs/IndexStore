@@ -33,7 +33,7 @@ final class IndexStoreTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
-        let configuration = try Configuration.fromJson(at: configPath)
+        let configuration = try IndexStore.Configuration.fromJson(at: configPath)
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
         instanceUnderTest.pollForChangesAndWait()
     }

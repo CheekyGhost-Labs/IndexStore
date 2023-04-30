@@ -70,7 +70,7 @@ public final class Workspace {
     /// - Parameters:
     ///   - configuration: The configuration instance holding any path values.
     ///   - logger: `Logger` instance for any debug or console output.
-    public init(configuration: Configuration, logger: Logger) {
+    public init(configuration: IndexStore.Configuration, logger: Logger) {
         // Assign overrides
         self.projectDirectory = configuration.projectDirectory
         self.indexStorePath = configuration.indexStorePath
