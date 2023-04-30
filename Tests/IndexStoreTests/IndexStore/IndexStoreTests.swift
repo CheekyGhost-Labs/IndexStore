@@ -1438,7 +1438,6 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(invocation.location.column, 9)
         XCTAssertEqual(invocation.location.offset, 9)
         XCTAssertTrue(invocation.location.path.hasSuffix("Properties.swift"))
-        print(descriptions)
     }
 
     // MARK: - Tests: Invalid queries
