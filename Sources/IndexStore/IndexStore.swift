@@ -5,7 +5,6 @@
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
-import Files
 import Foundation
 import IndexStoreDB
 import Logging
@@ -109,11 +108,29 @@ public final class IndexStore {
     /// - Returns: Array of source file path `String` types
     public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
         let projectRoot = projectRoot ?? configuration.projectDirectory
-        guard let projectFolder = try? Folder(path: projectRoot) else { return [] }
-        let sourceFiles = projectFolder.files.recursive.filter { file in
-            file.extension == "swift"
+        let url = URL(fileURLWithPath: projectRoot)
+
+        // Create enumerator
+        let keys: [URLResourceKey] = [.isRegularFileKey]
+        let options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles, .skipsPackageDescendants]
+        guard let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: keys, options: options) else {
+            return []
         }
-        return sourceFiles.map(\.path)
+        // Enumerate and append valid source files
+        var results: [URL] = []
+        for case let fileURL as URL in enumerator {
+            guard let attributes = try? fileURL.resourceValues(forKeys:[.isRegularFileKey]) else {
+                logger.debug("Unable to resolve attributes for file. Skipping.")
+                continue
+            }
+            let isFile = attributes.isRegularFile ?? false
+            guard isFile, fileURL.pathExtension == "swift" else {
+                logger.debug("Skipping non-swift file.")
+                continue
+            }
+            results.append(fileURL)
+        }
+        return results.map(\.path).sorted()
     }
 
     /// Will return the declaration source **line** from the source contents associated with the given details.

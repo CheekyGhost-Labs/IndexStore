@@ -5,7 +5,6 @@
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
-import Files
 import XCTest
 
 @testable import IndexStore
