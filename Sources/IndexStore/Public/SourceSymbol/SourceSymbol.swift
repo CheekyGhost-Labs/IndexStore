@@ -9,7 +9,6 @@ import Foundation
 
 /// Result returned by a ``IndexStore`` instance containing details about a resolved source type.
 public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Hashable {
-
     // MARK: - Properties
 
     /// The name of the source. Defaults to empty string.
@@ -20,7 +19,7 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
 
     /// The kind of the source.
     /// - See: ``SourceKind``
-    internal(set) public var sourceKind: SourceKind
+    public internal(set) var sourceKind: SourceKind
 
     /// OptionSet value representation of the roles the source plays.
     public let roles: SourceRole
@@ -77,7 +76,7 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
         self.sourceKind = sourceKind
         self.roles = roles
         self.location = location
-        self.inheritance = inheritence
+        inheritance = inheritence
         if let parent = parent {
             _parents = [parent]
         } else {

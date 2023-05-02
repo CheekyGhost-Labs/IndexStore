@@ -5,7 +5,6 @@
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
-import Files
 import Foundation
 import IndexStoreDB
 import Logging
@@ -13,7 +12,6 @@ import TSCBasic
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
 public final class IndexStore {
-
     // MARK: - Properties
 
     /// The active ``Configuration`` instance any index store derives paths from.
@@ -37,7 +35,7 @@ public final class IndexStore {
     public init(configuration: Configuration, logger: Logger? = nil) {
         let storeLogger = logger ?? .default
         self.configuration = configuration
-        self.workspace = Workspace(configuration: configuration, logger: storeLogger)
+        workspace = Workspace(configuration: configuration, logger: storeLogger)
         self.logger = storeLogger
     }
 
@@ -109,11 +107,29 @@ public final class IndexStore {
     /// - Returns: Array of source file path `String` types
     public func swiftSourceFiles(inProjectDirectory projectRoot: String? = nil) -> [String] {
         let projectRoot = projectRoot ?? configuration.projectDirectory
-        guard let projectFolder = try? Folder(path: projectRoot) else { return [] }
-        let sourceFiles = projectFolder.files.recursive.filter { file in
-            file.extension == "swift"
+        let url = URL(fileURLWithPath: projectRoot)
+
+        // Create enumerator
+        let keys: [URLResourceKey] = [.isRegularFileKey]
+        let options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles, .skipsPackageDescendants]
+        guard let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: keys, options: options) else {
+            return []
         }
-        return sourceFiles.map(\.path)
+        // Enumerate and append valid source files
+        var results: [URL] = []
+        for case let fileURL as URL in enumerator {
+            guard let attributes = try? fileURL.resourceValues(forKeys: [.isRegularFileKey]) else {
+                logger.debug("Unable to resolve attributes for file. Skipping.")
+                continue
+            }
+            let isFile = attributes.isRegularFile ?? false
+            guard isFile, fileURL.pathExtension == "swift" else {
+                logger.debug("Skipping non-swift file.")
+                continue
+            }
+            results.append(fileURL)
+        }
+        return results.map(\.path).sorted()
     }
 
     /// Will return the declaration source **line** from the source contents associated with the given details.
@@ -241,12 +257,18 @@ public final class IndexStore {
             else {
                 return
             }
-            let occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .baseOf, .canonical])
-            let filtered = occurences.filter {
-                $0.roles.contains(.definition) || $0.roles.contains(.declaration) && $0.roles.contains(.canonical)
+            var targetOccurence: SymbolOccurrence?
+            var occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical])
+            if occurences.isEmpty {
+                occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical, .baseOf])
+                targetOccurence = occurences.first(where: { element in
+                    element.relations.contains(where: { $0.symbol.name == occurence.symbol.name })
+                })
+            } else {
+                targetOccurence = occurences.first
             }
-            guard let target = filtered.first else { return }
-            let details = sourceSymbolFromOccurence(target)
+            guard let result = targetOccurence else { return }
+            let details = sourceSymbolFromOccurence(result)
             results.append(details)
         }
         return results

@@ -10,7 +10,6 @@ import XCTest
 @testable import IndexStore
 
 final class ProcessInfoExtensionTests: XCTestCase {
-
     func test_missingEnvironmentKey_willThrowExpectedError() throws {
         let expectedError = ProcessInfoError.unableToFindValueForKey("missing")
         XCTAssertThrowsError(try ProcessInfo().environmentVariable(name: "missing")) { error in

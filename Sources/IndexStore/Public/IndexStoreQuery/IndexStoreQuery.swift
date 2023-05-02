@@ -9,7 +9,6 @@ import IndexStoreDB
 
 /// Struct representing a query to give to an `IndexStore` instance to search for source symbols.
 public struct IndexStoreQuery: Equatable {
-
     // MARK: - Properties
 
     /// The type or name query to search for.
@@ -94,6 +93,7 @@ public struct IndexStoreQuery: Equatable {
         result.anchorEnd = anchorEnd
         return result
     }
+
     public func withInlcudeSubsequences(_ include: Bool) -> IndexStoreQuery {
         var result = self
         result.includeSubsequence = include

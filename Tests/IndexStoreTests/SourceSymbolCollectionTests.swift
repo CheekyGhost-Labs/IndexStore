@@ -10,7 +10,6 @@ import XCTest
 @testable import IndexStore
 
 final class SourceSymbolCollectionTests: XCTestCase {
-
     // MARK: - Tests
 
     func test_makeIterator_willReturnExpectedValue() throws {

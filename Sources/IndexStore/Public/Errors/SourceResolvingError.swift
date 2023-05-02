@@ -31,13 +31,13 @@ public enum SourceResolvingError: Equatable, LocalizedError {
 
     public var failureReason: String? {
         switch self {
-        case .sourcePathDoesNotExist(let path):
+        case let .sourcePathDoesNotExist(path):
             return "No source file exists for path: `\(path)`"
-        case .sourceContentsIsEmpty(let path):
+        case let .sourceContentsIsEmpty(path):
             return "Source contents is empty for file at path: `\(path)`"
-        case .unableToReadContents(let path, let cause):
+        case let .unableToReadContents(path, cause):
             return "Unable to read contents empty for file at path: `\(path)`. Cause: `\(cause)`"
-        case .unableToResolveSourceLine(let name, let path, let line):
+        case let .unableToResolveSourceLine(name, path, line):
             return
                 "Unable to resolve declaration line `\(line)` for `\(name)` in file at path: `\(path)`."
         }
