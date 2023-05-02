@@ -1,7 +1,6 @@
 name: Test Previous Swift Versions
 
-# on: workflow_dispatch
-on: [push]
+on: workflow_dispatch
 
 jobs:
   build:
