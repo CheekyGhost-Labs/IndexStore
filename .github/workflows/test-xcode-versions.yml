@@ -1,13 +1,14 @@
 name: Test Previous Swift Versions
 
-on: workflow_dispatch
+# on: workflow_dispatch
+on: [push]
 
 jobs:
   build:
     name: Xcode ${{ matrix.xcode }}
     strategy:
       matrix:
-        xcode: ["14.0", "latest-stable"]
+        xcode: ["13.2", "13.4", "14.0", "latest-stable"]
     runs-on: macos-latest
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
