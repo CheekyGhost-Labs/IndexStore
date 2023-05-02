@@ -8,7 +8,6 @@
 import Foundation
 
 struct AnyError: LocalizedError {
-
     // MARK: - Properties
 
     var message: String

@@ -10,8 +10,8 @@ import XCTest
 @testable import IndexStore
 
 final class SourceResolvingErrorTests: XCTestCase {
-
     // MARK: - Properties
+
     let errors: [SourceResolvingError] = [
         .sourcePathDoesNotExist(path: "test-path"),
         .sourceContentsIsEmpty(path: "test-path"),
@@ -22,7 +22,7 @@ final class SourceResolvingErrorTests: XCTestCase {
     // MARK: - Tests
 
     func test_code_returnsExpectedValue() {
-        var expectedCode: Int = 0
+        var expectedCode = 0
         errors.forEach {
             XCTAssertEqual($0.code, expectedCode)
             expectedCode += 1

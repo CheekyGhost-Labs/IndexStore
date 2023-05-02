@@ -21,7 +21,7 @@ enum ProcessInfoError: LocalizedError, Equatable {
 
     public var failureReason: String? {
         switch self {
-        case .unableToFindValueForKey(let key):
+        case let .unableToFindValueForKey(key):
             return "Unable to resolve value for key: `\(key)`"
         }
     }
@@ -35,7 +35,7 @@ enum ProcessInfoError: LocalizedError, Equatable {
 }
 
 // Default values for various environment values
-struct EnvironmentKeys {
+enum EnvironmentKeys {
     static let PWD = "PWD"
     static let xcodeBuiltProducts = "__XCODE_BUILT_PRODUCTS_DIR_PATHS"
     static let testConfigurationPath = "XCTestConfigurationFilePath"
@@ -43,7 +43,7 @@ struct EnvironmentKeys {
 
 extension ProcessInfo {
     func environmentVariable(name: String) throws -> String {
-        guard let value = self.environment[name] else {
+        guard let value = environment[name] else {
             throw ProcessInfoError.unableToFindValueForKey(name)
         }
         return value

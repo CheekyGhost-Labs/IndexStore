@@ -9,7 +9,6 @@ import Foundation
 import TSCBasic
 
 extension IndexStore {
-
     // MARK: - Convenience: Classes
 
     /// Will search for classes that match the given class name, then resolve any source symbols for declarations that subclass the given class.
@@ -49,18 +48,20 @@ extension IndexStore {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach {
             let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.baseOf])
-            let validUsrs: [String] = subclasses.flatMap {
+            var validUsrs: [String] = []
+            subclasses.forEach {
                 guard
                     // Restrict to symbols in project directory
                     $0.location.path.contains(configuration.projectDirectory),
                     $0.roles == [.reference, .baseOf]
                 else {
-                    return [String]()
+                    return
                 }
-                return $0.relations.map(\.symbol.usr)
+                let usrs = $0.relations.map(\.symbol.usr)
+                validUsrs.append(contentsOf: usrs)
             }
             let occurances = validUsrs.flatMap {
-                return workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
+                workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
             }
             occurances.forEach { occurence in
                 // Limiting to usr rather than equatable/hashable within set some classes have objc declarations

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.6
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -40,8 +40,3 @@ let package = Package(
         ),
     ]
 )
-
-// Supplementary
-package.dependencies.append(contentsOf: [
-    .package(url: "https://github.com/SwiftPackageIndex/SPIManifest.git", from: "0.12.0"),
-])

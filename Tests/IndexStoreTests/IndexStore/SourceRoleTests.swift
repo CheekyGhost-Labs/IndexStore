@@ -9,7 +9,6 @@ import IndexStore
 import XCTest
 
 final class SourceRoleTests: XCTestCase {
-
     func test_description_willReturnExpectedValues() throws {
         XCTAssertEqual(SourceRole.declaration.description, "declaration")
         XCTAssertEqual(SourceRole.definition.description, "definition")

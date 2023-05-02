@@ -10,7 +10,6 @@ import XCTest
 @testable import IndexStore
 
 final class SourceSymbolTests: XCTestCase {
-
     // MARK: - Properties
 
     var indexStore: IndexStore!

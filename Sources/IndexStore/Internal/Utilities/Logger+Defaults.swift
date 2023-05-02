@@ -8,10 +8,9 @@
 import Foundation
 import Logging
 
-private let defaultInstance: Logger = Logger(label: "com.cheekyghost.IndexStore")
+private let defaultInstance: Logger = .init(label: "com.cheekyghost.IndexStore")
 
 extension Logger {
-
     /// Default client Logger instance
     static var `default`: Logger { defaultInstance }
 }

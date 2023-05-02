@@ -11,7 +11,6 @@ import XCTest
 @testable import IndexStore
 
 final class LoggingDefaultsTests: XCTestCase {
-
     // MARK: - Tests
 
     func test_default_willReturnExpectedLogger() {

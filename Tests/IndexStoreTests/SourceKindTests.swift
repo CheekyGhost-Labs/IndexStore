@@ -11,7 +11,6 @@ import XCTest
 @testable import IndexStore
 
 final class SourceKindTests: XCTestCase {
-
     // MARK: - Tests
 
     func test_convenienceGetters_willReturnExpectedValues() {

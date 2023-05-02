@@ -5,13 +5,11 @@
 //  Copyright (c) CheekyGhost Labs 2023. All Rights Reserved.
 //
 
-import Files
 import XCTest
 
 @testable import IndexStore
 
 final class IndexStoreTests: XCTestCase {
-
     // MARK: - Properties
 
     var instanceUnderTest: IndexStore!
@@ -968,6 +966,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertTrue(functionParent.location.path.hasSuffix("Functions.swift"))
     }
 
+    #if swift(>=5.6)
     func test_functions_inSourceFiles_noQuery_willReturnExpectedResults() throws {
         let dir = instanceUnderTest.configuration.projectDirectory
         // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
@@ -1037,6 +1036,103 @@ final class IndexStoreTests: XCTestCase {
         let descriptions = results.map(\.description)
         XCTAssertEqual(descriptions, expected)
     }
+    #else
+    func test_functions_inSourceFiles_noQuery_willReturnExpectedResults() throws {
+        let dir = instanceUnderTest.configuration.projectDirectory
+        // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
+        // revisit once time allows to avoid the description match.
+        let expected: [String] = [
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Classes.swift::17::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::10::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::18::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::27::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::35::10",
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::43::10",
+            "testTwo() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::47::10",
+            "performFunction(withPerson:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::10",
+            "getter:withPerson - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::26",
+            "setter:withPerson - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::26",
+            "standardTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::7::10",
+            "subclassTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::11::14",
+            "notInvokedInTestCase() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::15::18",
+            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::10",
+            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::27",
+            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::27",
+            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::22::10",
+            "performOperation(withAge:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::10",
+            "getter:withAge - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::27",
+            "setter:withAge - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::27",
+            "performOperation(withName:age:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::10",
+            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::27",
+            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::27",
+            "getter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::45",
+            "setter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::45",
+            "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
+            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::27",
+            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::27",
+            "getter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::45",
+            "setter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::45",
+            "getter:handler - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::55",
+            "setter:handler - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::55",
+            "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
+            "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
+            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
+            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
+            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
+            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
+            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::27",
+            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::27",
+            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
+            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::24",
+            "getter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::28",
+            "setter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::28",
+            "getter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::51",
+            "setter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::51",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
+            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
+            "getter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::28",
+            "setter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::28",
+            "getter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::57",
+            "setter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::57",
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10"
+        ]
+        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
+        let descriptions = results.map(\.description)
+        XCTAssertEqual(descriptions, expected)
+    }
+    #endif
 
     // MARK: - Tests: Source Getting
 
@@ -1275,7 +1371,7 @@ final class IndexStoreTests: XCTestCase {
     // MARK: Tests: Convenience: Subclasses of
 
     func test_sourceSymbolsSubclassing_query_willReturnExpectedResults() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass")
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass").sorted(by: { $0.name <= $1.name })
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
@@ -1350,7 +1446,7 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceSymbolsSubclassing_withCustomInheritence() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass")
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass").sorted(by: { $0.name <= $1.name })
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
