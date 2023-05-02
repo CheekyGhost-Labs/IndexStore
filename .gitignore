@@ -99,3 +99,4 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 /Tests/IndexStoreTests/Configurations
+Package.resolved
