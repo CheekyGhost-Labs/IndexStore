@@ -10,7 +10,8 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "IndexStore",
-            targets: ["IndexStore"]),
+            targets: ["IndexStore"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
@@ -26,14 +27,15 @@ let package = Package(
                 .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
                 .product(name: "IndexStoreDB", package: "indexstore-db"),
                 .product(name: "Logging", package: "swift-log")
-            ]),
+            ]
+        ),
         .testTarget(
             name: "IndexStoreTests",
             dependencies: [
-                "IndexStore"
+                "IndexStore",
             ],
             resources: [
-                .copy("Configurations")
+                .copy("Configurations"),
             ]
         ),
     ]
@@ -41,5 +43,5 @@ let package = Package(
 
 // Supplementary
 package.dependencies.append(contentsOf: [
-    .package(url: "https://github.com/SwiftPackageIndex/SPIManifest.git", from: "0.12.0")
+    .package(url: "https://github.com/SwiftPackageIndex/SPIManifest.git", from: "0.12.0"),
 ])

@@ -7,8 +7,7 @@
 
 import Foundation
 
-extension IndexStoreQuery {
-
+public extension IndexStoreQuery {
     // MARK: - Functions
 
     /// Will return a query configured to search for functions whose name matches the given query.
@@ -22,7 +21,7 @@ extension IndexStoreQuery {
     /// - ignoreCase: `false`
     /// - Parameter query: The type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    public static func functions(_ query: String) -> IndexStoreQuery {
+    static func functions(_ query: String) -> IndexStoreQuery {
         IndexStoreQuery(query: query)
             .withKinds(SourceKind.allFunctions)
             .withRoles([.definition, .childOf, .canonical])
@@ -45,7 +44,7 @@ extension IndexStoreQuery {
     ///   - sourceFiles: Array of source files to search for functions in.
     ///   - query: Optional type name to search for.
     /// - Returns: ``IndexStoreQuery``
-    public static func functions(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
+    static func functions(in sourceFiles: [String], matching query: String? = nil) -> IndexStoreQuery {
         IndexStoreQuery(sourceFiles: sourceFiles)
             .withQuery(query)
             .withKinds(SourceKind.allFunctions)

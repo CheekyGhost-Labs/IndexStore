@@ -10,7 +10,6 @@ import XCTest
 @testable import IndexStore
 
 final class IndexStoreTests: XCTestCase {
-
     // MARK: - Properties
 
     var instanceUnderTest: IndexStore!

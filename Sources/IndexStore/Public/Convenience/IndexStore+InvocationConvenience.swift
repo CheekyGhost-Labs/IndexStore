@@ -9,8 +9,7 @@ import Foundation
 import IndexStoreDB
 import TSCBasic
 
-extension IndexStore {
-
+public extension IndexStore {
     // MARK: - Convenience: Invocations
 
     /// Will return source symbols that invoke the given symbol function.
@@ -24,7 +23,7 @@ extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: Array of `SourceSymbol` instances
-    public func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
+    func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
         let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
         guard validSourceKinds.contains(symbol.sourceKind) else {
             logger.warning("symbol with kind `\(symbol.sourceKind) is not valid for this method. Returning empty results.")
@@ -51,9 +50,9 @@ extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: `Bool`
-    public func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
+    func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
         let haystack = invocationsOfSymbol(symbol)
-        var testFunctionFound: Bool = false
+        var testFunctionFound = false
         for result in haystack {
             var parent: SourceSymbol? = result.parent
             while parent != nil {
@@ -74,7 +73,7 @@ extension IndexStore {
     ///   - symbol: The symbol to assess.
     ///   - name: The name to match with.
     /// - Returns: `Bool`
-    public func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
+    func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
         if symbol.inheritance.contains(where: { $0.name == name }) {
             return true
         }

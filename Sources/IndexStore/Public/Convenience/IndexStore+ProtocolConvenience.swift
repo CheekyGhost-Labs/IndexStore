@@ -9,7 +9,6 @@ import Foundation
 import TSCBasic
 
 extension IndexStore {
-
     // MARK: - Convenience: Protocols
 
     /// Will search for protocols that match the given protocol name, then resolve any source symbols for declarations that conform to the given protocol.
@@ -58,7 +57,7 @@ extension IndexStore {
                 return $0.relations.map(\.symbol.usr)
             }
             let occurances = validUsrs.flatMap {
-                return workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
+                workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
             }
             occurances.forEach { occurence in
                 // Limiting to usr rather than equatable/hashable within set some classes have objc declarations

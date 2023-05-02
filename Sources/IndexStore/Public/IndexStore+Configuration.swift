@@ -8,11 +8,9 @@
 import Foundation
 import TSCBasic
 
-extension IndexStore {
-
+public extension IndexStore {
     /// Struct holding configuration values that can override any resolvable defaults.
-    public struct Configuration: Decodable {
-
+    struct Configuration: Decodable {
         /// The  root project directory path.
         public let projectDirectory: String
 
@@ -40,7 +38,7 @@ extension IndexStore {
 
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.projectDirectory = try container.decode(String.self, forKey: .projectDirectory)
+            projectDirectory = try container.decode(String.self, forKey: .projectDirectory)
             // Optionals
             let storePath = try container.decodeIfPresent(String.self, forKey: .indexStorePath)
             let databasePath = try container.decodeIfPresent(String.self, forKey: .indexDatabasePath)
@@ -49,7 +47,7 @@ extension IndexStore {
             indexDatabasePath = Self.resolveIndexDatabasePath(provided: databasePath)
             indexStorePath = try Self.resolveIndexStorePath(provided: storePath)
             libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexPath)
-            self.isRunningUnitTests = Self.resolveIsRunningTests()
+            isRunningUnitTests = Self.resolveIsRunningTests()
         }
 
         /// Will attempt to decode a configuration instance from the file at the given path.
@@ -81,7 +79,7 @@ extension IndexStore {
             self.indexDatabasePath = Self.resolveIndexDatabasePath(provided: indexDatabasePath)
             self.libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexStorePath)
             self.indexStorePath = try Self.resolveIndexStorePath(provided: indexStorePath)
-            self.isRunningUnitTests = Self.resolveIsRunningTests()
+            isRunningUnitTests = Self.resolveIsRunningTests()
         }
 
         // MARK: Defaults Helpers

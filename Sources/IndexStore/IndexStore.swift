@@ -12,7 +12,6 @@ import TSCBasic
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
 public final class IndexStore {
-
     // MARK: - Properties
 
     /// The active ``Configuration`` instance any index store derives paths from.
@@ -36,7 +35,7 @@ public final class IndexStore {
     public init(configuration: Configuration, logger: Logger? = nil) {
         let storeLogger = logger ?? .default
         self.configuration = configuration
-        self.workspace = Workspace(configuration: configuration, logger: storeLogger)
+        workspace = Workspace(configuration: configuration, logger: storeLogger)
         self.logger = storeLogger
     }
 
@@ -119,7 +118,7 @@ public final class IndexStore {
         // Enumerate and append valid source files
         var results: [URL] = []
         for case let fileURL as URL in enumerator {
-            guard let attributes = try? fileURL.resourceValues(forKeys:[.isRegularFileKey]) else {
+            guard let attributes = try? fileURL.resourceValues(forKeys: [.isRegularFileKey]) else {
                 logger.debug("Unable to resolve attributes for file. Skipping.")
                 continue
             }

@@ -137,7 +137,7 @@ public enum SourceKind: String, CaseIterable, Hashable, Equatable {
         case .protocol:
             self = .protocol
         case .extension:
-            self = .`extension`
+            self = .extension
         case .union:
             self = .union
         case .typealias:

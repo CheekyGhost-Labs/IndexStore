@@ -9,11 +9,10 @@ import Foundation
 
 /// `Sequence` conforming struct holding an array of source parents.
 public struct SourceDetailsCollection: Sequence, Equatable {
-
     // MARK: - Properties
 
     /// Array of ``SourceSymbol`` representing the parent heirachy of a ``SourceSymbol`` instances.
-    private(set) public var items: [SourceSymbol] = [] {
+    public private(set) var items: [SourceSymbol] = [] {
         didSet {
             lastCount = items.count
         }
@@ -51,7 +50,6 @@ public struct SourceDetailsCollection: Sequence, Equatable {
 /// `IteratorProtocol` concrete for iterating through parent source types for a source type.
 /// When asking for `next` or `previous`, keep in mind that the iterator returns the current item before moving forward/back.
 public class SourceDetailsIterator: IteratorProtocol, Equatable {
-
     // MARK: - Properties
 
     // The collection of source parents being iterated through.
@@ -81,6 +79,6 @@ public class SourceDetailsIterator: IteratorProtocol, Equatable {
     // MARK: - Conformance: Equatable
 
     public static func == (lhs: SourceDetailsIterator, rhs: SourceDetailsIterator) -> Bool {
-        return lhs.collection == rhs.collection
+        lhs.collection == rhs.collection
     }
 }

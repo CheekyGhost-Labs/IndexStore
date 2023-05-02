@@ -14,7 +14,6 @@ import TSCBasic
 ///
 /// Driven by an `IndexStoreDB` instance.
 public final class Workspace {
-
     // MARK: - Properties
 
     /// The path to the libIndexStor dlyib.
@@ -30,7 +29,7 @@ public final class Workspace {
     public let indexDatabasePath: String
 
     /// The source code index (if loaded)
-    private(set) public var index: IndexStoreDB?
+    public private(set) var index: IndexStoreDB?
 
     /// Bool whether any index store changes should be listened for.
     /// Defaults to `true`. When initialised with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
@@ -72,11 +71,11 @@ public final class Workspace {
     ///   - logger: `Logger` instance for any debug or console output.
     public init(configuration: IndexStore.Configuration, logger: Logger) {
         // Assign overrides
-        self.projectDirectory = configuration.projectDirectory
-        self.indexStorePath = configuration.indexStorePath
-        self.indexDatabasePath = configuration.indexDatabasePath
-        self.libIndexStorePath = configuration.libIndexStorePath
-        self.listenToUnitEvents = !configuration.isRunningUnitTests
+        projectDirectory = configuration.projectDirectory
+        indexStorePath = configuration.indexStorePath
+        indexDatabasePath = configuration.indexDatabasePath
+        libIndexStorePath = configuration.libIndexStorePath
+        listenToUnitEvents = !configuration.isRunningUnitTests
         self.logger = logger
         // Create index store instance
         try? loadIndexStore()
@@ -138,7 +137,7 @@ public final class Workspace {
         ignoreCase: Bool = false,
         restrictToLocation directory: String?
     ) -> OrderedSet<SymbolOccurrence> {
-        guard let index = index else { return [] }
+        guard let index else { return [] }
         let targetDirectory = directory ?? ""
         logger.debug("-- Searching for symbol occurances with type `\(matching)`: roles `\(roles)`")
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
@@ -219,7 +218,7 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func occurrences(ofUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
-        guard let index = index else { return [] }
+        guard let index else { return [] }
         let results = index.occurrences(ofUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
     }
@@ -231,7 +230,7 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
-        guard let index = index else { return [] }
+        guard let index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
     }
@@ -251,7 +250,7 @@ public final class Workspace {
         roles: SymbolRole = .all,
         restrictToLocation directory: String?
     ) -> OrderedSet<SymbolOccurrence> {
-        let notExtensionKinds = kinds.filter { $0 != .`extension` }
+        let notExtensionKinds = kinds.filter { $0 != .extension }
         var results: OrderedSet<SymbolOccurrence> = []
         // Extensions have to be resolved via USR name
         guard kinds.contains(.extension) else {
@@ -311,7 +310,7 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func symbolsInSourceFile(at path: String, roles: SymbolRole = .declaration) -> OrderedSet<SymbolOccurrence> {
-        guard let index = index else { return [] }
+        guard let index else { return [] }
         let symbols = index.symbols(inFilePath: path)
         var results: OrderedSet<SymbolOccurrence> = []
         symbols.forEach {
@@ -335,7 +334,7 @@ public final class Workspace {
     func resolveExtensionsOnOccurrences(
         _ symbolOccurrences: OrderedSet<SymbolOccurrence>,
         kinds: [IndexSymbolKind],
-        roles: SymbolRole,
+        roles _: SymbolRole,
         restrictToLocation directory: String?
     ) -> OrderedSet<SymbolOccurrence> {
         var results: OrderedSet<SymbolOccurrence> = []
@@ -357,7 +356,7 @@ public final class Workspace {
                 // Append valid symbols to the result set
                 symbols.forEach {
                     if validateKinds($0, kinds: kinds, canIgnore: false),
-                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
+                       validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
                     {
                         results.append($0)
                     }
@@ -370,7 +369,7 @@ public final class Workspace {
     // MARK: - Helpers: Validation
 
     func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
-        return occurance.roles <= roles || canIgnore
+        occurance.roles <= roles || canIgnore
     }
 
     func validateKinds(_ occurance: SymbolOccurrence, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {

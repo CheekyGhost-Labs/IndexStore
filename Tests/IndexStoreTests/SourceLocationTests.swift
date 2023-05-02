@@ -10,7 +10,6 @@ import XCTest
 @testable import IndexStore
 
 final class SourceLocationTests: XCTestCase {
-
     // MARK: - Tests
 
     func test_description_returnsExpectedValue() {

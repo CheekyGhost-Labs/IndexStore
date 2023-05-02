@@ -8,10 +8,9 @@
 import Foundation
 import Logging
 
-private let testInstance: Logger = Logger(label: "com.cheekyghost.MimicKit.tests")
+private let testInstance: Logger = .init(label: "com.cheekyghost.MimicKit.tests")
 
 extension Logger {
-
     /// Unit testing Logger instance
     static var test: Logger { testInstance }
 }

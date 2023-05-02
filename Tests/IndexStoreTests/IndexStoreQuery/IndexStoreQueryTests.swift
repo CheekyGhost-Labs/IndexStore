@@ -9,7 +9,6 @@ import IndexStore
 import XCTest
 
 final class IndexStoreQueryTests: XCTestCase {
-
     // MARK: - Tests: Standard
 
     func test_builder_query_willAssignExpectedValues() throws {
