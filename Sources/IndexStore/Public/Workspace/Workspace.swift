@@ -137,7 +137,7 @@ public final class Workspace {
         ignoreCase: Bool = false,
         restrictToLocation directory: String?
     ) -> OrderedSet<SymbolOccurrence> {
-        guard let index else { return [] }
+        guard let index = index else { return [] }
         let targetDirectory = directory ?? ""
         logger.debug("-- Searching for symbol occurances with type `\(matching)`: roles `\(roles)`")
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
@@ -147,9 +147,9 @@ public final class Workspace {
             anchorEnd: anchorEnd,
             subsequence: includeSubsequence,
             ignoreCase: ignoreCase
-        ) { [self] in
-            if validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) {
-                symbolOccurrenceResults.append($0)
+        ) { [self] symbol in
+            if validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) {
+                symbolOccurrenceResults.append(symbol)
             }
             return true
         }
@@ -218,7 +218,7 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func occurrences(ofUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
-        guard let index else { return [] }
+        guard let index = index else { return [] }
         let results = index.occurrences(ofUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
     }
@@ -230,7 +230,7 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func occurrences(relatedToUSR usr: String, roles: SymbolRole) -> OrderedSet<SymbolOccurrence> {
-        guard let index else { return [] }
+        guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
     }
@@ -310,11 +310,11 @@ public final class Workspace {
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func symbolsInSourceFile(at path: String, roles: SymbolRole = .declaration) -> OrderedSet<SymbolOccurrence> {
-        guard let index else { return [] }
+        guard let index = index else { return [] }
         let symbols = index.symbols(inFilePath: path)
         var results: OrderedSet<SymbolOccurrence> = []
-        symbols.forEach {
-            index.forEachSymbolOccurrence(byUSR: $0.usr, roles: roles) { occurence in
+        symbols.forEach { symbol in
+            index.forEachSymbolOccurrence(byUSR: symbol.usr, roles: roles) { occurence in
                 results.append(occurence)
                 return true
             }
@@ -389,7 +389,7 @@ public final class Workspace {
         includeSubsequence: Bool,
         ignoreCase: Bool
     ) -> Bool {
-        guard let term, !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
+        guard let term = term, !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
         let needle = ignoreCase ? term.lowercased() : term
         let haystack = ignoreCase ? occurance.symbol.name.lowercased() : occurance.symbol.name
         if anchorStart {

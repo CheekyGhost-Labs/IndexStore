@@ -88,7 +88,7 @@ public extension IndexStore {
         /// - Parameter provided: The provided value to assess.
         /// - Returns: `String`
         static func resolveIndexDatabasePath(provided: String?) -> String {
-            if let provided { return provided }
+            if let provided = provided { return provided }
             return "\(NSTemporaryDirectory())index_\(getpid())"
         }
 
@@ -104,7 +104,7 @@ public extension IndexStore {
         /// - Parameter provided: The provided value to assess.
         /// - Returns: `String`
         static func resolveIndexStorePath(provided: String?) throws -> String {
-            if let provided { return provided }
+            if let provided = provided { return provided }
             // Resolve index store db path from active process
             let processInfo = ProcessInfo()
             let isXcode = processInfo.environment.keys.contains(EnvironmentKeys.xcodeBuiltProducts)
@@ -134,7 +134,7 @@ public extension IndexStore {
         /// - Parameter provided: The provided value to assess
         /// - Returns: `String`
         static func resolveLibIndexStorePath(provided: String?) throws -> String {
-            guard let provided else {
+            guard let provided = provided else {
                 let path = try shell("xcode-select -p")
                 return "\(path)/Toolchains/XcodeDefault.xctoolchain/usr/lib/libIndexStore.dylib"
             }

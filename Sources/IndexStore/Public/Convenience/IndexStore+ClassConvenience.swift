@@ -48,15 +48,17 @@ extension IndexStore {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach {
             let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.baseOf])
-            let validUsrs: [String] = subclasses.flatMap {
+            var validUsrs: [String] = []
+            subclasses.forEach {
                 guard
                     // Restrict to symbols in project directory
                     $0.location.path.contains(configuration.projectDirectory),
                     $0.roles == [.reference, .baseOf]
                 else {
-                    return [String]()
+                    return
                 }
-                return $0.relations.map(\.symbol.usr)
+                let usrs = $0.relations.map(\.symbol.usr)
+                validUsrs.append(contentsOf: usrs)
             }
             let occurances = validUsrs.flatMap {
                 workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])

@@ -77,7 +77,7 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
         self.roles = roles
         self.location = location
         inheritance = inheritence
-        if let parent {
+        if let parent = parent {
             _parents = [parent]
         } else {
             _parents = []

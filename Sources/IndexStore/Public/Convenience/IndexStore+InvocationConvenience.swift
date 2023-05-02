@@ -57,9 +57,9 @@ public extension IndexStore {
             var parent: SourceSymbol? = result.parent
             while parent != nil {
                 // Check if the parent is a function that starts with `test` (unit testing convention)
-                if let parent, parent.name.starts(with: "test") {
+                if let parent = parent, parent.name.starts(with: "test") {
                     testFunctionFound = true
-                } else if testFunctionFound, let parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase") {
+                } else if testFunctionFound, let parent = parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase") {
                     return true
                 }
                 parent = parent?.parent
