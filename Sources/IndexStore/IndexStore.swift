@@ -257,12 +257,18 @@ public final class IndexStore {
             else {
                 return
             }
-            let occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .baseOf, .canonical])
-            let filtered = occurences.filter {
-                $0.roles.contains(.definition) || $0.roles.contains(.declaration) && $0.roles.contains(.canonical)
+            var targetOccurence: SymbolOccurrence?
+            var occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical])
+            if occurences.isEmpty {
+                occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical, .baseOf])
+                targetOccurence = occurences.first(where: { element in
+                    element.relations.contains(where: { $0.symbol.name == occurence.symbol.name })
+                })
+            } else {
+                targetOccurence = occurences.first
             }
-            guard let target = filtered.first else { return }
-            let details = sourceSymbolFromOccurence(target)
+            guard let result = targetOccurence else { return }
+            let details = sourceSymbolFromOccurence(result)
             results.append(details)
         }
         return results
