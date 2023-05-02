@@ -1,4 +1,4 @@
-// swift-tools-version: 5.5
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/indexstore-db.git", branch: "release/5.9"),
-        .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.4.0")),
+        .package(url: "https://github.com/apple/swift-tools-support-core.git", .exact("0.4.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
