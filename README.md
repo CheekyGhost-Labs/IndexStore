@@ -12,10 +12,11 @@ The [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) is not 
 
 ## Workflows:
 
-|  Branch  |  Status  |
-|:---------|:------:|
-| main | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
-| develop | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) |
+|  Branch  | Latest Swift/Xcode  |   Legacy Swift Support (5.7, 5.6, 5.5)  |
+|:---------|:-------------------:|:---------------------------------------:|
+| main | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
+| develop | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
+| release/1.0 | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=release/1.0)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=release/1.0)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
 
 ## Features:
 
