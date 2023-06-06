@@ -47,7 +47,7 @@ public final class IndexStore {
         workspace.pollForChangesAndWait(isInitialScan: false)
     }
 
-    /// Will return source symbols  for any declarations/symbols matching the given query.
+    /// Will return source symbols for any declarations/symbols matching the given query.
     /// - Parameter query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func querySymbols(_ query: IndexStoreQuery) -> [SourceSymbol] {
@@ -99,6 +99,105 @@ public final class IndexStore {
             )
         }
         let results = rawResults.compactMap(sourceSymbolFromOccurence)
+        return results
+    }
+
+    /// Will return source symbols for any occurences matching the given **occurence** query.
+    ///
+    /// The query requires the ``IndexStore/SourceSymbol/usr`` value.
+    /// - Parameter query: The ``IndexStoreOccurenceQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryOccurences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
+        queryOccurences(ofUsr: symbol.usr, query: query)
+    }
+
+    public func queryOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+        let symbolKinds = query.kinds.map(\.indexSymbolKind)
+        let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
+        let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+        let occurences = workspace.occurrences(
+            ofUSR: usr,
+            matching: query.query,
+            kinds: symbolKinds,
+            roles: symbolRoles,
+            anchorStart: query.anchorStart,
+            anchorEnd: query.anchorEnd,
+            includeSubsequence: query.includeSubsequence,
+            ignoreCase: query.ignoreCase,
+            restrictToLocation: targetDirectory
+        )
+        let results = occurences.compactMap(sourceSymbolFromOccurence)
+        return results
+    }
+
+    /// Will return source symbols occurences that match the `usr` of the given symbol and filter results based on the given query.
+    ///
+    /// The query requires the ``IndexStore/SourceSymbol/usr`` value retreived from the provided symbol.
+    /// for example, in the following source
+    /// ```
+    /// class MyClass {}
+    /// class Sample {
+    ///
+    ///     var myInstance: MyClass
+    ///
+    ///     init() {
+    ///         myInstance = MyClass()
+    ///     }
+    /// }
+    /// ```
+    /// you can query as
+    /// ```
+    /// let classSymbol = indexStore.querySymbols(.classDeclarations(matching: "CustomClass"))[0]
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// ```
+    /// - Parameter query: The ``IndexStoreOccurenceQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryRelatedOccurences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
+        queryRelatedOccurences(ofUsr: symbol.usr, query: query)
+    }
+
+    /// Will return source symbols occurences that match the symbol with the given `usr`
+    ///
+    /// The query requires the ``IndexStore/SourceSymbol/usr`` value retreived from the provided symbol.
+    /// for example, in the following source
+    /// ```
+    /// class MyClass {}
+    /// class Sample {
+    ///
+    ///     var myInstance: MyClass
+    ///
+    ///     init() {
+    ///         myInstance = MyClass()
+    ///     }
+    /// }
+    /// ```
+    /// you can query as
+    /// ```
+    /// indexStore.queryRelatedOccurences(ofSymbol: "resolveUSR", query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurences(ofSymbol: "resolveUSR", query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurences(ofSymbol: "resolveUSR", query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// ```
+    /// - Parameter query: The ``IndexStoreOccurenceQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryRelatedOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+        let symbolKinds = query.kinds.map(\.indexSymbolKind)
+        let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
+        let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+        let occurences = workspace.occurrences(
+            relatedToUSR: usr,
+            matching: query.query,
+            kinds: symbolKinds,
+            roles: symbolRoles,
+            anchorStart: query.anchorStart,
+            anchorEnd: query.anchorEnd,
+            includeSubsequence: query.includeSubsequence,
+            ignoreCase: query.ignoreCase,
+            restrictToLocation: targetDirectory,
+            restrictedToSourceFiles: query.sourceFiles ?? []
+        )
+        let results = occurences.compactMap(sourceSymbolFromOccurence)
         return results
     }
 

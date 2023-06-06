@@ -148,9 +148,11 @@ public final class Workspace {
             subsequence: includeSubsequence,
             ignoreCase: ignoreCase
         ) { [self] symbol in
-            if validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) {
-                symbolOccurrenceResults.append(symbol)
-            }
+            // Validate symbol location (if required)
+            guard validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return true }
+            // Validate symbol roles
+            guard validateRoles(symbol, roles: roles, canIgnore: false) else { return true }
+            symbolOccurrenceResults.append(symbol)
             return true
         }
         return processQueryResults(symbolOccurrenceResults, kinds: kinds, roles: roles, restrictToLocation: directory)
@@ -191,13 +193,13 @@ public final class Workspace {
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         // Filter Results
         rawResults.forEach {
-            // Location check
-            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else {
-                return
-            }
+            // Validate symbol location (if required)
+            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Validate symbol roles
+            guard validateRoles($0, roles: roles, canIgnore: false) else { return }
             // Name match (if present)
             let nameMatch = validateName(
-                $0,
+                $0.symbol.name,
                 term: matching,
                 anchorStart: anchorStart,
                 anchorEnd: anchorEnd,
@@ -223,6 +225,38 @@ public final class Workspace {
         return OrderedSet<SymbolOccurrence>(results)
     }
 
+    func occurrences(
+        ofUSR usr: String,
+        matching: String?,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .all,
+        anchorStart: Bool = true,
+        anchorEnd: Bool = true,
+        includeSubsequence: Bool = false,
+        ignoreCase: Bool = false,
+        restrictToLocation directory: String?
+    ) -> OrderedSet<SymbolOccurrence> {
+        guard let index = index else { return [] }
+        let targetDirectory = directory ?? ""
+        let rawResults = index.occurrences(ofUSR: usr, roles: roles)
+        var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
+        rawResults.forEach {
+            // Location check on occurence (if required)
+            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Name match (if present)
+            let nameMatch = validateName(
+                $0.symbol.name,
+                term: matching,
+                anchorStart: anchorStart,
+                anchorEnd: anchorEnd,
+                includeSubsequence: includeSubsequence,
+                ignoreCase: ignoreCase
+            )
+            if nameMatch { symbolOccurrenceResults.append($0) }
+        }
+        return symbolOccurrenceResults
+    }
+
     /// Will return any symbol occurences that are related to the given USR identifier.
     ///
     /// - Parameters:
@@ -233,6 +267,58 @@ public final class Workspace {
         guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
+    }
+
+    func occurrences(
+        relatedToUSR usr: String,
+        matching: String?,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .all,
+        anchorStart: Bool = true,
+        anchorEnd: Bool = true,
+        includeSubsequence: Bool = false,
+        ignoreCase: Bool = false,
+        restrictToLocation directory: String?,
+        restrictedToSourceFiles sourceFiles: [String] = []
+    ) -> OrderedSet<SymbolOccurrence> {
+        guard let index = index else { return [] }
+        let targetDirectory = directory ?? ""
+        let rawResults = index.occurrences(relatedToUSR: usr, roles: .all)
+        var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
+        rawResults.forEach {
+            // Validate a relation matches the usr of the symbol
+            guard $0.relations.contains(where: { $0.symbol.usr == usr }) else { return }
+            symbolOccurrenceResults.append($0)
+        }
+        // Map relations
+        var resultSet: OrderedSet<SymbolOccurrence> = []
+        let relationUsrs = rawResults.map(\.symbol.usr)
+        relationUsrs.forEach {
+            // Send roles from parameters here and let index store db handle filtering
+            let occurences = occurrences(ofUSR: $0, roles: roles)
+            occurences.forEach {
+                // Location check on occurence (if required)
+                guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+                // Name match for occurence (if required)
+                let nameMatch = validateName(
+                    $0.symbol.name,
+                    term: matching,
+                    anchorStart: anchorStart,
+                    anchorEnd: anchorEnd,
+                    includeSubsequence: includeSubsequence,
+                    ignoreCase: ignoreCase
+                )
+                guard nameMatch else { return }
+                guard !sourceFiles.isEmpty else {
+                    resultSet.append($0)
+                    return
+                }
+                if sourceFiles.contains($0.location.path) {
+                    resultSet.append($0)
+                }
+            }
+        }
+        return resultSet
     }
 
     // MARK: - Helpers: Result processing
@@ -355,7 +441,7 @@ public final class Workspace {
                 let symbols = occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
                 // Append valid symbols to the result set
                 symbols.forEach {
-                    if validateKinds($0, kinds: kinds, canIgnore: false),
+                    if validateKind($0.symbol.kind, kinds: kinds, canIgnore: false),
                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
                     {
                         results.append($0)
@@ -368,12 +454,14 @@ public final class Workspace {
 
     // MARK: - Helpers: Validation
 
-    func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
-        occurance.roles <= roles || canIgnore
+    func validateRoles(_ targetRoles: SymbolRole, roles: SymbolRole, canIgnore: Bool) -> Bool {
+        let intersection = targetRoles.intersection(roles)
+        return !intersection.isEmpty
     }
 
-    func validateKinds(_ occurance: SymbolOccurrence, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {
-        kinds.contains(occurance.symbol.kind) || canIgnore
+    func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
+        let intersection = occurance.roles.intersection(roles)
+        return !intersection.isEmpty
     }
 
     func validateProjectDirectory(_ occurance: SymbolOccurrence, projectDirectory: String, canIgnore: Bool) -> Bool {
@@ -381,8 +469,12 @@ public final class Workspace {
         return isProjectDirectory || canIgnore
     }
 
+    func validateKind(_ kind: IndexSymbolKind, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {
+        kinds.contains(kind) || canIgnore
+    }
+
     func validateName(
-        _ occurance: SymbolOccurrence,
+        _ name: String,
         term: String?,
         anchorStart: Bool,
         anchorEnd: Bool,
@@ -391,7 +483,7 @@ public final class Workspace {
     ) -> Bool {
         guard let term = term, !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
         let needle = ignoreCase ? term.lowercased() : term
-        let haystack = ignoreCase ? occurance.symbol.name.lowercased() : occurance.symbol.name
+        let haystack = ignoreCase ? name.lowercased() : name
         if anchorStart {
             return haystack.starts(with: needle)
         }

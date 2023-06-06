@@ -7,14 +7,14 @@
 
 import IndexStoreDB
 
-/// Struct representing a query to give to an `IndexStore` instance to search for source symbols.
-public struct IndexStoreQuery: Equatable {
+/// Struct representing a query to give to an `IndexStore` instance to search for occurences, or related occurences, of a source symbol USR.
+public struct IndexStoreOccurenceQuery: Equatable {
     // MARK: - Properties
 
-    /// The type or name query to search for.
-    public var query: String?
+    /// The USR or to search for.
+    public var usr: String
 
-    /// Optional array of source files to restrict searching to.
+    /// Optional array of source files to restrict results to.
     public var sourceFiles: [String]?
 
     /// `SourceKind` set types to restrict results to. Default is `.allCasses`.
@@ -40,95 +40,55 @@ public struct IndexStoreQuery: Equatable {
 
     // MARK: - Lifecycle
 
-    public init() {}
-
-    public init(query: String) {
-        self.query = query
-    }
-
-    public init(sourceFiles: [String]) {
-        self.sourceFiles = sourceFiles
-    }
-
-    public init(kinds: [SourceKind]) {
-        self.kinds = kinds
-    }
-
-    public init(roles: SourceRole) {
-        self.roles = roles
-    }
-
-    // MARK: - Static convenience init
-
-    public static var empty: IndexStoreQuery { IndexStoreQuery() }
-
-    public static func withQuery(_ query: String) -> IndexStoreQuery {
-        IndexStoreQuery(query: query)
-    }
-
-    public static func withSourceFiles(_ sourceFiles: [String]) -> IndexStoreQuery {
-        IndexStoreQuery(sourceFiles: sourceFiles)
-    }
-
-    public static func withKinds(_ kinds: [SourceKind]) -> IndexStoreQuery {
-        IndexStoreQuery(kinds: kinds)
-    }
-
-    public static func withRoles(_ roles: SourceRole) -> IndexStoreQuery {
-        IndexStoreQuery(roles: roles)
+    public init(usr: String) {
+        self.usr = usr
     }
 
     // MARK: - Builder
 
-    public func withQuery(_ query: String?) -> IndexStoreQuery {
-        var result = self
-        result.query = query
-        return result
-    }
-
-    public func withSourceFiles(_ files: [String]?) -> IndexStoreQuery {
+    public func withSourceFiles(_ files: [String]?) -> IndexStoreOccurenceQuery {
         var result = self
         result.sourceFiles = files
         return result
     }
 
-    public func withKinds(_ kinds: [SourceKind]) -> IndexStoreQuery {
+    public func withKinds(_ kinds: [SourceKind]) -> IndexStoreOccurenceQuery {
         var result = self
         result.kinds = kinds
         return result
     }
 
-    public func withRoles(_ roles: SourceRole) -> IndexStoreQuery {
+    public func withRoles(_ roles: SourceRole) -> IndexStoreOccurenceQuery {
         var result = self
         result.roles = roles
         return result
     }
 
-    public func withRestrictingToProjectDirectory(_ flag: Bool) -> IndexStoreQuery {
+    public func withRestrictingToProjectDirectory(_ flag: Bool) -> IndexStoreOccurenceQuery {
         var result = self
         result.restrictToProjectDirectory = flag
         return result
     }
 
-    public func withAnchorStart(_ anchorStart: Bool) -> IndexStoreQuery {
+    public func withAnchorStart(_ anchorStart: Bool) -> IndexStoreOccurenceQuery {
         var result = self
         result.anchorStart = anchorStart
         return result
     }
 
-    public func withAnchorEnd(_ anchorEnd: Bool) -> IndexStoreQuery {
+    public func withAnchorEnd(_ anchorEnd: Bool) -> IndexStoreOccurenceQuery {
         var result = self
         result.anchorEnd = anchorEnd
         return result
     }
 
-    public func withInlcudeSubsequences(_ include: Bool) -> IndexStoreQuery {
+    public func withInlcudeSubsequences(_ include: Bool) -> IndexStoreOccurenceQuery {
         var result = self
         result.includeSubsequence = include
         return result
     }
 
-    public func withIgnoringCase(_ ignoreCase: Bool) -> IndexStoreQuery {
+    public func withIgnoringCase(_ ignoreCase: Bool) -> IndexStoreOccurenceQuery {
         var result = self
         result.ignoreCase = ignoreCase
         return result
