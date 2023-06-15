@@ -972,71 +972,74 @@ final class IndexStoreTests: XCTestCase {
         // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
         // revisit once time allows to avoid the description match.
         let expected: [String] = [
+            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::24",
+            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
+            "example() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::22::10",
+            "example() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::18::10",
+            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::22::10",
+            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
+            "getter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::16::9",
+            "getter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::12::9",
+            "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
+            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
+            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "getter:relation - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::26::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
+            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10",
+            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
+            "notInvokedInTestCase() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::15::18",
+            "performFunction(withPerson:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::10",
+            "performOperation(withAge:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::10",
+            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::10",
+            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
+            "performOperation(withName:age:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::10",
+            "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
             "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Classes.swift::17::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
+            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
+            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
+            "setter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::16::9",
+            "setter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::12::9",
+            "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
+            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
+            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
+            "setter:relation - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::26::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
+            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
+            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
+            "standardTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::7::10",
+            "subclassTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::11::14",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::10::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::18::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::27::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::35::10",
             "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::43::10",
-            "testTwo() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::47::10",
-            "performFunction(withPerson:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::10",
-            "standardTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::7::10",
-            "subclassTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::11::14",
-            "notInvokedInTestCase() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::15::18",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::10",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::22::10",
-            "performOperation(withAge:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::10",
-            "performOperation(withName:age:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::10",
-            "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
-            "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
-            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
-            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::24",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10",
-            "getter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::16::9",
-            "setter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::16::9",
-            "example() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::22::10",
-            "getter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::12::9",
-            "setter:customProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::12::9",
-            "example() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/RelationsRestricted.swift::18::10"
+            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
+            "testThing() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Relations.swift::28::10",
+            "testTwo() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::47::10"
         ].sorted()
         let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
         let descriptions = results.map(\.description).sorted()
@@ -1465,20 +1468,9 @@ final class IndexStoreTests: XCTestCase {
 
     func test_sourceSymbolsForPropertiesWithTypeOf_willReturnExpectedResults() throws {
         let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
-        let related = instanceUnderTest.sourceSymbols(forPropertiesWithTypeOf: classSymbol)
+        let related = instanceUnderTest.sourceSymbols(forPropertiesWithTypeOf: classSymbol).sorted(by: { $0.usr < $1.usr })
         XCTAssertEqual(related.count, 2)
         var symbol = related[0]
-        XCTAssertEqual(symbol.parent?.sourceKind, .class)
-        XCTAssertEqual(symbol.parent?.name, "CustomRelationClass")
-        XCTAssertEqual(symbol.sourceKind, .instanceProperty)
-        XCTAssertEqual(symbol.name, "customProperty")
-        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests19CustomRelationClassC14customPropertyAA0dF0Cvp")
-        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
-        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
-        XCTAssertEqual(symbol.location.line, 12)
-        XCTAssertEqual(symbol.location.column, 9)
-        XCTAssertEqual(symbol.location.offset, 9)
-        symbol = related[1]
         XCTAssertEqual(symbol.parent?.sourceKind, .class)
         XCTAssertEqual(symbol.parent?.name, "RelationClass")
         XCTAssertEqual(symbol.sourceKind, .instanceProperty)
@@ -1487,6 +1479,17 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
         XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
         XCTAssertEqual(symbol.location.line, 16)
+        XCTAssertEqual(symbol.location.column, 9)
+        XCTAssertEqual(symbol.location.offset, 9)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.name, "customProperty")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests19CustomRelationClassC14customPropertyAA0dF0Cvp")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 12)
         XCTAssertEqual(symbol.location.column, 9)
         XCTAssertEqual(symbol.location.offset, 9)
     }
@@ -1511,10 +1514,35 @@ final class IndexStoreTests: XCTestCase {
 
     func test_sourceSymbolsInitializing_willReturnExpectedResults() throws {
         let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
-        let related = instanceUnderTest.sourceSymbols(initializing: classSymbol)
+        let related = instanceUnderTest.sourceSymbols(initializing: classSymbol).sorted(by: { $0.usr < $1.usr })
         XCTAssertEqual(related.count, 4)
         // customProperty = CustomClass()
         var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 19)
+        XCTAssertEqual(symbol.location.column, 26)
+        XCTAssertEqual(symbol.location.offset, 26)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.name, "example()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 23)
+        XCTAssertEqual(symbol.location.column, 13)
+        XCTAssertEqual(symbol.location.offset, 13)
+        symbol = related[2]
         XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
         XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
         XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
@@ -1526,7 +1554,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.line, 15)
         XCTAssertEqual(symbol.location.column, 26)
         XCTAssertEqual(symbol.location.offset, 26)
-        symbol = related[1]
+        symbol = related[3]
         XCTAssertEqual(symbol.parent?.name, "example()")
         XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
         XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
@@ -1537,31 +1565,6 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
         XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
         XCTAssertEqual(symbol.location.line, 19)
-        XCTAssertEqual(symbol.location.column, 13)
-        XCTAssertEqual(symbol.location.offset, 13)
-        symbol = related[2]
-        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
-        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
-        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
-        XCTAssertEqual(symbol.sourceKind, .constructor)
-        XCTAssertEqual(symbol.name, "init()")
-        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
-        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
-        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
-        XCTAssertEqual(symbol.location.line, 19)
-        XCTAssertEqual(symbol.location.column, 26)
-        XCTAssertEqual(symbol.location.offset, 26)
-        symbol = related[3]
-        XCTAssertEqual(symbol.parent?.name, "example()")
-        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
-        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
-        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
-        XCTAssertEqual(symbol.sourceKind, .constructor)
-        XCTAssertEqual(symbol.name, "init()")
-        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
-        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
-        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
-        XCTAssertEqual(symbol.location.line, 23)
         XCTAssertEqual(symbol.location.column, 13)
         XCTAssertEqual(symbol.location.offset, 13)
     }
@@ -1603,7 +1606,38 @@ final class IndexStoreTests: XCTestCase {
         let enumSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.enumDeclarations(matching: "RelatedEnum")).first)
         let related = instanceUnderTest.sourceSymbols(initializing: enumSymbol)
         XCTAssertEqual(related.count, 2)
-        print(related.map(\.roles))
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .enumConstant)
+        XCTAssertEqual(symbol.name, "sample")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11RelatedEnumO6sampleyA2CmF")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 26)
+        XCTAssertEqual(symbol.location.column, 34)
+        XCTAssertEqual(symbol.location.offset, 34)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.name, "testThing()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .enumConstant)
+        XCTAssertEqual(symbol.name, "sample")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11RelatedEnumO6sampleyA2CmF")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 29)
+        XCTAssertEqual(symbol.location.column, 21)
+        XCTAssertEqual(symbol.location.offset, 21)
+    }
+
+    func test_sourceSymbolsInitializing_derp_willReturnExpectedResults() throws {
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "Thing")).first)
+        let related = instanceUnderTest.sourceSymbols(initializing: classSymbol)
+        XCTAssertEqual(related.count, 1)
+        print(related.map { "\($0.name) - \($0.roles)"})
 
     }
 }

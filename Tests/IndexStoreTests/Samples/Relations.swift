@@ -17,6 +17,7 @@ class RelationClass {
 
     init() {
         customProperty = CustomClass()
+        thing = .derp
     }
 
     func example() {
@@ -28,8 +29,15 @@ class RelationClass {
     func testThing() {
         relation = .sample
     }
+
+    var thing: Thing
 }
 
 enum RelatedEnum {
     case sample
+}
+
+
+class Thing {
+    class var derp: Thing { Thing() }
 }

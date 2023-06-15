@@ -75,7 +75,8 @@ public final class IndexStore {
                 anchorEnd: query.anchorEnd,
                 includeSubsequence: query.includeSubsequence,
                 ignoreCase: query.ignoreCase,
-                restrictToLocation: targetDirectory
+                restrictToLocation: targetDirectory,
+                module: query.module
             )
         }
         if let sourceFiles = query.sourceFiles {
@@ -95,7 +96,8 @@ public final class IndexStore {
                 anchorEnd: query.anchorEnd,
                 includeSubsequence: query.includeSubsequence,
                 ignoreCase: query.ignoreCase,
-                restrictToLocation: targetDirectory
+                restrictToLocation: targetDirectory,
+                module: query.module
             )
         }
         let results = rawResults.compactMap(sourceSymbolFromOccurence)
@@ -124,7 +126,8 @@ public final class IndexStore {
             anchorEnd: query.anchorEnd,
             includeSubsequence: query.includeSubsequence,
             ignoreCase: query.ignoreCase,
-            restrictToLocation: targetDirectory
+            restrictToLocation: targetDirectory,
+            module: query.module
         )
         let results = occurences.compactMap(sourceSymbolFromOccurence)
         return results
@@ -195,7 +198,8 @@ public final class IndexStore {
             includeSubsequence: query.includeSubsequence,
             ignoreCase: query.ignoreCase,
             restrictToLocation: targetDirectory,
-            restrictedToSourceFiles: query.sourceFiles ?? []
+            restrictedToSourceFiles: query.sourceFiles ?? [],
+            module: query.module
         )
         let results = occurences.compactMap(sourceSymbolFromOccurence)
         return results

@@ -135,7 +135,8 @@ public final class Workspace {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
-        restrictToLocation directory: String?
+        restrictToLocation directory: String?,
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let targetDirectory = directory ?? ""
@@ -150,6 +151,8 @@ public final class Workspace {
         ) { [self] symbol in
             // Validate symbol location (if required)
             guard validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return true }
+            // Validate module name (if required)
+            guard validateModule(symbol, module: module) else { return true }
             // Validate symbol roles
             guard validateRoles(symbol, roles: roles, canIgnore: false) else { return true }
             symbolOccurrenceResults.append(symbol)
@@ -179,7 +182,8 @@ public final class Workspace {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
-        restrictToLocation directory: String?
+        restrictToLocation directory: String?,
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         // Source file lookups only let you search for symbols and roles. When searching for extensions, the project directory may not
         // match a referenced symbol. The approach here is to search for symbols, then filter by project, kinds, and name, then grab any
@@ -195,6 +199,8 @@ public final class Workspace {
         rawResults.forEach {
             // Validate symbol location (if required)
             guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Validate module name (if required)
+            guard validateModule($0, module: module) else { return }
             // Validate symbol roles
             guard validateRoles($0, roles: roles, canIgnore: false) else { return }
             // Name match (if present)
@@ -234,7 +240,8 @@ public final class Workspace {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
-        restrictToLocation directory: String?
+        restrictToLocation directory: String?,
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let targetDirectory = directory ?? ""
@@ -243,6 +250,8 @@ public final class Workspace {
         rawResults.forEach {
             // Location check on occurence (if required)
             guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Validate module name (if required)
+            guard validateModule($0, module: module) else { return }
             // Name match (if present)
             let nameMatch = validateName(
                 $0.symbol.name,
@@ -279,7 +288,8 @@ public final class Workspace {
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
         restrictToLocation directory: String?,
-        restrictedToSourceFiles sourceFiles: [String] = []
+        restrictedToSourceFiles sourceFiles: [String] = [],
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let targetDirectory = directory ?? ""
@@ -299,6 +309,8 @@ public final class Workspace {
             occurences.forEach {
                 // Location check on occurence (if required)
                 guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+                // Validate module name (if required)
+                guard validateModule($0, module: module) else { return }
                 // Name match for occurence (if required)
                 let nameMatch = validateName(
                     $0.symbol.name,
@@ -471,6 +483,11 @@ public final class Workspace {
 
     func validateKind(_ kind: IndexSymbolKind, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {
         kinds.contains(kind) || canIgnore
+    }
+
+    func validateModule(_ occurence: SymbolOccurrence, module: String?) -> Bool {
+        guard let module = module else { return true }
+        return occurence.location.moduleName == module
     }
 
     func validateName(

@@ -23,6 +23,9 @@ public struct IndexStoreQuery: Equatable {
     /// `SourceRole` set types to restrict results to. Default is `.all`.
     public var roles: SourceRole = .all
 
+    /// Optional module name to restrict results to.
+    public var module: String?
+
     /// Bool whether to restrict search results to symbols with a location within the project directory. Default is `true`.
     public var restrictToProjectDirectory: Bool = true
 
@@ -101,6 +104,12 @@ public struct IndexStoreQuery: Equatable {
     public func withRoles(_ roles: SourceRole) -> IndexStoreQuery {
         var result = self
         result.roles = roles
+        return result
+    }
+
+    public func withModule(_ module: String?) -> IndexStoreQuery {
+        var result = self
+        result.module = module
         return result
     }
 
