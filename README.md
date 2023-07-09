@@ -139,6 +139,14 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
+    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", from: "1.0.1"),
+]
+```
+
+alternatively you can also point at a release branch:
+
+```swift
+dependencies: [
     .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/1.0"),
 ]
 ```
@@ -163,11 +171,12 @@ Don't hesitate to submit a feature request if you see a way IndexStore can be im
 
 ### Contributing to IndexStore
 
-Due to [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) repo using branches for releases rather than tagging stable versions, the IndexStore repo can't follow the traditional semvar and [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) approach.
+Due to [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) repo using branches for releases rather than tagging stable versions. To enable the IndexStore repo to follow traditional semvar and [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) approach, the package points at a specific revision. If any updates being made need a newer version/revision, please ensure the `.revisionItem("<commit-hash>")` package approach is used.
 
 The approach IndexStore takes for releases is:
 - main: contains the latest stable release
 - develop: contains the latest stable changes pending release
+- tag/<version>: snapshot of release
 - release/<major>.minor: contains released code
 
 A release branch will have a semantic version without accounting for patch updates. For example
@@ -183,7 +192,7 @@ release/1.1
 
 - any `major` updates (publicly visible changes that are **not** backwards compatible) will get their own release branch.
 
-Releases will still be tagged for when the [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) becomes stable. This will also allow us to manage patch releases easier too.
+Releases are still tagged, the use of release branches is to ensure any legacy updates are easy enough to maintain/facilitate.
 
 For the most part, pull requests should be made against the `develop` branch to coordinate releases with multiple features and fixes. This also provides a means to test from the `develop` branch in the wild to further test pending releases. Once a release is ready it will be merged into `main` and release branches created/updated from the `main` branch.
 
