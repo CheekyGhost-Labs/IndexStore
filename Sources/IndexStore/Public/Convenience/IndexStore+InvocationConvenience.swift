@@ -32,13 +32,13 @@ public extension IndexStore {
         var results: [SourceSymbol] = []
         let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy, .write, .read])
         for symbol in conforming {
-            let sourceSymbol = sourceSymbolFromOccurence(symbol)
+            let sourceSymbol = sourceSymbolFromOccurrence(symbol)
             results.append(sourceSymbol)
         }
         return results
     }
 
-    /// Will assess the symbol's parent and inheritence heirachy and return true when it is being invoked within a test case within an `XCTestCase` class (or subclass).
+    /// Will assess the symbol's parent and inheritance hierarchy and return true when it is being invoked within a test case within an `XCTestCase` class (or subclass).
     ///
     /// **Note: ** Valid symbols are the following ``SourceKind`` cases:
     /// - ``SourceKind/instanceMethod``
@@ -59,7 +59,7 @@ public extension IndexStore {
                 // Check if the parent is a function that starts with `test` (unit testing convention)
                 if let parent = parent, parent.name.starts(with: "test") {
                     testFunctionFound = true
-                } else if testFunctionFound, let parent = parent, recursiveInheritenceCheck(symbol: parent, name: "XCTestCase") {
+                } else if testFunctionFound, let parent = parent, recursiveInheritanceCheck(symbol: parent, name: "XCTestCase") {
                     return true
                 }
                 parent = parent?.parent
@@ -68,16 +68,16 @@ public extension IndexStore {
         return false
     }
 
-    /// Will recursively assess the inheritence stack of the given symbol and return `true` when the `name` property of an inherited symbol matches the given term.
+    /// Will recursively assess the inheritance stack of the given symbol and return `true` when the `name` property of an inherited symbol matches the given term.
     /// - Parameters:
     ///   - symbol: The symbol to assess.
     ///   - name: The name to match with.
     /// - Returns: `Bool`
-    func recursiveInheritenceCheck(symbol: SourceSymbol, name: String) -> Bool {
+    func recursiveInheritanceCheck(symbol: SourceSymbol, name: String) -> Bool {
         if symbol.inheritance.contains(where: { $0.name == name }) {
             return true
         }
-        for inherited in symbol.inheritance where recursiveInheritenceCheck(symbol: inherited, name: name) {
+        for inherited in symbol.inheritance where recursiveInheritanceCheck(symbol: inherited, name: name) {
             return true
         }
         return false

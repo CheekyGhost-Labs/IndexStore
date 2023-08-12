@@ -16,7 +16,7 @@ import TSCBasic
 public final class Workspace {
     // MARK: - Properties
 
-    /// The path to the libIndexStor dlyib.
+    /// The path to the libIndexStore dylib.
     public let libIndexStorePath: String
 
     /// The root project directory.
@@ -32,7 +32,7 @@ public final class Workspace {
     public private(set) var index: IndexStoreDB?
 
     /// Bool whether any index store changes should be listened for.
-    /// Defaults to `true`. When initialised with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
+    /// Defaults to `true`. When initialized with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
     public let listenToUnitEvents: Bool
 
     /// Logger instance for any debug or console output.
@@ -42,7 +42,7 @@ public final class Workspace {
 
     /// Will create a new instance and attempt to load an index store using the given values.
     /// - Parameters:
-    ///   - libIndexStorePath: The path to the libIndexStor dlyib.
+    ///   - libIndexStorePath: The path to the libIndexStore dylib.
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
@@ -135,11 +135,12 @@ public final class Workspace {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
-        restrictToLocation directory: String?
+        restrictToLocation directory: String?,
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         guard let index = index else { return [] }
         let targetDirectory = directory ?? ""
-        logger.debug("-- Searching for symbol occurances with type `\(matching)`: roles `\(roles)`")
+        logger.debug("-- Searching for symbol occurrences with type `\(matching)`: roles `\(roles)`")
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         index.forEachCanonicalSymbolOccurrence(
             containing: matching,
@@ -148,9 +149,13 @@ public final class Workspace {
             subsequence: includeSubsequence,
             ignoreCase: ignoreCase
         ) { [self] symbol in
-            if validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) {
-                symbolOccurrenceResults.append(symbol)
-            }
+            // Validate symbol location (if required)
+            guard validateProjectDirectory(symbol, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return true }
+            // Validate module name (if required)
+            guard validateModule(symbol, module: module) else { return true }
+            // Validate symbol roles
+            guard validateRoles(symbol, roles: roles, canIgnore: false) else { return true }
+            symbolOccurrenceResults.append(symbol)
             return true
         }
         return processQueryResults(symbolOccurrenceResults, kinds: kinds, roles: roles, restrictToLocation: directory)
@@ -177,7 +182,8 @@ public final class Workspace {
         anchorEnd: Bool = true,
         includeSubsequence: Bool = false,
         ignoreCase: Bool = false,
-        restrictToLocation directory: String?
+        restrictToLocation directory: String?,
+        module: String?
     ) -> OrderedSet<SymbolOccurrence> {
         // Source file lookups only let you search for symbols and roles. When searching for extensions, the project directory may not
         // match a referenced symbol. The approach here is to search for symbols, then filter by project, kinds, and name, then grab any
@@ -191,13 +197,15 @@ public final class Workspace {
         var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
         // Filter Results
         rawResults.forEach {
-            // Location check
-            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else {
-                return
-            }
+            // Validate symbol location (if required)
+            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Validate module name (if required)
+            guard validateModule($0, module: module) else { return }
+            // Validate symbol roles
+            guard validateRoles($0, roles: roles, canIgnore: false) else { return }
             // Name match (if present)
             let nameMatch = validateName(
-                $0,
+                $0.symbol.name,
                 term: matching,
                 anchorStart: anchorStart,
                 anchorEnd: anchorEnd,
@@ -211,7 +219,7 @@ public final class Workspace {
 
     // MARK: - Helpers: Querying
 
-    /// Will return any symbol occurences of the given USR identifier.
+    /// Will return any symbol occurrences of the given USR identifier.
     ///
     /// - Parameters:
     ///   - usr: The usr of the source symbol to search for.
@@ -223,7 +231,42 @@ public final class Workspace {
         return OrderedSet<SymbolOccurrence>(results)
     }
 
-    /// Will return any symbol occurences that are related to the given USR identifier.
+    func occurrences(
+        ofUSR usr: String,
+        matching: String?,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .all,
+        anchorStart: Bool = true,
+        anchorEnd: Bool = true,
+        includeSubsequence: Bool = false,
+        ignoreCase: Bool = false,
+        restrictToLocation directory: String?,
+        module: String?
+    ) -> OrderedSet<SymbolOccurrence> {
+        guard let index = index else { return [] }
+        let targetDirectory = directory ?? ""
+        let rawResults = index.occurrences(ofUSR: usr, roles: roles)
+        var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
+        rawResults.forEach {
+            // Location check on occurrence (if required)
+            guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+            // Validate module name (if required)
+            guard validateModule($0, module: module) else { return }
+            // Name match (if present)
+            let nameMatch = validateName(
+                $0.symbol.name,
+                term: matching,
+                anchorStart: anchorStart,
+                anchorEnd: anchorEnd,
+                includeSubsequence: includeSubsequence,
+                ignoreCase: ignoreCase
+            )
+            if nameMatch { symbolOccurrenceResults.append($0) }
+        }
+        return symbolOccurrenceResults
+    }
+
+    /// Will return any symbol occurrences that are related to the given USR identifier.
     ///
     /// - Parameters:
     ///   - usr: The usr of the source symbol to search for relations to.
@@ -233,6 +276,61 @@ public final class Workspace {
         guard let index = index else { return [] }
         let results = index.occurrences(relatedToUSR: usr, roles: roles)
         return OrderedSet<SymbolOccurrence>(results)
+    }
+
+    func occurrences(
+        relatedToUSR usr: String,
+        matching: String?,
+        kinds: [IndexSymbolKind],
+        roles: SymbolRole = .all,
+        anchorStart: Bool = true,
+        anchorEnd: Bool = true,
+        includeSubsequence: Bool = false,
+        ignoreCase: Bool = false,
+        restrictToLocation directory: String?,
+        restrictedToSourceFiles sourceFiles: [String] = [],
+        module: String?
+    ) -> OrderedSet<SymbolOccurrence> {
+        guard let index = index else { return [] }
+        let targetDirectory = directory ?? ""
+        let rawResults = index.occurrences(relatedToUSR: usr, roles: .all)
+        var symbolOccurrenceResults: OrderedSet<SymbolOccurrence> = []
+        rawResults.forEach {
+            // Validate a relation matches the usr of the symbol
+            guard $0.relations.contains(where: { $0.symbol.usr == usr }) else { return }
+            symbolOccurrenceResults.append($0)
+        }
+        // Map relations
+        var resultSet: OrderedSet<SymbolOccurrence> = []
+        let relationUsrs = rawResults.map(\.symbol.usr)
+        relationUsrs.forEach {
+            // Send roles from parameters here and let index store db handle filtering
+            let occurrences = occurrences(ofUSR: $0, roles: roles)
+            occurrences.forEach {
+                // Location check on occurrence (if required)
+                guard validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil) else { return }
+                // Validate module name (if required)
+                guard validateModule($0, module: module) else { return }
+                // Name match for occurrence (if required)
+                let nameMatch = validateName(
+                    $0.symbol.name,
+                    term: matching,
+                    anchorStart: anchorStart,
+                    anchorEnd: anchorEnd,
+                    includeSubsequence: includeSubsequence,
+                    ignoreCase: ignoreCase
+                )
+                guard nameMatch else { return }
+                guard !sourceFiles.isEmpty else {
+                    resultSet.append($0)
+                    return
+                }
+                if sourceFiles.contains($0.location.path) {
+                    resultSet.append($0)
+                }
+            }
+        }
+        return resultSet
     }
 
     // MARK: - Helpers: Result processing
@@ -288,7 +386,7 @@ public final class Workspace {
     ///
     /// **Note:** You can restrict results to a `SymbolRole` type. Default is `.declaration`.
     /// - Parameters:
-    ///   - path: Array of absolute paths to the soure files to search in.
+    ///   - path: Array of absolute paths to the source files to search in.
     ///   - kinds: Array of `IndexSymbolKind` cases to restrict results to.
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
     /// - Returns: Array of `SymbolOccurrence` instances.
@@ -296,8 +394,8 @@ public final class Workspace {
         guard index != nil else { return [] }
         var results: OrderedSet<SymbolOccurrence> = []
         paths.forEach {
-            let occurences = symbolsInSourceFile(at: $0, roles: roles)
-            occurences.forEach { results.append($0) }
+            let occurrences = symbolsInSourceFile(at: $0, roles: roles)
+            occurrences.forEach { results.append($0) }
         }
         return results
     }
@@ -306,7 +404,7 @@ public final class Workspace {
     ///
     /// **Note:** You can restrict results to a `SymbolRole` type. Default is `.declaration`.
     /// - Parameters:
-    ///   - path: The absolute path to the soure file to search in.
+    ///   - path: The absolute path to the source file to search in.
     ///   - roles: The roles to restrict symbol results to. Default is `.declaration`.
     /// - Returns: Array of `SymbolOccurrence` instances.
     func symbolsInSourceFile(at path: String, roles: SymbolRole = .declaration) -> OrderedSet<SymbolOccurrence> {
@@ -314,8 +412,8 @@ public final class Workspace {
         let symbols = index.symbols(inFilePath: path)
         var results: OrderedSet<SymbolOccurrence> = []
         symbols.forEach { symbol in
-            index.forEachSymbolOccurrence(byUSR: symbol.usr, roles: roles) { occurence in
-                results.append(occurence)
+            index.forEachSymbolOccurrence(byUSR: symbol.usr, roles: roles) { occurrence in
+                results.append(occurrence)
                 return true
             }
         }
@@ -355,7 +453,7 @@ public final class Workspace {
                 let symbols = occurrences(ofUSR: relation.symbol.usr, roles: [.definition, .reference, .extendedBy])
                 // Append valid symbols to the result set
                 symbols.forEach {
-                    if validateKinds($0, kinds: kinds, canIgnore: false),
+                    if validateKind($0.symbol.kind, kinds: kinds, canIgnore: false),
                        validateProjectDirectory($0, projectDirectory: targetDirectory, canIgnore: directory == nil)
                     {
                         results.append($0)
@@ -368,21 +466,32 @@ public final class Workspace {
 
     // MARK: - Helpers: Validation
 
-    func validateRoles(_ occurance: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
-        occurance.roles <= roles || canIgnore
+    func validateRoles(_ targetRoles: SymbolRole, roles: SymbolRole, canIgnore: Bool) -> Bool {
+        let intersection = targetRoles.intersection(roles)
+        return !intersection.isEmpty
     }
 
-    func validateKinds(_ occurance: SymbolOccurrence, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {
-        kinds.contains(occurance.symbol.kind) || canIgnore
+    func validateRoles(_ occurrence: SymbolOccurrence, roles: SymbolRole, canIgnore: Bool) -> Bool {
+        let intersection = occurrence.roles.intersection(roles)
+        return !intersection.isEmpty
     }
 
-    func validateProjectDirectory(_ occurance: SymbolOccurrence, projectDirectory: String, canIgnore: Bool) -> Bool {
-        let isProjectDirectory = occurance.location.path.contains(projectDirectory)
+    func validateProjectDirectory(_ occurrence: SymbolOccurrence, projectDirectory: String, canIgnore: Bool) -> Bool {
+        let isProjectDirectory = occurrence.location.path.contains(projectDirectory)
         return isProjectDirectory || canIgnore
     }
 
+    func validateKind(_ kind: IndexSymbolKind, kinds: [IndexSymbolKind], canIgnore: Bool) -> Bool {
+        kinds.contains(kind) || canIgnore
+    }
+
+    func validateModule(_ occurrence: SymbolOccurrence, module: String?) -> Bool {
+        guard let module = module else { return true }
+        return occurrence.location.moduleName == module
+    }
+
     func validateName(
-        _ occurance: SymbolOccurrence,
+        _ name: String,
         term: String?,
         anchorStart: Bool,
         anchorEnd: Bool,
@@ -391,7 +500,7 @@ public final class Workspace {
     ) -> Bool {
         guard let term = term, !term.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
         let needle = ignoreCase ? term.lowercased() : term
-        let haystack = ignoreCase ? occurance.symbol.name.lowercased() : occurance.symbol.name
+        let haystack = ignoreCase ? name.lowercased() : name
         if anchorStart {
             return haystack.starts(with: needle)
         }

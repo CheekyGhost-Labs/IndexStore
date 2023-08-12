@@ -39,10 +39,10 @@ extension RootProtocol {
 
 }
 
-extension ProtocolWithSystemInheritence {
+extension ProtocolWithSystemInheritance {
     func test() {}
 }
 
-extension ProtocolWithSystemInheritence {
+extension ProtocolWithSystemInheritance {
     func testTwo() {}
 }

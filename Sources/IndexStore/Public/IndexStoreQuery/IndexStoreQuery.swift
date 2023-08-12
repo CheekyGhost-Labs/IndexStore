@@ -17,11 +17,14 @@ public struct IndexStoreQuery: Equatable {
     /// Optional array of source files to restrict searching to.
     public var sourceFiles: [String]?
 
-    /// `SourceKind` set types to restrict results to. Default is `.allCasses`.
+    /// `SourceKind` set types to restrict results to. Default is `.allCases`.
     public var kinds: [SourceKind] = SourceKind.allCases
 
     /// `SourceRole` set types to restrict results to. Default is `.all`.
     public var roles: SourceRole = .all
+
+    /// Optional module name to restrict results to.
+    public var module: String?
 
     /// Bool whether to restrict search results to symbols with a location within the project directory. Default is `true`.
     public var restrictToProjectDirectory: Bool = true
@@ -50,6 +53,34 @@ public struct IndexStoreQuery: Equatable {
         self.sourceFiles = sourceFiles
     }
 
+    public init(kinds: [SourceKind]) {
+        self.kinds = kinds
+    }
+
+    public init(roles: SourceRole) {
+        self.roles = roles
+    }
+
+    // MARK: - Static convenience init
+
+    public static var empty: IndexStoreQuery { IndexStoreQuery() }
+
+    public static func withQuery(_ query: String) -> IndexStoreQuery {
+        IndexStoreQuery(query: query)
+    }
+
+    public static func withSourceFiles(_ sourceFiles: [String]) -> IndexStoreQuery {
+        IndexStoreQuery(sourceFiles: sourceFiles)
+    }
+
+    public static func withKinds(_ kinds: [SourceKind]) -> IndexStoreQuery {
+        IndexStoreQuery(kinds: kinds)
+    }
+
+    public static func withRoles(_ roles: SourceRole) -> IndexStoreQuery {
+        IndexStoreQuery(roles: roles)
+    }
+
     // MARK: - Builder
 
     public func withQuery(_ query: String?) -> IndexStoreQuery {
@@ -76,6 +107,12 @@ public struct IndexStoreQuery: Equatable {
         return result
     }
 
+    public func withModule(_ module: String?) -> IndexStoreQuery {
+        var result = self
+        result.module = module
+        return result
+    }
+
     public func withRestrictingToProjectDirectory(_ flag: Bool) -> IndexStoreQuery {
         var result = self
         result.restrictToProjectDirectory = flag
@@ -94,7 +131,7 @@ public struct IndexStoreQuery: Equatable {
         return result
     }
 
-    public func withInlcudeSubsequences(_ include: Bool) -> IndexStoreQuery {
+    public func withIncludeSubsequences(_ include: Bool) -> IndexStoreQuery {
         var result = self
         result.includeSubsequence = include
         return result

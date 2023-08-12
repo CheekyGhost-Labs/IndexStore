@@ -53,7 +53,7 @@ final class IndexStoreTests: XCTestCase {
     func test_querySymbols_inSourceFiles_classes_willReturnExpectedValues() throws {
         let query = IndexStoreQuery.classDeclarations(in: sampleSourceFilePaths)
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 16)
+        XCTAssertEqual(results.count, 21)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
@@ -86,6 +86,300 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(result.location.line, 3)
         XCTAssertEqual(result.location.column, 7)
         XCTAssertEqual(result.location.offset, 7)
+    }
+
+    // MARK: - Tests: Occurrences
+
+    func test_queryOccurences_NSColor_willReturnExpectedResuls() throws {
+        let colorQuery = IndexStoreQuery
+            .withQuery("NSColor")
+            .withAnchorStart(true)
+            .withAnchorEnd(true)
+            .withRestrictingToProjectDirectory(false)
+
+        let colorSymbols = instanceUnderTest.querySymbols(colorQuery)
+        let targetSymbol = try XCTUnwrap(colorSymbols.first)
+        let occurrences = instanceUnderTest.queryOccurrences(ofSymbol: targetSymbol, query: .withKinds(SourceKind.properties))
+        XCTAssertEqual(occurrences.count, 7)
+        var symbol = occurrences[0]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .extendedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 11)
+        XCTAssertEqual(symbol.location.column, 11)
+        XCTAssertEqual(symbol.location.offset, 11)
+        symbol = occurrences[1]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 12)
+        XCTAssertEqual(symbol.location.column, 29)
+        XCTAssertEqual(symbol.location.offset, 29)
+        symbol = occurrences[2]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 17)
+        XCTAssertEqual(symbol.location.column, 19)
+        XCTAssertEqual(symbol.location.offset, 19)
+        symbol = occurrences[3]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 19)
+        XCTAssertEqual(symbol.location.column, 19)
+        XCTAssertEqual(symbol.location.offset, 19)
+        symbol = occurrences[4]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 21)
+        XCTAssertEqual(symbol.location.column, 21)
+        XCTAssertEqual(symbol.location.offset, 21)
+        symbol = occurrences[5]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 23)
+        XCTAssertEqual(symbol.location.column, 17)
+        XCTAssertEqual(symbol.location.offset, 17)
+        symbol = occurrences[6]
+        XCTAssertEqual(symbol.sourceKind, .class)
+        XCTAssertEqual(symbol.roles, [.reference, .containedBy])
+        XCTAssertEqual(symbol.name, "NSColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 25)
+        XCTAssertEqual(symbol.location.column, 25)
+        XCTAssertEqual(symbol.location.offset, 25)
+    }
+
+    // MARK: - Tests: Relations
+
+    func test_queryRelatedOccurences_willReturnExpectedResults() throws {
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
+        let related = instanceUnderTest.queryRelatedOccurences(
+            ofSymbol: classSymbol,
+            query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
+        ).sorted(by: { $0.usr < $1.usr })
+        XCTAssertEqual(related.count, 4)
+        // customProperty = CustomClass()
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 15)
+        XCTAssertEqual(symbol.location.column, 26)
+        XCTAssertEqual(symbol.location.offset, 26)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.name, "example()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 19)
+        XCTAssertEqual(symbol.location.column, 13)
+        XCTAssertEqual(symbol.location.offset, 13)
+        symbol = related[2]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 19)
+        XCTAssertEqual(symbol.location.column, 26)
+        XCTAssertEqual(symbol.location.offset, 26)
+        symbol = related[3]
+        XCTAssertEqual(symbol.parent?.name, "example()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 24)
+        XCTAssertEqual(symbol.location.column, 13)
+        XCTAssertEqual(symbol.location.offset, 13)
+    }
+
+    func test_queryRelatedOccurences_inSourceFiles_willReturnExpectedResults() throws {
+        let filePath = instanceUnderTest.swiftSourceFiles().first(where: { $0.contains("RelationsRestricted") })!
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
+        let related = instanceUnderTest.queryRelatedOccurences(
+            ofSymbol: classSymbol,
+            query: .withSourceFiles([filePath]).withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
+        )
+        XCTAssertEqual(related.count, 2)
+        // customProperty = CustomClass()
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 15)
+        XCTAssertEqual(symbol.location.column, 26)
+        XCTAssertEqual(symbol.location.offset, 26)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.name, "example()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11CustomClassCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 19)
+        XCTAssertEqual(symbol.location.column, 13)
+        XCTAssertEqual(symbol.location.offset, 13)
+    }
+
+    func test_queryRelatedOccurences_enum_willReturnExpectedResults() throws {
+        let enumSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.enumDeclarations(matching: "RelatedEnum")).first)
+        let related = instanceUnderTest.queryRelatedOccurences(
+            ofSymbol: enumSymbol,
+            query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
+        )
+        XCTAssertEqual(related.count, 2)
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .enumConstant)
+        XCTAssertEqual(symbol.name, "sample")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11RelatedEnumO6sampleyA2CmF")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 27)
+        XCTAssertEqual(symbol.location.column, 34)
+        XCTAssertEqual(symbol.location.offset, 34)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.name, "testThing()")
+        XCTAssertEqual(symbol.parent?.sourceKind, .instanceMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .enumConstant)
+        XCTAssertEqual(symbol.name, "sample")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests11RelatedEnumO6sampleyA2CmF")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 30)
+        XCTAssertEqual(symbol.location.column, 21)
+        XCTAssertEqual(symbol.location.offset, 21)
+    }
+
+    func test_queryRelatedOccurences_Thing_willReturnExpectedResults() throws {
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "Thing")).first)
+        let related = instanceUnderTest.queryRelatedOccurences(
+            ofSymbol: classSymbol,
+            query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
+        )
+        XCTAssertEqual(related.count, 2)
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .classMethod)
+        XCTAssertEqual(symbol.parent?.parent?.name, "derp")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .classProperty)
+        XCTAssertEqual(symbol.sourceKind, .constructor)
+        XCTAssertEqual(symbol.name, "init()")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests5ThingCACycfc")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 42)
+        XCTAssertEqual(symbol.location.column, 29)
+        XCTAssertEqual(symbol.location.offset, 29)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.name, "init()")
+        XCTAssertEqual(symbol.parent?.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .classProperty)
+        XCTAssertEqual(symbol.name, "derp")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests5ThingC4derpACvpZ")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 20)
+        XCTAssertEqual(symbol.location.column, 18)
+        XCTAssertEqual(symbol.location.offset, 18)
+    }
+
+    func test_queryRelatedOccurences_NSColor_willReturnExpectedResuls() throws {
+        let colorQuery = IndexStoreQuery
+            .withQuery("NSColor")
+            .withAnchorStart(true)
+            .withAnchorEnd(true)
+            .withRestrictingToProjectDirectory(false)
+            .withKinds([.class])
+
+        let colorSymbols = instanceUnderTest.querySymbols(colorQuery)
+        let targetSymbol = try XCTUnwrap(colorSymbols.first)
+        let related = instanceUnderTest.queryRelatedOccurences(
+            ofSymbol: targetSymbol,
+            query: .withRoles([.read]).withKinds([.constructor])
+        )
+        XCTAssertEqual(related.count, 2)
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .constructor)
+        XCTAssertEqual(symbol.parent?.name, "init(color:)")
+        XCTAssertEqual(symbol.parent?.parent?.name, "Container")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.sourceKind, .classProperty)
+        XCTAssertEqual(symbol.name, "white")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor(cpy)whiteColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 23)
+        XCTAssertEqual(symbol.location.column, 28)
+        XCTAssertEqual(symbol.location.offset, 28)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.sourceKind, .staticProperty)
+        XCTAssertEqual(symbol.parent?.name, "helperColor")
+        XCTAssertEqual(symbol.parent?.parent?.name, "NSColor")
+        XCTAssertEqual(symbol.parent?.parent?.sourceKind, .extension)
+        XCTAssertEqual(symbol.sourceKind, .classProperty)
+        XCTAssertEqual(symbol.name, "findHighlightColor")
+        XCTAssertEqual(symbol.usr, "c:objc(cs)NSColor(cpy)findHighlightColor")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Colors.swift"))
+        XCTAssertEqual(symbol.location.line, 12)
+        XCTAssertEqual(symbol.location.column, 40)
+        XCTAssertEqual(symbol.location.offset, 40)
     }
 
     // MARK: - Declarations: Classes
@@ -189,32 +483,32 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.location.offset, 16)
     }
 
-    func test_querySymbols_structs_Inheritence_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "InheritenceStruct"))
-        let expectedPathSuffix = pathSuffix("Inheritence.swift")
+    func test_querySymbols_structs_Inheritance_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "InheritanceStruct"))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
-        XCTAssertEqual(targetResult.name, "InheritenceStruct")
+        XCTAssertEqual(targetResult.name, "InheritanceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
         XCTAssertEqual(targetResult.inheritance.count, 2)
-        var nextInheritence = targetResult.inheritance[0]
-        XCTAssertEqual(nextInheritence.name, "ProtocolWithSystemInheritence")
-        XCTAssertEqual(nextInheritence.sourceKind, .protocol)
-        XCTAssertEqual(nextInheritence.location.line, 5)
-        XCTAssertEqual(nextInheritence.location.column, 10)
-        XCTAssertEqual(nextInheritence.location.offset, 10)
-        XCTAssertTrue(nextInheritence.location.path.hasSuffix("Protocols.swift"))
-        nextInheritence = targetResult.inheritance[1]
-        XCTAssertEqual(nextInheritence.name, "RootProtocol")
-        XCTAssertEqual(nextInheritence.sourceKind, .protocol)
-        XCTAssertEqual(nextInheritence.location.line, 3)
-        XCTAssertEqual(nextInheritence.location.column, 10)
-        XCTAssertEqual(nextInheritence.location.offset, 10)
-        XCTAssertTrue(nextInheritence.location.path.hasSuffix("Protocols.swift"))
+        var nextInheritance = targetResult.inheritance[0]
+        XCTAssertEqual(nextInheritance.name, "ProtocolWithSystemInheritance")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 5)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        nextInheritance = targetResult.inheritance[1]
+        XCTAssertEqual(nextInheritance.name, "RootProtocol")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 3)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
     }
 
     func test_querySymbols_structs_notStructType_willReturnExpectedValues() throws {
@@ -309,13 +603,13 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.location.offset, 10)
     }
 
-    func test_querySymbols_protocols_system_inheritence_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.querySymbols(.protocolDeclarations(matching: "ProtocolWithSystemInheritence"))
+    func test_querySymbols_protocols_system_inheritance_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.protocolDeclarations(matching: "ProtocolWithSystemInheritance"))
         let expectedPathSuffix = pathSuffix("Protocols.swift")
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "ProtocolWithSystemInheritence")
+        XCTAssertEqual(targetResult.name, "ProtocolWithSystemInheritance")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(targetResult.location.line, 5)
@@ -323,13 +617,13 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.location.offset, 10)
     }
 
-    func test_querySymbols_protocols_custom_inheritence_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.querySymbols(.protocolDeclarations(matching: "ProtocolWithInheritence"))
+    func test_querySymbols_protocols_custom_inheritance_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.protocolDeclarations(matching: "ProtocolWithInheritance"))
         let expectedPathSuffix = pathSuffix("Protocols.swift")
         XCTAssertEqual(results.count, 1)
         let targetResult = results[0]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "ProtocolWithInheritence")
+        XCTAssertEqual(targetResult.name, "ProtocolWithInheritance")
         XCTAssertEqual(targetResult.sourceKind, .protocol)
         XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(targetResult.location.line, 9)
@@ -493,12 +787,12 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_querySymbols_extension_multiple_willReturnExpectedValues() throws {
-        let results = instanceUnderTest.querySymbols(.extensions(ofType: "ProtocolWithSystemInheritence"))
+        let results = instanceUnderTest.querySymbols(.extensions(ofType: "ProtocolWithSystemInheritance"))
         let expectedPathSuffix = pathSuffix("Extensions.swift")
         XCTAssertEqual(results.count, 2)
         let firstResult = results[0]
         XCTAssertNil(firstResult.parent)
-        XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritence")
+        XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritance")
         XCTAssertEqual(firstResult.sourceKind, .extension)
         XCTAssertTrue(firstResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(firstResult.location.line, 42)
@@ -506,7 +800,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(firstResult.location.offset, 11)
         let lastResult = results[1]
         XCTAssertNil(lastResult.parent)
-        XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritence")
+        XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritance")
         XCTAssertEqual(lastResult.sourceKind, .extension)
         XCTAssertTrue(lastResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(lastResult.location.line, 46)
@@ -515,12 +809,12 @@ final class IndexStoreTests: XCTestCase {
     }
 
     func test_sourceSymbolsExtendingType_willReturnExpectedValues() {
-        let results = instanceUnderTest.querySymbols(.extensions(ofType: "ProtocolWithSystemInheritence"))
+        let results = instanceUnderTest.querySymbols(.extensions(ofType: "ProtocolWithSystemInheritance"))
         let expectedPathSuffix = pathSuffix("Extensions.swift")
         XCTAssertEqual(results.count, 2)
         let firstResult = results[0]
         XCTAssertNil(firstResult.parent)
-        XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritence")
+        XCTAssertEqual(firstResult.name, "ProtocolWithSystemInheritance")
         XCTAssertEqual(firstResult.sourceKind, .extension)
         XCTAssertTrue(firstResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(firstResult.location.line, 42)
@@ -528,7 +822,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(firstResult.location.offset, 11)
         let lastResult = results[1]
         XCTAssertNil(lastResult.parent)
-        XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritence")
+        XCTAssertEqual(lastResult.name, "ProtocolWithSystemInheritance")
         XCTAssertEqual(lastResult.sourceKind, .extension)
         XCTAssertTrue(lastResult.location.path.hasSuffix(expectedPathSuffix))
         XCTAssertEqual(lastResult.location.line, 46)
@@ -966,174 +1260,6 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertTrue(functionParent.location.path.hasSuffix("Functions.swift"))
     }
 
-    #if swift(>=5.6)
-    func test_functions_inSourceFiles_noQuery_willReturnExpectedResults() throws {
-        let dir = instanceUnderTest.configuration.projectDirectory
-        // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
-        // revisit once time allows to avoid the description match.
-        let expected: [String] = [
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Classes.swift::17::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::10::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::18::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::27::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::35::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::43::10",
-            "testTwo() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::47::10",
-            "performFunction(withPerson:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::10",
-            "standardTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::7::10",
-            "subclassTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::11::14",
-            "notInvokedInTestCase() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::15::18",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::10",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::22::10",
-            "performOperation(withAge:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::10",
-            "performOperation(withName:age:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::10",
-            "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
-            "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
-            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
-            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::24",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10",
-        ]
-        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
-        let descriptions = results.map(\.description)
-        XCTAssertEqual(descriptions, expected)
-    }
-    #else
-    func test_functions_inSourceFiles_noQuery_willReturnExpectedResults() throws {
-        let dir = instanceUnderTest.configuration.projectDirectory
-        // Not going into inheritence checks etc as the other tests cover it. This is also not ideal, however, can
-        // revisit once time allows to avoid the description match.
-        let expected: [String] = [
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Classes.swift::17::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::5::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::10::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::18::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::27::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::35::10",
-            "test() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::43::10",
-            "testTwo() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Extensions.swift::47::10",
-            "performFunction(withPerson:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::10",
-            "getter:withPerson - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::26",
-            "setter:withPerson - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::5::26",
-            "standardTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::7::10",
-            "subclassTestCaseInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::11::14",
-            "notInvokedInTestCase() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::15::18",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::10",
-            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::27",
-            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::21::27",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::22::10",
-            "performOperation(withAge:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::10",
-            "getter:withAge - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::27",
-            "setter:withAge - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::27::27",
-            "performOperation(withName:age:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::10",
-            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::27",
-            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::27",
-            "getter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::45",
-            "setter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::32::45",
-            "performOperation(withName:age:handler:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::10",
-            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::27",
-            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::27",
-            "getter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::45",
-            "setter:age - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::45",
-            "getter:handler - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::55",
-            "setter:handler - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::36::55",
-            "getter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "setter:instance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::41::9",
-            "getter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "setter:otherInstance - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::42::9",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::48::10",
-            "sampleInvocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::60::10",
-            "performOperation(withName:) - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::10",
-            "isolatedFunction() - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::54::6",
-            "getter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::27",
-            "setter:withName - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::65::27",
-            "executeOrder() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Functions.swift::69::10",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::5::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::10::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::24",
-            "getter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::28",
-            "setter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::28",
-            "getter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::51",
-            "setter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::12::51",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::19::9",
-            "getter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "setter:name - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::24::9",
-            "==(_:_:) - staticMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::24",
-            "getter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::28",
-            "setter:lhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::28",
-            "getter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::57",
-            "setter:rhs - function | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::26::57",
-            "sample() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Inheritence.swift::33::10",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::34",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::12::38",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::45",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::14::49",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::19::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::21::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::26::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::28::9",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::34::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::36::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::38::19",
-            "getter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::46::9",
-            "setter:sampleProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::49::9",
-            "getter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::53::9",
-            "setter:sampleClosureProperty - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::56::9",
-            "invocation() - instanceMethod | IndexStoreTests::\(dir)/Tests/IndexStoreTests/Samples/Properties.swift::59::10"
-        ]
-        let results = instanceUnderTest.querySymbols(.functions(in: sampleSourceFilePaths))
-        let descriptions = results.map(\.description)
-        XCTAssertEqual(descriptions, expected)
-    }
-    #endif
-
     // MARK: - Tests: Source Getting
 
     func test_querySymbols_typealias_willReturnExpectedDeclaration() throws {
@@ -1240,83 +1366,83 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: Tests: Convenience: Protocol Conformance
 
-    func test_typesConformingToProtocol_withSystemInheritence() throws {
-        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritence")
+    func test_typesConformingToProtocol_withSystemInheritance() throws {
+        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritance")
         XCTAssertEqual(results.count, 2)
         var targetResult = results[0]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceStruct")
+        XCTAssertEqual(targetResult.name, "InheritanceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritence", "RootProtocol"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritance", "RootProtocol"])
         targetResult = results[1]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceClass")
+        XCTAssertEqual(targetResult.name, "InheritanceClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 8)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritence"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritance"])
     }
 
-    func test_typesConformingToProtocol_inSourceFiles_withSystemInheritence() throws {
+    func test_typesConformingToProtocol_inSourceFiles_withSystemInheritance() throws {
         let sourceFiles = instanceUnderTest.swiftSourceFiles().filter { $0.contains("IndexStoreTests/Samples") }
-        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritence", in: sourceFiles)
+        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithSystemInheritance", in: sourceFiles)
         XCTAssertEqual(results.count, 2)
         var targetResult = results[0]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceStruct")
+        XCTAssertEqual(targetResult.name, "InheritanceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 3)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritence", "RootProtocol"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithSystemInheritance", "RootProtocol"])
         targetResult = results[1]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceClass")
+        XCTAssertEqual(targetResult.name, "InheritanceClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 8)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritence"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithSystemInheritance"])
     }
 
-    func test_typesConformingToProtocol_withCustomInheritence() throws {
-        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithInheritence")
+    func test_typesConformingToProtocol_withCustomInheritance() throws {
+        let results = instanceUnderTest.sourceSymbols(conformingToProtocol: "ProtocolWithInheritance")
         XCTAssertEqual(results.count, 2)
         var targetResult = results[0]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "CustomInheritenceStruct")
+        XCTAssertEqual(targetResult.name, "CustomInheritanceStruct")
         XCTAssertEqual(targetResult.sourceKind, .struct)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 17)
         XCTAssertEqual(targetResult.location.column, 8)
         XCTAssertEqual(targetResult.location.offset, 8)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithInheritence", "RootProtocol"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["ProtocolWithInheritance", "RootProtocol"])
         targetResult = results[1]
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "CustomInheritenceClass")
+        XCTAssertEqual(targetResult.name, "CustomInheritanceClass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 22)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithInheritence"])
-        let inheritedInheritence = try XCTUnwrap(results[1].inheritance.last?.inheritance.first)
-        XCTAssertNil(inheritedInheritence.parent)
-        XCTAssertEqual(inheritedInheritence.name, "BaseProtocol")
-        XCTAssertEqual(inheritedInheritence.sourceKind, .protocol)
-        XCTAssertTrue(inheritedInheritence.location.path.hasSuffix("Protocols.swift"))
-        XCTAssertEqual(inheritedInheritence.location.line, 7)
-        XCTAssertEqual(inheritedInheritence.location.column, 10)
-        XCTAssertEqual(inheritedInheritence.location.offset, 10)
-        XCTAssertTrue(inheritedInheritence.inheritance.isEmpty)
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["RootProtocol", "ProtocolWithInheritance"])
+        let inheritedInheritance = try XCTUnwrap(results[1].inheritance.last?.inheritance.first)
+        XCTAssertNil(inheritedInheritance.parent)
+        XCTAssertEqual(inheritedInheritance.name, "BaseProtocol")
+        XCTAssertEqual(inheritedInheritance.sourceKind, .protocol)
+        XCTAssertTrue(inheritedInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertEqual(inheritedInheritance.location.line, 7)
+        XCTAssertEqual(inheritedInheritance.location.column, 10)
+        XCTAssertEqual(inheritedInheritance.location.offset, 10)
+        XCTAssertTrue(inheritedInheritance.inheritance.isEmpty)
     }
 
     // MARK: Tests: Convenience: Empty Extensions
@@ -1371,101 +1497,101 @@ final class IndexStoreTests: XCTestCase {
     // MARK: Tests: Convenience: Subclasses of
 
     func test_sourceSymbolsSubclassing_query_willReturnExpectedResults() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass").sorted(by: { $0.name <= $1.name })
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritanceClass").sorted(by: { $0.name <= $1.name })
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "InheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 31)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
         targetResult = try XCTUnwrap(results.last)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
         XCTAssertEqual(targetResult.location.line, 15)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
     }
 
     func test_sourceSymbolsSubclassing_inSourceFiles_willReturnExpectedResults() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass", in: sampleSourceFilePaths)
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritanceClass", in: sampleSourceFilePaths)
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
         XCTAssertEqual(targetResult.location.line, 15)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
 
         targetResult = try XCTUnwrap(results.last)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "InheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 31)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
     }
 
-    func test_sourceSymbolsSubclassing_systemInheritence_willReturnExpectedResults() throws {
+    func test_sourceSymbolsSubclassing_systemInheritance_willReturnExpectedResults() throws {
         let results = instanceUnderTest.sourceSymbols(subclassing: "NSObject")
         XCTAssertEqual(results.count, 1)
         let targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "SystemInheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "SystemInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 38)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["NSObject"])
     }
 
-    func test_sourceSymbolsSubclassing_inSourceFiles_systemInheritence_willReturnExpectedResults() throws {
+    func test_sourceSymbolsSubclassing_inSourceFiles_systemInheritance_willReturnExpectedResults() throws {
         let results = instanceUnderTest.sourceSymbols(subclassing: "NSObject", in: sampleSourceFilePaths)
         XCTAssertEqual(results.count, 1)
         let targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "SystemInheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "SystemInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 38)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["NSObject"])
     }
 
-    func test_sourceSymbolsSubclassing_withCustomInheritence() throws {
-        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritenceClass").sorted(by: { $0.name <= $1.name })
+    func test_sourceSymbolsSubclassing_withCustomInheritance() throws {
+        let results = instanceUnderTest.sourceSymbols(subclassing: "InheritanceClass").sorted(by: { $0.name <= $1.name })
         XCTAssertEqual(results.count, 2)
         var targetResult = try XCTUnwrap(results.first)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "InheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "InheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
-        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritence.swift"))
+        XCTAssertTrue(targetResult.location.path.hasSuffix("Inheritance.swift"))
         XCTAssertEqual(targetResult.location.line, 31)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
         targetResult = try XCTUnwrap(results.last)
         XCTAssertNil(targetResult.parent)
-        XCTAssertEqual(targetResult.name, "OtherInheritenceSubclass")
+        XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
         XCTAssertEqual(targetResult.location.line, 15)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
-        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritenceClass"])
+        XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
     }
 
     // MARK: Tests: Convenience: Symbol Invocations
@@ -1549,5 +1675,53 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(instanceUnderTest.querySymbols(.classDeclarations(in: [], matching: "RootClass")), [])
         let query = IndexStoreQuery.classDeclarations(matching: "RootClass").withQuery(nil)
         XCTAssertEqual(instanceUnderTest.querySymbols(query), [])
+    }
+
+    // MARK: - Tests: Relations
+
+    func test_sourceSymbolsForPropertiesWithTypeOf_willReturnExpectedResults() throws {
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
+        let related = instanceUnderTest.sourceSymbols(forPropertiesWithTypeOf: classSymbol).sorted(by: { $0.usr < $1.usr })
+        XCTAssertEqual(related.count, 2)
+        var symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.parent?.name, "RelationClass")
+        XCTAssertEqual(symbol.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.name, "customProperty")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests13RelationClassC14customPropertyAA06CustomE0Cvp")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("Relations.swift"))
+        XCTAssertEqual(symbol.location.line, 16)
+        XCTAssertEqual(symbol.location.column, 9)
+        XCTAssertEqual(symbol.location.offset, 9)
+        symbol = related[1]
+        XCTAssertEqual(symbol.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.name, "customProperty")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests19CustomRelationClassC14customPropertyAA0dF0Cvp")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 12)
+        XCTAssertEqual(symbol.location.column, 9)
+        XCTAssertEqual(symbol.location.offset, 9)
+    }
+
+    func test_sourceSymbolsForPropertiesWithTypeOf_inSourceFiles_willReturnExpectedResults() throws {
+        let filePath = instanceUnderTest.swiftSourceFiles().first(where: { $0.contains("RelationsRestricted") })!
+        let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
+        let related = instanceUnderTest.sourceSymbols(forPropertiesWithTypeOf: classSymbol, in: [filePath])
+        XCTAssertEqual(related.count, 1)
+        let symbol = related[0]
+        XCTAssertEqual(symbol.parent?.sourceKind, .class)
+        XCTAssertEqual(symbol.parent?.name, "CustomRelationClass")
+        XCTAssertEqual(symbol.sourceKind, .instanceProperty)
+        XCTAssertEqual(symbol.name, "customProperty")
+        XCTAssertEqual(symbol.usr, "s:15IndexStoreTests19CustomRelationClassC14customPropertyAA0dF0Cvp")
+        XCTAssertEqual(symbol.location.moduleName, "IndexStoreTests")
+        XCTAssertTrue(symbol.location.path.hasSuffix("RelationsRestricted.swift"))
+        XCTAssertEqual(symbol.location.line, 12)
+        XCTAssertEqual(symbol.location.column, 9)
+        XCTAssertEqual(symbol.location.offset, 9)
     }
 }

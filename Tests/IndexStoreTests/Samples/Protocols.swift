@@ -2,8 +2,8 @@ import Foundation
 
 protocol RootProtocol {}
 
-protocol ProtocolWithSystemInheritence: Equatable {}
+protocol ProtocolWithSystemInheritance: Equatable {}
 
 protocol BaseProtocol {}
 
-protocol ProtocolWithInheritence: BaseProtocol {}
+protocol ProtocolWithInheritance: BaseProtocol {}

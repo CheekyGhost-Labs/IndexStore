@@ -46,7 +46,7 @@ extension IndexStore {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach {
             let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.baseOf])
-            var validUsrs: [String] = []
+            var validUSRs: [String] = []
             subclasses.forEach {
                 guard
                     // Restrict to symbols in project directory
@@ -56,17 +56,17 @@ extension IndexStore {
                     return
                 }
                 let usrs = $0.relations.map(\.symbol.usr)
-                validUsrs.append(contentsOf: usrs)
+                validUSRs.append(contentsOf: usrs)
             }
-            let occurances = validUsrs.flatMap {
+            let occurrences = validUSRs.flatMap {
                 workspace.occurrences(ofUSR: $0, roles: [.definition, .declaration])
             }
-            occurances.forEach { occurence in
+            occurrences.forEach { occurrence in
                 // Limiting to usr rather than equatable/hashable within set some classes have objc declarations
-                guard !results.contains(where: { $0.usr == occurence.symbol.usr }) else {
+                guard !results.contains(where: { $0.usr == occurrence.symbol.usr }) else {
                     return
                 }
-                let symbol = sourceSymbolFromOccurence(occurence)
+                let symbol = sourceSymbolFromOccurrence(occurrence)
                 results.append(symbol)
             }
         }
@@ -77,7 +77,7 @@ extension IndexStore {
     /// - Parameters:
     ///   - symbols: The symbols to for.
     ///   - sourceFiles: The source files to search in.
-    /// - Returns: Array of ``SourceSymbole`` instances
+    /// - Returns: Array of ``SourceSymbol`` instances
     internal func resolveSymbolsConformingToProtocolSymbols(_ symbols: [SourceSymbol], in sourceFiles: [String]) -> [SourceSymbol] {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach { symbol in
@@ -85,7 +85,7 @@ extension IndexStore {
             let declarationSymbols = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition, .declaration])
             declarationSymbols.forEach { declaration in
                 guard baseOfRelations.contains(where: { $0.symbol.usr == declaration.symbol.usr }) else { return }
-                let sourceSymbol = sourceSymbolFromOccurence(declaration)
+                let sourceSymbol = sourceSymbolFromOccurrence(declaration)
                 results.append(sourceSymbol)
             }
         }
