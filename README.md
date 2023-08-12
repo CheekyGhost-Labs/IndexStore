@@ -213,7 +213,7 @@ git clone https://github.com/CheekyGhost-Labs/IndexStore.git
 3. **Create a new branch**: Before making changes, create a new branch for your feature or bug fix. Use a descriptive name that reflects the purpose of your changes.
 
 ```shell
-git checkout -b your-feature-branch
+git switch -c your-feature-branch
 ```
 
 4. **Follow the Swift Language Guide**: Ensure that your code adheres to the [Swift Language Guide](https://swift.org/documentation/api-design-guidelines/) for styling and syntax conventions.
