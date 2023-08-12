@@ -32,9 +32,9 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
     /// - See: ``SourceSymbol``
     public var parent: SourceSymbol? { _parents.first }
 
-    /// Iterator holding an array of ``SourceSymbol`` representing the parent heirachy that owns the declaration.
+    /// Iterator holding an array of ``SourceSymbol`` representing the parent hierarchy that owns the declaration.
     ///
-    /// Parent items are ordered from `0` being the immediate parent/declaring type, with each `next`/index being the next parent in the heirachy
+    /// Parent items are ordered from `0` being the immediate parent/declaring type, with each `next`/index being the next parent in the hierarchy
     public var parentsIterator: AnyIterator<SourceSymbol> {
         var parents: [SourceSymbol] = []
         var nextParent: SourceSymbol? = parent
@@ -50,7 +50,7 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
 
     /// Array of ``SourceSymbol`` representing the source types that the declaration conforms to (or inherits from).
     ///
-    /// Inheritence items are ordered from `0` being the immediate inheritence with each subsequent element being the next conforming type in the declaration.
+    /// Inheritance items are ordered from `0` being the immediate inheritance with each subsequent element being the next conforming type in the declaration.
     public let inheritance: [SourceSymbol]
 
     // MARK: - Properties: Internal
@@ -69,14 +69,14 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
         roles: SourceRole,
         location: SourceLocation,
         parent: SourceSymbol? = nil,
-        inheritence: [SourceSymbol] = []
+        inheritance: [SourceSymbol] = []
     ) {
         self.name = name
         self.usr = usr
         self.sourceKind = sourceKind
         self.roles = roles
         self.location = location
-        inheritance = inheritence
+        self.inheritance = inheritance
         if let parent = parent {
             _parents = [parent]
         } else {

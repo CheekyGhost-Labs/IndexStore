@@ -27,7 +27,7 @@ public final class IndexStore {
 
     /// Will create a new instance and attempt to load an index store using the given values.
     /// - Parameters:
-    ///   - libIndexStorePath: The path to the libIndexStor dlyib.
+    ///   - libIndexStorePath: The path to the libIndexStore dylib.
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
@@ -98,7 +98,7 @@ public final class IndexStore {
                 restrictToLocation: targetDirectory
             )
         }
-        let results = rawResults.compactMap(sourceSymbolFromOccurence)
+        let results = rawResults.compactMap(sourceSymbolFromOccurrence)
         return results
     }
 
@@ -151,15 +151,15 @@ public final class IndexStore {
     public func declarationSource(forSymbol symbol: SourceSymbol) throws -> String {
         let contents = try sourceContents(forSymbol: symbol)
         let lines = contents.components(separatedBy: .newlines)
-        let normalisedLine = max(0, symbol.location.line - 1)
-        guard normalisedLine < lines.count else {
+        let normalizedLine = max(0, symbol.location.line - 1)
+        guard normalizedLine < lines.count else {
             throw SourceResolvingError.unableToResolveSourceLine(
                 name: symbol.name,
                 path: symbol.location.path,
                 line: symbol.location.line
             )
         }
-        return lines[normalisedLine]
+        return lines[normalizedLine]
     }
 
     /// Will return the **full source contents** from the source file holding with the given source declaration details.
@@ -186,89 +186,89 @@ public final class IndexStore {
 
     // MARK: - Helpers: Transforming and Resolving
 
-    /// Transforms the given occurance into a source symbols instance.
+    /// Transforms the given occurrence into a source symbols instance.
     ///
-    /// **Note: **Will also look up any inheritence and parents. This can increase time.
-    /// - Parameter occurance: The occurence to transform
+    /// **Note: **Will also look up any inheritance and parents. This can increase time.
+    /// - Parameter occurrence: The occurrence to transform
     /// - Returns: ``SourceSymbol``
-    public func sourceSymbolFromOccurence(_ occurance: SymbolOccurrence) -> SourceSymbol {
+    public func sourceSymbolFromOccurrence(_ occurrence: SymbolOccurrence) -> SourceSymbol {
         // Resolve source declaration kind
-        let kind = SourceKind(symbolKind: occurance.symbol.kind)
+        let kind = SourceKind(symbolKind: occurrence.symbol.kind)
         // Source location
-        let location = SourceLocation(symbol: occurance)
+        let location = SourceLocation(symbol: occurrence)
         // Roles
-        let roles = SourceRole(rawValue: occurance.roles.rawValue)
+        let roles = SourceRole(rawValue: occurrence.roles.rawValue)
         // Optional parent
-        let parent = resolveParentForOccurence(occurance)
-        // Inheritence
-        let inheritenceCollection = resolveInheritenceForOccurence(occurance)
+        let parent = resolveParentForOccurrence(occurrence)
+        // Inheritance
+        let inheritanceCollection = resolveInheritanceForOccurrence(occurrence)
         // Result
         let result = SourceSymbol(
-            name: occurance.symbol.name,
-            usr: occurance.symbol.usr,
+            name: occurrence.symbol.name,
+            usr: occurrence.symbol.usr,
             sourceKind: kind,
             roles: roles,
             location: location,
             parent: parent,
-            inheritence: inheritenceCollection
+            inheritance: inheritanceCollection
         )
         return result
     }
 
     /// Will resolve the immediate parent for the given occurrence.
-    /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
+    /// - Parameter symbolOccurrence: The `SymbolOccurrence` to resolve for.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    public func resolveParentForOccurence(_ symbolOccurance: SymbolOccurrence) -> SourceSymbol? {
-        guard !symbolOccurance.location.isSystem else { return nil }
+    public func resolveParentForOccurrence(_ symbolOccurrence: SymbolOccurrence) -> SourceSymbol? {
+        guard !symbolOccurrence.location.isSystem else { return nil }
         guard
-            let childOfRelation = symbolOccurance.relations.first(where: {
+            let childOfRelation = symbolOccurrence.relations.first(where: {
                 $0.roles.contains(.childOf) || $0.roles.contains(.calledBy) || $0.roles.contains(.containedBy)
             })
         else {
             return nil
         }
-        // Resolve Occurance Definition
+        // Resolve Occurrence Definition
         let references = workspace.occurrences(ofUSR: childOfRelation.symbol.usr, roles: [.definition])
         guard
-            let parentOccurence = references.first(where: {
+            let parentOccurrence = references.first(where: {
                 !$0.roles.contains(.extendedBy) && $0.symbol.name == childOfRelation.symbol.name
             })
         else {
             return nil
         }
-        return sourceSymbolFromOccurence(parentOccurence)
+        return sourceSymbolFromOccurrence(parentOccurrence)
     }
 
-    /// Will resolve the source symbols representing the types the given occurence conforms to or inherits from.
-    /// - Parameter symbolOccurance: The `SymbolOccurrence` to resolve for.
+    /// Will resolve the source symbols representing the types the given occurrence conforms to or inherits from.
+    /// - Parameter symbolOccurrence: The `SymbolOccurrence` to resolve for.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    public func resolveInheritenceForOccurence(_ occurence: SymbolOccurrence) -> [SourceSymbol] {
-        guard !occurence.location.isSystem else { return [] }
-        let sourceKind = SourceKind(symbolKind: occurence.symbol.kind)
+    public func resolveInheritanceForOccurrence(_ occurrence: SymbolOccurrence) -> [SourceSymbol] {
+        guard !occurrence.location.isSystem else { return [] }
+        let sourceKind = SourceKind(symbolKind: occurrence.symbol.kind)
         let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
         guard validSourceKinds.contains(sourceKind) else { return [] }
-        logger.debug("resolving inheritence for source `\(occurence.symbol.name)`")
-        let references = workspace.occurrences(relatedToUSR: occurence.symbol.usr, roles: [.baseOf])
+        logger.debug("resolving inheritance for source `\(occurrence.symbol.name)`")
+        let references = workspace.occurrences(relatedToUSR: occurrence.symbol.usr, roles: [.baseOf])
         var results: [SourceSymbol] = []
         references.forEach { ref in
             guard
                 !results.contains(where: { $0.usr == ref.symbol.usr }),
-                ref.relations.contains(where: { $0.symbol.name == occurence.symbol.name })
+                ref.relations.contains(where: { $0.symbol.name == occurrence.symbol.name })
             else {
                 return
             }
-            var targetOccurence: SymbolOccurrence?
-            var occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical])
-            if occurences.isEmpty {
-                occurences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical, .baseOf])
-                targetOccurence = occurences.first(where: { element in
-                    element.relations.contains(where: { $0.symbol.name == occurence.symbol.name })
+            var targetOccurrence: SymbolOccurrence?
+            var occurrences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical])
+            if occurrences.isEmpty {
+                occurrences = workspace.occurrences(ofUSR: ref.symbol.usr, roles: [.definition, .declaration, .canonical, .baseOf])
+                targetOccurrence = occurrences.first(where: { element in
+                    element.relations.contains(where: { $0.symbol.name == occurrence.symbol.name })
                 })
             } else {
-                targetOccurence = occurences.first
+                targetOccurrence = occurrences.first
             }
-            guard let result = targetOccurence else { return }
-            let details = sourceSymbolFromOccurence(result)
+            guard let result = targetOccurrence else { return }
+            let details = sourceSymbolFromOccurrence(result)
             results.append(details)
         }
         return results

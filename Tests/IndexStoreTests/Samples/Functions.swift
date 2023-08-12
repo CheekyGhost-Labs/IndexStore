@@ -22,7 +22,7 @@ protocol FunctionRootProtocol {
     func executeOrder()
 }
 
-protocol FunctionProtocolWithSystemInheritence: Equatable {
+protocol FunctionProtocolWithSystemInheritance: Equatable {
 
     func performOperation(withAge: Int)
 }
@@ -32,7 +32,7 @@ protocol FunctionBaseProtocol {
     func performOperation(withName: String, age: Int)
 }
 
-protocol FunctionProtocolWithInheritence: FunctionBaseProtocol {
+protocol FunctionProtocolWithInheritance: FunctionBaseProtocol {
     func performOperation(withName: String, age: Int, handler: @escaping (() -> Void))
 }
 

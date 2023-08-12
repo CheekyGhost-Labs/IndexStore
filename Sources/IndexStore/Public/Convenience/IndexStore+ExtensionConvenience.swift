@@ -24,7 +24,7 @@ public extension IndexStore {
             let references = workspace.occurrences(ofUSR: $0.usr, roles: [.reference])
             references.forEach { reference in
                 guard reference.roles.contains([.reference]), reference.relations.isEmpty else { return }
-                var details = sourceSymbolFromOccurence(reference)
+                var details = sourceSymbolFromOccurrence(reference)
                 details.sourceKind = .extension
                 results.append(details)
             }

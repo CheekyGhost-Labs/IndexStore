@@ -17,7 +17,7 @@ public struct IndexStoreQuery: Equatable {
     /// Optional array of source files to restrict searching to.
     public var sourceFiles: [String]?
 
-    /// `SourceKind` set types to restrict results to. Default is `.allCasses`.
+    /// `SourceKind` set types to restrict results to. Default is `.allCases`.
     public var kinds: [SourceKind] = SourceKind.allCases
 
     /// `SourceRole` set types to restrict results to. Default is `.all`.
@@ -94,7 +94,7 @@ public struct IndexStoreQuery: Equatable {
         return result
     }
 
-    public func withInlcudeSubsequences(_ include: Bool) -> IndexStoreQuery {
+    public func withIncludeSubsequences(_ include: Bool) -> IndexStoreQuery {
         var result = self
         result.includeSubsequence = include
         return result

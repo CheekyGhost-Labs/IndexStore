@@ -27,7 +27,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -52,7 +52,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -73,7 +73,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -97,7 +97,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -118,7 +118,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -142,7 +142,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -163,7 +163,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -187,7 +187,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -208,7 +208,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -232,7 +232,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -253,7 +253,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -277,7 +277,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition])
             .withAnchorStart(true)
             .withAnchorEnd(true)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 }
