@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2023-12-08
+
+### Added
+
+- Added support for symbol occurrence querying
+- Added support for related symbol occurrence querying
+- Hardened querying logic where relevant
+
+### Added
+
+- Added support for Swift 5.6
+- Added support for Swift 5.5
+
 ## [1.0.1] - 2023-05-03
 
 ### Added
