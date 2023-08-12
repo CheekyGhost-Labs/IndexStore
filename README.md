@@ -138,9 +138,20 @@ let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "Some
 Add the following to your `Package.swift` file:
 
 ```swift
-dependencies: [
-    .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/1.0"),
-]
+let package = Package(
+    // name, platforms, products, etc.
+    dependencies: [
+        // other dependencies
+        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/1.0"),
+    ],
+    targets: [
+        .executableTarget(name: "<command-line-tool>", dependencies: [
+            // other dependencies
+            .product(name: "IndexStore", package: "IndexStore")
+        ]),
+        // other targets
+    ]
+)
 ```
 
 ## License
