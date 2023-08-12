@@ -32,6 +32,23 @@ The [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) is not 
 - Check if a symbol is invoked by a test case
 - Identify empty extensions
 
+### High Level Topics:
+
+`IndexStore` is a layer of abstraction over the `indexstore-db`, aimed at simplifying queries and making codebase exploration more intuitive. Here are the key concepts that drive its functionality:
+
+##### SourceSymbol: 
+At its core, every distinct named entity in your code, such as functions, classes, or variables, is represented as a symbol. When you query for symbols in `IndexStore`, you're seeking its primary definition and associated metadata.
+
+##### USR (Unified Symbol Resolution:
+Think of USR as the unique fingerprint of a symbol. It's a consistent identifier that ensures even if a symbol appears in various places or across projects, we know it's the same entity.
+
+##### Occurrence: 
+`SourceSymbol` instances aren't just static entities; they live and breathe throughout your code. When you query for occurrences of a symbol, it aims to capture every specific instance or reference of a symbol in your project, revealing the footprint of that symbol in your codebase.
+
+##### Related Occurrences: 
+Beyond just finding where a symbol exists or occurs, it's often vital to understand its broader context and relationships. Related Occurrences do just that, fetching symbols and instances that share a defined relationship with the queried symbol. This can encompass overrides, implementations, associations, and more, providing a richer tapestry of how a particular symbol interplays with others in your project.
+
+
 ### Getting Started:
 
 To use `IndexStore` in your project, you'll need to instantiate an index with a valid `Configuration` instance.
@@ -97,6 +114,42 @@ let symbols = indexStore.querySymbols(
 )
 ```
 
+#### Occurrence Lookups
+
+Once you have a symbol, whether by general querying or by plucking things from other results, you can also look up occurrences by a symbol (or usr). You can additionally provide a valid query to further filter results.
+
+```swift
+// Find UIColor declaration
+let colorSymbol indexStore.querySymbols(
+    .withQuery("UIColor")
+    .withAnchorStart(true)
+    .withAnchorEnd(true)
+    .withRestrictingToProjectDirectory(false)
+    .withKinds([.class])
+    .first!
+
+// Look up any occurrences of the UIColor symbol
+let occurrences = indexStore.queryOccurrences(ofSymbol: colorSymbol, query: .empty)
+```
+
+#### Relation Lookups
+
+Once you have a symbol, whether by general querying or by plucking things from other results, you can also look up related occurrences by a symbol (or usr). You can additionally provide a valid query to further filter results.
+
+```swift
+// Find UIColor declaration
+let colorSymbol indexStore.querySymbols(
+    .withQuery("UIColor")
+    .withAnchorStart(true)
+    .withAnchorEnd(true)
+    .withRestrictingToProjectDirectory(false)
+    .withKinds([.class])
+    .first!
+
+// Look up any occurrences of the UIColor symbol
+let occurrences = indexStore.queryRelatedOccurences(ofSymbol: colorSymbol, query: .empty)
+```
+
 #### Convenience Methods
 
 IndexStore provides convenience methods for common static analysis tasks:
@@ -142,7 +195,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/1.0"),
+        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/2.0"),
     ],
     targets: [
         .executableTarget(name: "<command-line-tool>", dependencies: [
@@ -248,6 +301,6 @@ git push origin your-feature-branch
 
 ### Unit Testing
 
-Please ensure you add unit tests for any changes. The aim is not `100%` coverage, but rather meaningful test coverage that ensures your changes are behaving as expected without negatively effecting existing behavior.
+Please ensure you add unit tests for any changes. The aim is not `100%` coverage, but rather meaningful test coverage that ensures your changes are behaving as expected without negatively effecting existing behaviour.
 
 Please note that the project maintainers may ask you to make changes to your contribution or provide additional information. Be open to feedback and willing to make adjustments as needed. Once your pull request is approved and merged, your changes will become part of the project!
