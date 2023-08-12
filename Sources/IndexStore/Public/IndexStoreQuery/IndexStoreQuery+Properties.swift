@@ -27,7 +27,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition, .childOf, .canonical])
             .withAnchorStart(false)
             .withAnchorEnd(false)
-            .withInlcudeSubsequences(false)
+            .withIncludeSubsequences(false)
             .withIgnoringCase(false)
     }
 
@@ -51,7 +51,7 @@ public extension IndexStoreQuery {
             .withRoles([.definition, .childOf, .canonical])
             .withAnchorStart(false)
             .withAnchorEnd(false)
-            .withInlcudeSubsequences(true)
+            .withIncludeSubsequences(true)
             .withIgnoringCase(false)
     }
 }

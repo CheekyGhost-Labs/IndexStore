@@ -11,7 +11,7 @@ import Foundation
 public struct SourceDetailsCollection: Sequence, Equatable {
     // MARK: - Properties
 
-    /// Array of ``SourceSymbol`` representing the parent heirachy of a ``SourceSymbol`` instances.
+    /// Array of ``SourceSymbol`` representing the parent hierarchy of a ``SourceSymbol`` instances.
     public private(set) var items: [SourceSymbol] = [] {
         didSet {
             lastCount = items.count

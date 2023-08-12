@@ -12,7 +12,7 @@ class RootClass {
 
 class SampleClass {}
 
-class OtherInheritenceSubclass: InheritenceClass {
+class OtherInheritanceSubclass: InheritanceClass {
 
     func sample() {
         // no-op
