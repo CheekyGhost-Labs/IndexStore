@@ -118,7 +118,7 @@ public final class IndexStore {
     ///
     /// - Parameters:
     ///   - symbol: The ``SourceSymbol`` instance to search for.
-    ///   - query: The ``IndexStoreOccurenceQuery`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func queryOccurrences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
         queryOccurrences(ofUsr: symbol.usr, query: query)
@@ -133,7 +133,7 @@ public final class IndexStore {
     ///
     /// - Parameters:
     ///   - usr: The ``SourceSymbol/usr`` to search with.
-    ///   - query: The ``IndexStoreOccurenceQuery`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func queryOccurrences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
         let symbolKinds = query.kinds.map(\.indexSymbolKind)
@@ -186,7 +186,7 @@ public final class IndexStore {
     /// ```
     /// - Parameters:
     ///   - symbol: The ``SourceSymbol`` to search with.
-    ///   - query: The ``IndexStoreOccurenceQuery`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func queryRelatedOccurences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
         queryRelatedOccurences(ofUsr: symbol.usr, query: query)
@@ -222,7 +222,7 @@ public final class IndexStore {
     /// ```
     /// - Parameters:
     ///   - usr: The ``SourceSymbol/usr`` to search with.
-    ///   - query: The ``IndexStoreOccurenceQuery`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func queryRelatedOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
         let symbolKinds = query.kinds.map(\.indexSymbolKind)
