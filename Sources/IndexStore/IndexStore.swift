@@ -47,7 +47,12 @@ public final class IndexStore {
         workspace.pollForChangesAndWait(isInitialScan: false)
     }
 
-    /// Will return source symbols  for any declarations/symbols matching the given query.
+    /// Will return source symbols for any declarations/symbols matching the given query.
+    ///
+    /// When you query for a symbol, you're asking the database for information about that entity's definition and primary properties.  Think of a symbol as an abstract representation of a code entity.
+    /// For instance, if you have a class named `MyClass` defined in your codebase, querying for this symbol would give you information about `MyClass` itself, such as its location, documentation,
+    /// accessibility level, etc
+    ///
     /// - Parameter query: The ``IndexStoreQuery`` to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func querySymbols(_ query: IndexStoreQuery) -> [SourceSymbol] {
@@ -75,7 +80,8 @@ public final class IndexStore {
                 anchorEnd: query.anchorEnd,
                 includeSubsequence: query.includeSubsequence,
                 ignoreCase: query.ignoreCase,
-                restrictToLocation: targetDirectory
+                restrictToLocation: targetDirectory,
+                module: query.module
             )
         }
         if let sourceFiles = query.sourceFiles {
@@ -95,10 +101,147 @@ public final class IndexStore {
                 anchorEnd: query.anchorEnd,
                 includeSubsequence: query.includeSubsequence,
                 ignoreCase: query.ignoreCase,
-                restrictToLocation: targetDirectory
+                restrictToLocation: targetDirectory,
+                module: query.module
             )
         }
         let results = rawResults.compactMap(sourceSymbolFromOccurrence)
+        return results
+    }
+
+    /// Will return source symbols for any occurrences matching the given ``SourceSymbol`` and  query parameters.
+    ///
+    /// Querying for an occurrence of a symbol will ask for all places where that symbol is used or referenced.
+    ///
+    /// For example, if you have declared a class named `MyClass`, the occurrences of this symbol would be everywhere in the code where `MyClass` is mentioned, like in object instantiations,
+    /// type annotations, or subclassing etc.
+    ///
+    /// - Parameters:
+    ///   - symbol: The ``SourceSymbol`` instance to search for.
+    ///   - query: The ``IndexStoreQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryOccurrences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
+        queryOccurrences(ofUsr: symbol.usr, query: query)
+    }
+
+    /// Will return source symbols for any occurrences matching the given ``SourceSymbol/usr`` and  query parameters.
+    ///
+    /// Querying for an occurrence of a symbol will ask for all places where that symbol is used or referenced.
+    ///
+    /// For example, if you have declared a class named `MyClass`, the occurrences of this symbol would be everywhere in the code where `MyClass` is mentioned, like in object instantiations,
+    /// type annotations, or subclassing etc.
+    ///
+    /// - Parameters:
+    ///   - usr: The ``SourceSymbol/usr`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryOccurrences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+        let symbolKinds = query.kinds.map(\.indexSymbolKind)
+        let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
+        let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+        let occurrences = workspace.occurrences(
+            ofUSR: usr,
+            matching: query.query,
+            kinds: symbolKinds,
+            roles: symbolRoles,
+            anchorStart: query.anchorStart,
+            anchorEnd: query.anchorEnd,
+            includeSubsequence: query.includeSubsequence,
+            ignoreCase: query.ignoreCase,
+            restrictToLocation: targetDirectory,
+            module: query.module
+        )
+        let results = occurrences.compactMap(sourceSymbolFromOccurrence)
+        return results
+    }
+
+    /// Will return source symbols that have a defined semantic or structural relation to the given symbol.
+    /// For example:
+    /// - **Overrides:** If you're looking at a method in a base class, the related symbols could be methods in derived classes that override it.
+    /// - **Implementations:** In the context of protocols or interfaces, related symbols might be the concrete implementations of those abstract methods or properties in conforming types.
+    /// - **References:** This could be broader than direct usage, encompassing any symbol that has a semantic connection to the original one. For instance, a function that is passed as a 
+    /// callback or a delegate might be considered related.
+    /// - **Associations:** Symbols that are part of the same module, class, or other structural code entity might be grouped together. For instance, members of a struct or class would be related
+    /// to the class or struct symbol.
+    /// - **Dependencies:** Symbols that rely on another symbol directly or indirectly. For example, functions that call another specific function.
+    ///
+    /// The query requires the ``IndexStore/SourceSymbol/usr`` value retreived from the provided symbol.
+    /// ```
+    /// class MyClass {}
+    /// class Sample {
+    ///
+    ///     var myInstance: MyClass
+    ///
+    ///     init() {
+    ///         myInstance = MyClass()
+    ///     }
+    /// }
+    /// ```
+    /// you can query as
+    /// ```
+    /// let classSymbol = indexStore.querySymbols(.classDeclarations(matching: "CustomClass"))[0]
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// ```
+    /// - Parameters:
+    ///   - symbol: The ``SourceSymbol`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryRelatedOccurences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
+        queryRelatedOccurences(ofUsr: symbol.usr, query: query)
+    }
+
+    /// Will return source symbols that have a defined semantic or structural relation to the given symbol usr value.
+    /// For example:
+    /// - **Overrides:** If you're looking at a method in a base class, the related symbols could be methods in derived classes that override it.
+    /// - **Implementations:** In the context of protocols or interfaces, related symbols might be the concrete implementations of those abstract methods or properties in conforming types.
+    /// - **References:** This could be broader than direct usage, encompassing any symbol that has a semantic connection to the original one. For instance, a function that is passed as a
+    /// callback or a delegate might be considered related.
+    /// - **Associations:** Symbols that are part of the same module, class, or other structural code entity might be grouped together. For instance, members of a struct or class would be related
+    /// to the class or struct symbol.
+    /// - **Dependencies:** Symbols that rely on another symbol directly or indirectly. For example, functions that call another specific function.
+    ///
+    /// ```
+    /// class MyClass {}
+    /// class Sample {
+    ///
+    ///     var myInstance: MyClass
+    ///
+    ///     init() {
+    ///         myInstance = MyClass()
+    ///     }
+    /// }
+    /// ```
+    /// you can query as
+    /// ```
+    /// let classSymbol = indexStore.querySymbols(.classDeclarations(matching: "CustomClass"))[0]
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// ```
+    /// - Parameters:
+    ///   - usr: The ``SourceSymbol/usr`` to search with.
+    ///   - query: The ``IndexStoreQuery`` to search with.
+    /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryRelatedOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+        let symbolKinds = query.kinds.map(\.indexSymbolKind)
+        let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
+        let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
+        let occurrences = workspace.occurrences(
+            relatedToUSR: usr,
+            matching: query.query,
+            kinds: symbolKinds,
+            roles: symbolRoles,
+            anchorStart: query.anchorStart,
+            anchorEnd: query.anchorEnd,
+            includeSubsequence: query.includeSubsequence,
+            ignoreCase: query.ignoreCase,
+            restrictToLocation: targetDirectory,
+            restrictedToSourceFiles: query.sourceFiles ?? [],
+            module: query.module
+        )
+        let results = occurrences.compactMap(sourceSymbolFromOccurrence)
         return results
     }
 

@@ -8,11 +8,9 @@
 import Foundation
 import TSCBasic
 
-extension IndexStore {
-
+public extension IndexStore {
     /// Struct holding configuration values that can override any resolvable defaults.
-    public struct Configuration: Decodable {
-
+    struct Configuration: Decodable {
         // MARK: - Supplementary
 
         typealias XcodeDetails = (path: String, version: String)
@@ -76,8 +74,6 @@ extension IndexStore {
         ///   - indexStorePath: The project index store directory path. A default path derived from the build directory will by assigned if left as `nil`.
         ///   - indexDatabasePath: The project index database path. A default path within the temporary directory will be assigned if left as `nil`.
         ///   - libIndexStorePath: The path to the libIndexStore dylib. `xcode-select -p` command will be used to build the path if left as `nil`.
-        ///   - excludeSystemResults: Bool whether to exclude any system symbols from results.
-        ///   - excludeStaleResults: Bool whether to exclude any symbols from results where the `isStale` is `true`.
         public init(
             projectDirectory: String,
             indexStorePath: String? = nil,
