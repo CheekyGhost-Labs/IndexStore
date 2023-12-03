@@ -15,7 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/indexstore-db.git", branch: "release/5.9"),
+        .package(url: "https://github.com/apple/indexstore-db.git", branch: "release/5.9.1"),
         .package(url: "https://github.com/apple/swift-tools-support-core.git", .exact("0.4.0")),
     ],
     targets: [
