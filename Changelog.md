@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2023-03-12
+
+### Added
+
+- Added privacy manifest
+- Updated to release 5.9.1 of IndexStoreDB
+- Hardened querying logic where relevant
+
+
 ## [2.0.0] - 2023-12-08
 
 ### Added

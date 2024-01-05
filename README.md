@@ -10,14 +10,6 @@ With this library, you can easily search for and analyze symbols in your code, m
 
 The [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) is not considered stable yet as it has no resolvable semvar tags. This project points at a release branch found on the repo and is actively maintained.
 
-## Workflows:
-
-|  Branch  | Latest Swift/Xcode  |   Legacy Swift Support (5.7, 5.6, 5.5)  |
-|:---------|:-------------------:|:---------------------------------------:|
-| main | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=main)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
-| develop | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=develop)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
-| release/2.0 | [![Build and Test](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml/badge.svg?branch=release/2.0)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/unit-tests.yml) | [![Test Previous Swift Versions](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml/badge.svg?branch=release/2.0)](https://github.com/CheekyGhost-Labs/IndexStore/actions/workflows/test-xcode-versions.yml) |
-
 ## Features:
 
 - Query symbols and occurrences in your Swift source code
