@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added privacy manifest
-- Updated to release 5.9.1 of INdexStoreDB
+- Updated to release 5.9.1 of IndexStoreDB
 - Hardened querying logic where relevant
 
 
