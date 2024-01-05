@@ -10,7 +10,7 @@ import IndexStoreDB
 import TSCBasic
 
 public extension IndexStore {
-    /// Will return propery declaration symbol occurrences of the resolved type of the given symbol.
+    /// Will return property declaration symbol occurrences of the resolved type of the given symbol.
     ///
     /// for example, in the following source
     /// ```
@@ -49,7 +49,7 @@ public extension IndexStore {
         return validOccurences
     }
 
-    /// Will return propery declaration symbol occurrences of the resolved type of the given symbol within the given source files.
+    /// Will return property declaration symbol occurrences of the resolved type of the given symbol within the given source files.
     ///
     /// for example, in the following source
     /// ```
