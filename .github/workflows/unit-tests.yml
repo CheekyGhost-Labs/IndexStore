@@ -13,63 +13,79 @@ on:
       - 'release/**'
 
 jobs:
-  unit_tests_latest:
-    name: Unit Tests macOS 15
+
+  test:
+    name: Xcode 16
     runs-on: macos-15
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.0"
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
         with:
           path: .build
-          key: macos-15-xc-16-spm-${{ hashFiles('**/Package.resolved') }}
+          key: macos-latest-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            macos-15-xc-16-spm-
+            macos-latest-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
 
       - name: Build
-        run: xcodebuild build-for-testing -scheme IndexStore -destination "platform=macOS"
+        run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
 
       - name: Test
-        run: xcodebuild test -scheme IndexStore -destination "platform=macOS" -enableCodeCoverage YES
-  unit_tests_previous:
-    name: Unit Tests macOS 14
+        run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
+  test_previous:
+    name: Xcode 15.0
     runs-on: macos-14
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "15.0"
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
         with:
           path: .build
-          key: macos-14-xc-15-spm-${{ hashFiles('**/Package.resolved') }}
+          key: macos-latest-15-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            macos-14-xc-15-spm-
+            macos-latest-15-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
 
       - name: Build
-        run: xcodebuild build-for-testing -scheme IndexStore -destination "platform=macOS"
+        run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
 
       - name: Test
-        run: xcodebuild test -scheme IndexStore -destination "platform=macOS" -enableCodeCoverage YES
-  unit_tests_minus_two:
-    name: Unit Tests macOS 13
+        run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
+  test_legacy:
+    name: Xcode ${{ matrix.xcode }}
+    strategy:
+      matrix:
+        xcode: ["13.2", "13.4", "14.3.1"]
     runs-on: macos-13
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "14.3.1"
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+          xcode-version: ${{ matrix.xcode }}
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
         with:
           path: .build
-          key: macos-13-xc-14-spm-${{ hashFiles('**/Package.resolved') }}
+          key: macos-latest-${{ matrix.xcode }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            macos-13-xc-14-spm-
+            macos-latest-${{ matrix.xcode }}-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
 
       - name: Build
-        run: xcodebuild build-for-testing -scheme IndexStore -destination "platform=macOS"
+        run: xcodebuild build -scheme IndexStore -configuration Debug -destination "platform=macOS"
 
       - name: Test
-        run: xcodebuild test -scheme IndexStore -destination "platform=macOS" -enableCodeCoverage YES
+        run: xcodebuild test-without-building -scheme IndexStore -configuration Debug -destination "platform=macOS" -enableCodeCoverage YES
