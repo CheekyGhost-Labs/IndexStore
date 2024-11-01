@@ -1,0 +1,94 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+
+jobs:
+  swift_tests_latest:
+    name: Latest Swift
+    runs-on: macos-15
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.0"
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: .build
+          key: macos-latest-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            macos-latest-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
+  swift_tests_previous:
+    name: Swift 5.10
+    runs-on: macos-14
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "15.0"
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: .build
+          key: macos-14-swift-510-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            macos-14-swift-510-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
+  swift_tests_legacy:
+    name: Swift ${{ matrix.swift }}
+    strategy:
+      matrix:
+        os: [macos-13]
+        swift: ["5.9", "5.8"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: ${{ matrix.swift }}
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "14.3.1"
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: .build
+          key: ${{ matrix.os }}-${{ matrix.swift }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ matrix.os }}-spm-
+
+      - name: Create test configuration
+        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
+        shell: bash
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
