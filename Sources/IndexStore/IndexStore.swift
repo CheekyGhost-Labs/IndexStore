@@ -7,7 +7,7 @@
 
 import Foundation
 import IndexStoreDB
-import Logging
+import OSLog
 import TSCBasic
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.

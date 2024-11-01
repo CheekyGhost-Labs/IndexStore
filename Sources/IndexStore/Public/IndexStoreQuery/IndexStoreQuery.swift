@@ -8,7 +8,7 @@
 import IndexStoreDB
 
 /// Struct representing a query to give to an `IndexStore` instance to search for source symbols.
-public struct IndexStoreQuery: Equatable {
+public struct IndexStoreQuery: Equatable, Sendable {
     // MARK: - Properties
 
     /// The type or name query to search for.

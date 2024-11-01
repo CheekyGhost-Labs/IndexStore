@@ -8,7 +8,7 @@
 import Foundation
 
 /// Result returned by a ``IndexStore`` instance containing details about a resolved source type.
-public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Hashable {
+public struct SourceSymbol: Identifiable, CustomStringConvertible, CustomDebugStringConvertible, Equatable, Hashable, Sendable {
     // MARK: - Properties
 
     /// The name of the source. Defaults to empty string.
@@ -95,4 +95,6 @@ public struct SourceSymbol: Identifiable, CustomStringConvertible, Equatable, Ha
     public var description: String {
         "\(name) - \(sourceKind) | \(location.description)"
     }
+
+    public var debugDescription: String { description }
 }
