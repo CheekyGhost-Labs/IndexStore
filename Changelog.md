@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.1] - 2024-01-11
+
+### Fixed
+
+- Added missing compatability commits for swift 5.8, 5.9, and 5.10
+- Added modern SPM unit test runners
+- Removed xcode-driven tests
+
 ## [3.0.0] - 2024-01-11
 
 ### Added
