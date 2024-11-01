@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -14,9 +14,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/indexstore-db.git", branch: "release/5.9.1"),
-        .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.4.0")),
+        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.0.2-RELEASE"),
+        .package(url: "https://github.com/swiftlang/swift-tools-support-core.git", exact: Version("0.7.1")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,7 +25,6 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
                 .product(name: "IndexStoreDB", package: "indexstore-db"),
-                .product(name: "Logging", package: "swift-log"),
             ],
             resources: [
                 .copy("Resources/PrivacyInfo.xcprivacy")
@@ -43,3 +41,8 @@ let package = Package(
         ),
     ]
 )
+
+// Supplementary
+package.dependencies.append(contentsOf: [
+    .package(url: "https://github.com/SwiftPackageIndex/SPIManifest.git", from: "0.12.0"),
+])

@@ -9,7 +9,7 @@ import IndexStoreDB
 
 // Extensions that adds Hashable support to IndexStoreDB types so can use OrderedSet results
 
-extension SymbolOccurrence: Hashable {
+extension SymbolOccurrence: @retroactive Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(symbol.hashValue)
         hasher.combine(location.hashValue)
@@ -18,16 +18,7 @@ extension SymbolOccurrence: Hashable {
     }
 }
 
-extension Symbol: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(usr.hashValue)
-        hasher.combine(name.hashValue)
-        hasher.combine(kind.hashValue)
-        hasher.combine(properties.hashValue)
-    }
-}
-
-extension SymbolLocation: Hashable {
+extension SymbolLocation: @retroactive Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(path.hashValue)
         hasher.combine(moduleName.hashValue)
@@ -37,7 +28,7 @@ extension SymbolLocation: Hashable {
     }
 }
 
-extension SymbolRelation: Hashable {
+extension SymbolRelation: @retroactive Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(symbol.hashValue)
         hasher.combine(roles.hashValue)

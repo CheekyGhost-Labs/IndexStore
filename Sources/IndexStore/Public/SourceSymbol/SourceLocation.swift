@@ -9,7 +9,7 @@ import Foundation
 import IndexStoreDB
 
 /// Struct representing the location of a source declaration.
-public struct SourceLocation: Equatable, Hashable, CustomStringConvertible {
+public struct SourceLocation: Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible, Sendable {
     /// The absolute path for the source file.
     public let path: String
 
@@ -58,4 +58,6 @@ public struct SourceLocation: Equatable, Hashable, CustomStringConvertible {
     public var description: String {
         "\(moduleName)::\(path)::\(line)::\(column)"
     }
+
+    public var debugDescription: String { description }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 import IndexStoreDB
-import Logging
+import OSLog
 import TSCBasic
 
 /// Class abstracting `IndexStoreDB` functionality that serves `SymbolOccurrence` results.
@@ -105,7 +105,9 @@ public final class Workspace {
                 listenToUnitEvents: listenToUnitEvents
             )
             index?.pollForUnitChangesAndWait(isInitialScan: true)
-            logger.info("Opened IndexStoreDB at \(indexDatabasePath) with store path \(indexStorePath)")
+            let dbPath = indexDatabasePath
+            let storePath = indexStorePath
+            logger.info("Opened IndexStoreDB at \(dbPath) with store path \(storePath)")
         } catch {
             logger.error("Failed to open IndexStoreDB: \(error.localizedDescription)")
             throw error

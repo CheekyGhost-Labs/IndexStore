@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ShellError: LocalizedError {
+enum ShellError: LocalizedError, Sendable {
     case unableToDecodeResult
 }
 

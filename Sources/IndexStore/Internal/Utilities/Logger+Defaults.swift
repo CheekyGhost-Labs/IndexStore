@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Logging
+import OSLog
 
-private let defaultInstance: Logger = .init(label: "com.cheekyghost.IndexStore")
+private let defaultInstance: Logger = .init(subsystem: "com.cheekyghost.IndexStore", category: "client")
 
 extension Logger {
     /// Default client Logger instance

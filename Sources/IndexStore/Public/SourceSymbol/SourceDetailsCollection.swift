@@ -8,7 +8,7 @@
 import Foundation
 
 /// `Sequence` conforming struct holding an array of source parents.
-public struct SourceDetailsCollection: Sequence, Equatable {
+public struct SourceDetailsCollection: Sequence, Equatable, Sendable {
     // MARK: - Properties
 
     /// Array of ``SourceSymbol`` representing the parent hierarchy of a ``SourceSymbol`` instances.

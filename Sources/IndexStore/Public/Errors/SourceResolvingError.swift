@@ -8,7 +8,7 @@
 import Foundation
 
 /// Enumeration of errors that can be thrown while resolving source symbols and details.
-public enum SourceResolvingError: Equatable, LocalizedError {
+public enum SourceResolvingError: Equatable, LocalizedError, Sendable {
     case sourcePathDoesNotExist(path: String)
     case sourceContentsIsEmpty(path: String)
     case unableToReadContents(path: String, cause: String)
