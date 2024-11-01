@@ -29,10 +29,10 @@ jobs:
             macos-15-xc-16-spm-
 
       - name: Build
-        run: xcodebuild build-for-testing -scheme IndexStoreTests -destination "platform=macOS"
+        run: xcodebuild build-for-testing -scheme IndexStore -destination "platform=macOS"
 
       - name: Test
-        run: xcodebuild test -scheme IndexStoreTests -destination "platform=macOS" -enableCodeCoverage YES
+        run: xcodebuild test -scheme IndexStore -destination "platform=macOS" -enableCodeCoverage YES
   unit_tests_previous:
     name: Unit Tests macOS 14
     runs-on: macos-14
@@ -49,10 +49,10 @@ jobs:
             macos-14-xc-15-spm-
 
       - name: Build
-        run: xcodebuild build-for-testing -scheme IndexStoreTests -destination "platform=macOS"
+        run: xcodebuild build-for-testing -scheme IndexStore -destination "platform=macOS"
 
       - name: Test
-        run: xcodebuild test -scheme IndexStoreTests -destination "platform=macOS" -enableCodeCoverage YES
+        run: xcodebuild test -scheme IndexStore -destination "platform=macOS" -enableCodeCoverage YES
   unit_tests_minus_two:
     name: Unit Tests macOS 13
     runs-on: macos-13
