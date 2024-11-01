@@ -11,7 +11,7 @@ class SampleTestCase: XCTestCase {
 
     var baseProperty: String = ""
 
-    static var basePropertyTwo: String = ""
+    static let basePropertyTwo: String = ""
 }
 
 extension XCTestCase {

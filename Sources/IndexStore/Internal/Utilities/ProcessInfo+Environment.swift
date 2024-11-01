@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ProcessInfoError: LocalizedError, Equatable {
+enum ProcessInfoError: LocalizedError, Equatable, Sendable {
     case unableToFindValueForKey(String)
 
     public var code: Int {

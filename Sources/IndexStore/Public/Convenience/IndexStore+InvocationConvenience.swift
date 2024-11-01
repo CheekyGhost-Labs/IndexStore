@@ -26,7 +26,7 @@ public extension IndexStore {
     func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
         let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
         guard validSourceKinds.contains(symbol.sourceKind) else {
-            logger.warning("symbol with kind `\(symbol.sourceKind) is not valid for this method. Returning empty results.")
+            logger.warning("symbol with kind `\(symbol.sourceKind.rawValue) is not valid for this method. Returning empty results.")
             return []
         }
         var results: [SourceSymbol] = []

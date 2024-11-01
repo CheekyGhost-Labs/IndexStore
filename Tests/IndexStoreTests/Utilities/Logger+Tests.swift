@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Logging
+import OSLog
 
-private let testInstance: Logger = .init(label: "com.cheekyghost.MimicKit.tests")
+private let testInstance: Logger = .init(subsystem: "com.cheekyghost.MimicKit.tests", category: "unit-tests")
 
 extension Logger {
     /// Unit testing Logger instance
