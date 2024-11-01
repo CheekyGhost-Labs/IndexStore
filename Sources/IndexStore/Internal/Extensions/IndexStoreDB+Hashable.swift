@@ -59,7 +59,7 @@ extension SymbolRelation: @retroactive Hashable {
     }
 }
 #else
-extension SymbolRelation: @retroactive Hashable {
+extension SymbolRelation: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(symbol.hashValue)
         hasher.combine(roles.hashValue)
