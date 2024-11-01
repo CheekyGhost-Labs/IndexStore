@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FCheekyGhost-Labs%2FIndexStore%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/CheekyGhost-Labs/IndexStore) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FCheekyGhost-Labs%2FIndexStore%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/CheekyGhost-Labs/IndexStore)
 
-IndexStore is a library providing that provides a query-based approach for searching for and working with source symbols within an indexed code base. It is built on top of the [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db), which provides access to the index data produced by the swift compiler.
+IndexStore is a library providing that provides a query-based approach for searching for and working with source symbols within an indexed code base. It is built on top of the [Apple IndexStoreDB Library](https://github.com/swiftlang/indexstore-db), which provides access to the index data produced by the swift compiler.
 
 With this library, you can easily search for and analyze symbols in your code, making it a powerful tool for building developer tools, static analyzers, and code refactoring utilities.
 
@@ -187,7 +187,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/2.0"),
+        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/3.0"),
     ],
     targets: [
         .executableTarget(name: "<command-line-tool>", dependencies: [

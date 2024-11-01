@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2024-01-11
+
+### Added
+
+- Explicit Swift 6 language mode support
+- Dropped swift 5.5->5.7
+
+
 ## [2.0.1] - 2023-03-12
 
 ### Added
