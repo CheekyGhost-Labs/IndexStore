@@ -11,7 +11,7 @@ import TSCBasic
 extension IndexStore {
 
     /// Struct holding configuration values that can override any resolvable defaults.
-    public struct Configuration: Decodable {
+    public struct Configuration: Equatable, Decodable {
 
         // MARK: - Supplementary
 
