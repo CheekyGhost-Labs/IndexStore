@@ -10,7 +10,7 @@ import TSCBasic
 
 public extension IndexStore {
     /// Struct holding configuration values that can override any resolvable defaults.
-    struct Configuration: Decodable {
+    struct Configuration: Equatable, Decodable {
         // MARK: - Supplementary
 
         typealias XcodeDetails = (path: String, version: String)
