@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 03-04-2025
+
+- Bumping swift tools 6.x package to use IndexStoreDB dependency at tag "swift-6.1-RELEASE"
+
+### Fixed
+
+- Added missing compatability commits for swift 5.8, 5.9, and 5.10
+- Added modern SPM unit test runners
+- Removed xcode-driven tests
+
 ## [3.0.1] - 2024-01-11
 
 ### Fixed
