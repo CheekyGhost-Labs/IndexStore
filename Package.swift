@@ -14,7 +14,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.0.2-RELEASE"),
+        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.1-RELEASE"),
         .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.7.1")),
     ],
     targets: [
