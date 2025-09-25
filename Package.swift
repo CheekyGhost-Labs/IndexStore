@@ -14,8 +14,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.1-RELEASE"),
-        .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.7.1")),
+        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.1.1-RELEASE"),
+        .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.7.1"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.

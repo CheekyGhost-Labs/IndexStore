@@ -85,8 +85,10 @@ public final class Workspace {
 
     /// Will poll the underlying index store for any changes and wait for them to be processed.
     /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
-    public func pollForChangesAndWait(isInitialScan: Bool) {
-        index?.pollForUnitChangesAndWait(isInitialScan: isInitialScan)
+    @discardableResult public func pollForChangesAndWait(isInitialScan: Bool) -> Bool {
+        guard let index else { return false }
+        index.pollForUnitChangesAndWait(isInitialScan: isInitialScan)
+        return true
     }
 
     /// Will attempt to load the index store based on the current path settings.

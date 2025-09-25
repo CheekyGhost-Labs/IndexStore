@@ -23,19 +23,31 @@ public final class IndexStore {
     /// Logger instance for any debug or console output.
     public let logger: Logger
 
+    /// Refresh manager for this IndexStore instance
+    public let refreshManager: IndexStoreRefreshManager
+
+    // MARK: - Properties: Internal
+
+    var isInitialScan: Bool = true
+
     // MARK: - Lifecycle
 
     /// Will create a new instance and attempt to load an index store using the given values.
     /// - Parameters:
-    ///   - libIndexStorePath: The path to the libIndexStore dylib.
-    ///   - projectDirectory: The root project directory.
-    ///   - indexStorePath: The path to the raw index store data.
-    ///   - indexDatabasePath: The path to put the index database.
+    ///   - configuration: ``IndexStore/Configuration`` instance holding any index related paths and locations.
     ///   - logger: `Logger` instance for any debug or console output. Leave `nil` for default.
-    public init(configuration: Configuration, logger: Logger? = nil) {
+    public init(
+        configuration: Configuration,
+        refreshConfiguration: RefreshConfiguration = .conservative,
+        logger: Logger? = nil
+    ) {
         let storeLogger = logger ?? .default
         self.configuration = configuration
         workspace = Workspace(configuration: configuration, logger: storeLogger)
+        refreshManager = IndexStoreRefreshManager(
+            configuration: refreshConfiguration,
+            indexStoreConfiguration: configuration
+        )
         self.logger = storeLogger
     }
 
@@ -44,7 +56,8 @@ public final class IndexStore {
     /// Will poll the underlying index store for any changes and wait for them to be processed.
     /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
     public func pollForChangesAndWait() {
-        workspace.pollForChangesAndWait(isInitialScan: false)
+        workspace.pollForChangesAndWait(isInitialScan: isInitialScan)
+        isInitialScan = false
     }
 
     /// Will return source symbols for any declarations/symbols matching the given query.
@@ -415,5 +428,57 @@ public final class IndexStore {
             results.append(details)
         }
         return results
+    }
+
+    // MARK: - Helpers: Refresh management
+
+    // TODO: Add Docs
+    func syncWithLatestChangesIfRequired(forced: Bool) -> RefreshResult {
+        let startTime = Date()
+        let shouldRefresh = refreshManager.shouldRefresh(force: forced)
+        guard shouldRefresh else {
+            return RefreshResult(
+                success: true,
+                duration: 0,
+                reason: .notNeeded,
+                indexState: refreshManager.getCurrentIndexState()
+            )
+        }
+        // Perform the refresh operations
+        let scanPerformed = workspace.pollForChangesAndWait(isInitialScan: isInitialScan)
+        isInitialScan = false
+        guard scanPerformed else {
+            return RefreshResult(
+                success: false,
+                duration: 0,
+                reason: .error(AnyError("IndexStore client not initialized correctly")),
+                indexState: refreshManager.getCurrentIndexState()
+            )
+        }
+        let duration = Date().timeIntervalSince(startTime)
+        // Record the successful refresh
+        refreshManager.recordRefresh()
+        return RefreshResult(
+            success: true,
+            duration: duration,
+            reason: forced ? .forced : .needed,
+            indexState: self.refreshManager.getCurrentIndexState()
+        )
+    }
+
+    /// Check current index state without refreshing
+    func getIndexState() -> IndexStoreRefreshManager.IndexState {
+        return refreshManager.getCurrentIndexState()
+    }
+
+    /// Get detailed diagnostics about refresh behavior
+    func getRefreshDiagnostics() -> [String: Any] {
+        return refreshManager.getDiagnostics()
+    }
+
+    /// Configure refresh behavior for this IndexStore instance
+    func configureRefresh(_ configuration: RefreshConfiguration) {
+        // This would require storing the configuration in the manager
+        // For now, create a new manager with the new configuration
     }
 }
