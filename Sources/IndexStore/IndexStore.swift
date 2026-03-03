@@ -10,6 +10,18 @@ import IndexStoreDB
 import OSLog
 import TSCBasic
 
+/// ``IndexStoreDelegate`` conforming instances can listen for changes to index store units and for out of date units.
+/// If the underlying index store is processing a unit/symbol, the count will increase. When it completes processing a
+/// unit/symbol, it will decrease. The store can also detect when a unit is out-of-date.
+public protocol IndexStoreDelegate: AnyObject {
+  /// Called whenever indexstore-db reports a change in the pending processing queue.
+  /// `pendingUnitCount` is the current computed pending count (never negative).
+  func indexStore(_ store: IndexStore, didUpdatePendingUnitCount pendingUnitCount: Int)
+
+  /// Called when indexstore-db detects an out-of-date unit (only if out-of-date watching is enabled).
+  func indexStore(_ store: IndexStore, didDetectOutOfDateUnit unit: UnitInfo)
+}
+
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
 public final class IndexStore {
 
@@ -135,6 +147,16 @@ public final class IndexStore {
     }
 
     // MARK: - Properties
+    
+    /// Optional ``IndexStoreDelegate`` conforming instance to listen to key events with.
+    public weak var delegate: IndexStoreDelegate? {
+        get {
+            statusController.delegate
+        }
+        set {
+            statusController.delegate = newValue
+        }
+    }
 
     /// The active ``Configuration`` instance any index store derives paths from.
     public let configuration: Configuration
@@ -145,6 +167,52 @@ public final class IndexStore {
     /// Logger instance for any debug or console output.
     public let logger: Logger
 
+    // MARK: - Properties: Status Proxies
+    
+    /// Returns `true` when there are still units being processed within the store.
+    ///
+    /// - Note: You can observe changes to unit processing counts via the ``delegate`` property.
+    public var isIndexing: Bool {
+        statusController.isIndexing
+    }
+
+    /// The current number of units that underlying IndexStoreDB has reported as pending processing.
+    ///
+    /// - Important: This is not a guarantee that Xcode is indexing; it indicates that
+    ///   IndexStoreDB is actively processing detected unit changes for the configured store.
+    public var pendingUnitCount: Int {
+        statusController.pendingUnitCount
+    }
+
+    /// The last time `pendingUnitCount` changed.
+    ///
+    /// Updated whenever IndexStoreDB reports pending units added or completed.
+    /// Useful for diagnosing “stalled” scenarios (e.g. pending > 0 with no changes for
+    /// a period of time).
+    public var lastPendingChangeTimestamp: Date? {
+        statusController.lastPendingChangeTimestamp
+    }
+
+    /// The last time an out-of-date unit was reported.
+    ///
+    /// Updated whenever ``IndexStoreDelegate/indexStore(_:didDetectOutOfDateUnit:)`` is received.
+    /// This does not imply that IndexStoreDB has begun or completed processing for that unit.
+    public var lastOutOfDateTimestamp: Date? {
+        statusController.lastOutOfDateTimestamp
+    }
+
+    /// The most recent out-of-date unit details reported by IndexStoreDB.
+    ///
+    /// This value is updated whenever ``IndexStoreDelegate/indexStore(_:didDetectOutOfDateUnit:)`` is received.
+    /// Consumers may use it for diagnostics, logging, or user-facing messaging.
+    public var lastOutOfDateUnit: UnitInfo? {
+        statusController.lastOutOfDateUnit
+    }
+
+    // MARK: - Properties: Internal
+
+    var statusController: IndexStatusController = .init()
+
     // MARK: - Lifecycle
 
     /// Will create a new instance and attempt to load an index store using the given values.
@@ -153,19 +221,45 @@ public final class IndexStore {
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
+    ///   - autoLoadStore: Bool whether to automatically try and load the store via the ``loadIndexStore(shouldPollForChanges:)`` method.
+    ///   - shouldPollForChangesOnLoad: Bool whether to invoke the ``loadIndexStore(shouldPollForChanges:)`` method with `shouldPollForChanges` being set to `true`. Only invoked if `autoLoadStore` is also `true`.
     ///   - logger: `Logger` instance for any debug or console output. Leave `nil` for default.
-    public init(configuration: Configuration, logger: Logger? = nil) {
+    public init(
+        configuration: Configuration,
+        autoLoadStore: Bool = true,
+        shouldPollForChangesOnLoad: Bool = true,
+        logger: Logger? = nil
+    ) {
         let storeLogger = logger ?? .default
         self.configuration = configuration
-        workspace = Workspace(configuration: configuration, logger: storeLogger)
+        // Spin up the status controller
+        workspace = Workspace(
+            configuration: configuration,
+            delegate: statusController,
+            autoLoadStore: false,
+            logger: storeLogger
+        )
         self.logger = storeLogger
+        // Configure status controller with current store instance
+        statusController.store = self
+        if autoLoadStore {
+            try? loadIndexStore(shouldPollForChanges: shouldPollForChangesOnLoad)
+        }
+    }
+
+    /// Will attempt to load the index store based on the current ``workspace`` configuration.
+    ///
+    /// **Note: ** If an `index` instance is assigned it will be replaced.
+    /// - Parameter shouldPollForChanges: Bool whether to invoke the `pollForUnitChangesAndWait` with `isInitialScan` being set to `true`.
+    public func loadIndexStore(shouldPollForChanges: Bool = true) throws {
+        try workspace.loadIndexStore(shouldPollForChanges: shouldPollForChanges)
     }
 
     // MARK: - Public: Convenience
 
     /// Will poll the underlying index store for any changes and wait for them to be processed.
-    /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
-    public func pollForChangesAndWait() {
+    /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle. Defaults to `false`.
+    public func pollForChangesAndWait(isInitialScan: Bool = false) {
         workspace.pollForChangesAndWait(isInitialScan: false)
     }
 
