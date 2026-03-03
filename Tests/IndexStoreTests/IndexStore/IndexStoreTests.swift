@@ -12,6 +12,8 @@ import XCTest
 final class IndexStoreTests: XCTestCase {
     // MARK: - Properties
 
+    var isInitialScan: Bool = true
+
     var instanceUnderTest: IndexStore!
 
     var sampleSourceFilePaths: [String] {
@@ -33,7 +35,8 @@ final class IndexStoreTests: XCTestCase {
         let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
         let configuration = try IndexStore.Configuration.fromJson(at: configPath)
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
-        instanceUnderTest.pollForChangesAndWait()
+        try instanceUnderTest.loadIndexStore(shouldPollForChanges: isInitialScan)
+        isInitialScan = false
     }
 
     override func tearDownWithError() throws {
