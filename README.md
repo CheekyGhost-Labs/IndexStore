@@ -187,7 +187,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/3.0"),
+        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/3.3"),
     ],
     targets: [
         .executableTarget(name: "<command-line-tool>", dependencies: [
@@ -219,7 +219,7 @@ Don't hesitate to submit a feature request if you see a way IndexStore can be im
 
 ### Contributing to IndexStore
 
-Due to [Apple IndexStoreDB Library](https://github.com/apple/indexstore-db) repo using branches for releases rather than tagging stable versions, the IndexStore repo can't follow the traditional semvar and [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) approach.
+Due to [Apple/Swift IndexStoreDB Library](https://github.com/swiftlang/indexstore-db) repo using branches for releases rather than tagging stable versions, the IndexStore repo can't follow the traditional semvar and [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) approach.
 
 The approach IndexStore takes for releases is:
 - main: contains the latest stable release
@@ -231,6 +231,8 @@ A release branch will have a semantic version without accounting for patch updat
 ```shell
 release/1.0
 release/1.1
+release/3.2
+etc
 ```
 
 - any `patch` changes (bug fixes and improvements that don't change the public interface) will be pulled into the appropriate release branch as needed.
