@@ -6,6 +6,9 @@ class RootClass {
 
         class DoubleNestedClass {
 
+            class TripleNestedClass {
+                
+            }
         }
     }
 }

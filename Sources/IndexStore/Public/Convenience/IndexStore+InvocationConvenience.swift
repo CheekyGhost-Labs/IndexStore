@@ -23,7 +23,7 @@ public extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: Array of `SourceSymbol` instances
-    func invocationsOfSymbol(_ symbol: SourceSymbol) -> [SourceSymbol] {
+    func invocationsOfSymbol(_ symbol: SourceSymbol, recursiveSearchConfig: RecursiveSearchConfiguration = .all) -> [SourceSymbol] {
         let validSourceKinds: [SourceKind] = SourceKind.allFunctions + SourceKind.properties
         guard validSourceKinds.contains(symbol.sourceKind) else {
             logger.warning("symbol with kind `\(symbol.sourceKind.rawValue) is not valid for this method. Returning empty results.")
@@ -32,7 +32,7 @@ public extension IndexStore {
         var results: [SourceSymbol] = []
         let conforming = workspace.occurrences(ofUSR: symbol.usr, roles: [.calledBy, .write, .read])
         for symbol in conforming {
-            let sourceSymbol = sourceSymbolFromOccurrence(symbol)
+            let sourceSymbol = sourceSymbolFromOccurrence(symbol, recursiveSearchConfig: recursiveSearchConfig)
             results.append(sourceSymbol)
         }
         return results
@@ -50,8 +50,8 @@ public extension IndexStore {
     /// - ``SourceKind/classProperty``
     /// - Parameter symbol: The symbol occurrence to assess
     /// - Returns: `Bool`
-    func isSymbolInvokedByTestCase(_ symbol: SourceSymbol) -> Bool {
-        let haystack = invocationsOfSymbol(symbol)
+    func isSymbolInvokedByTestCase(_ symbol: SourceSymbol, recursiveSearchConfig: RecursiveSearchConfiguration = .all) -> Bool {
+        let haystack = invocationsOfSymbol(symbol, recursiveSearchConfig: recursiveSearchConfig)
         var testFunctionFound = false
         for result in haystack {
             var parent: SourceSymbol? = result.parent
@@ -68,7 +68,8 @@ public extension IndexStore {
         return false
     }
 
-    /// Will recursively assess the inheritance stack of the given symbol and return `true` when the `name` property of an inherited symbol matches the given term.
+    /// Will recursively assess the inheritance stack of the given symbol and return `true` when the `name` property
+    /// of an inherited symbol matches the given term.
     /// - Parameters:
     ///   - symbol: The symbol to assess.
     ///   - name: The name to match with.

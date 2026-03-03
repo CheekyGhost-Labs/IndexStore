@@ -12,6 +12,128 @@ import TSCBasic
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
 public final class IndexStore {
+
+    // MARK: - Supplementary
+
+    /// Enumeration of supported limit strategies to use when resolving inherited symbols.
+    public enum RecursiveSearchStrategy: Hashable, Sendable {
+        /// All symbols will be recursively resolved
+        case all
+        /// Only symbols immediately referenced to matching results will be resolved
+        case immediate
+        /// Symbols will be recursively resolved up until the given recursive limit.
+        /// - For example, sending `1` would be the same as `.immediate`, sending `2` would be `immediate + 1` and so on.
+        /// - Note: Sending
+        case level(Int)
+        /// Will not attempt to search for any related symbols (parents, inheritance etc)
+        case noSearching
+    }
+    
+    /// Struct holding the recursive strategies to use when resolving parent and inheritance symbols.
+    public struct RecursiveSearchConfiguration: Hashable, Sendable {
+        
+        /// The strategy to use when resolving parent symbols.
+        public let parent: RecursiveSearchStrategy
+
+        /// The strategy to use when resolving inheritance symbols.
+        public let inheritance: RecursiveSearchStrategy
+
+        // MARK: - Lifecycle
+
+        public init(parent: RecursiveSearchStrategy, inheritance: RecursiveSearchStrategy) {
+            self.parent = parent
+            self.inheritance = inheritance
+        }
+
+        
+        /// Convenience property that returns an instance with the given strategy assigned to the `parent` property and the `inheritance`
+        /// using the ``IndexStore/RecursiveSearchStrategy/all`` strategy.
+        /// - Parameter strategy: The strategy to assign.
+        /// - Returns: ``IndexStore/RecursiveSearchStrategy``
+        public static func parent(_ strategy: RecursiveSearchStrategy) -> Self {
+            .init(parent: strategy, inheritance: .all)
+        }
+
+        /// Convenience property that returns an instance with the given strategy assigned to the `inheritance` property and the `parent`
+        /// using the ``IndexStore/RecursiveSearchStrategy/all`` strategy.
+        /// - Parameter strategy: The strategy to assign.
+        /// - Returns: ``IndexStore/RecursiveSearchStrategy``
+        public static func inheritance(_ strategy: RecursiveSearchStrategy) -> Self {
+            .init(parent: .all, inheritance: strategy)
+        }
+
+        /// Convenience property that returns an instance with both parent and inheritance
+        /// using the ``IndexStore/RecursiveSearchStrategy/all`` strategy.
+        public static var all: Self {
+            .init(parent: .all, inheritance: .all)
+        }
+
+        /// Convenience property that returns an instance with both parent and inheritance
+        /// using the ``IndexStore/RecursiveSearchStrategy/immediate`` strategy.
+        public static var immediate: Self {
+            .init(parent: .immediate, inheritance: .immediate)
+        }
+
+        /// Convenience property that returns an instance with both parent and inheritance
+        /// using the ``IndexStore/RecursiveSearchStrategy/level(_:)`` strategy.
+        public static func level(_ value: Int) -> Self {
+            let cleanValue = max(0, value)
+            return .init(parent: .level(cleanValue), inheritance: .level(cleanValue))
+        }
+
+        /// Convenience property that returns an instance with both parent and inheritance
+        /// using the ``IndexStore/RecursiveSearchStrategy/noSearching`` strategy.
+        public static var noSearching: Self {
+            .init(parent: .noSearching, inheritance: .noSearching)
+        }
+        
+        /// Will return a new instance using the current ``inheritance`` strategy and assigning the given value to the ``parent`` strategy.
+        /// - Parameter strategy: The strategy to assign.
+        /// - Returns: `RecursiveSearchConfiguration`
+        public func withParentStrategy(_ strategy: RecursiveSearchStrategy) -> Self {
+            .init(parent: strategy, inheritance: inheritance)
+        }
+
+        /// Will return a new instance using the current ``parent`` strategy and assigning the given value to the ``inheritance`` strategy.
+        /// - Parameter strategy: The strategy to assign.
+        /// - Returns: `RecursiveSearchConfiguration`
+        public func withInheritanceStrategy(_ strategy: RecursiveSearchStrategy) -> Self {
+            .init(parent: parent, inheritance: strategy)
+        }
+
+        // MARK: - Helpers: Internal
+
+        /// Returns a configuration that should be used for the *next* recursive call when resolving a parent.
+        func nextForParentRecursion() -> Self {
+            switch parent {
+            case .all:
+                return self
+            case .immediate:
+                return .init(parent: .noSearching, inheritance: inheritance)
+            case .level(let level):
+                let next = level - 1
+                return .init(parent: next <= 0 ? .noSearching : .level(next), inheritance: inheritance)
+            case .noSearching:
+                return self // should never be used, but keep it stable
+            }
+        }
+
+        /// Returns a configuration that should be used for the *next* recursive call when resolving inheritance.
+        func nextForInheritanceRecursion() -> Self {
+            switch inheritance {
+            case .all:
+                return self
+            case .immediate:
+                return .init(parent: parent, inheritance: .noSearching)
+            case .level(let level):
+                let next = level - 1
+                return .init(parent: parent, inheritance: next <= 0 ? .noSearching : .level(next))
+            case .noSearching:
+                return self
+            }
+        }
+    }
+
     // MARK: - Properties
 
     /// The active ``Configuration`` instance any index store derives paths from.
@@ -53,7 +175,9 @@ public final class IndexStore {
     /// For instance, if you have a class named `MyClass` defined in your codebase, querying for this symbol would give you information about `MyClass` itself, such as its location, documentation,
     /// accessibility level, etc
     ///
-    /// - Parameter query: The ``IndexStoreQuery`` to search with.
+    /// - Parameters:
+    ///   - query: The ``IndexStoreQuery`` to search with.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
     public func querySymbols(_ query: IndexStoreQuery) -> [SourceSymbol] {
         // Map to workspace expectations
@@ -105,7 +229,9 @@ public final class IndexStore {
                 module: query.module
             )
         }
-        let results = rawResults.compactMap(sourceSymbolFromOccurrence)
+        let results = rawResults.compactMap {
+            sourceSymbolFromOccurrence($0, recursiveSearchConfig: query.recursiveSearchConfig)
+        }
         return results
     }
 
@@ -119,8 +245,12 @@ public final class IndexStore {
     /// - Parameters:
     ///   - symbol: The ``SourceSymbol`` instance to search for.
     ///   - query: The ``IndexStoreQuery`` to search with.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
-    public func queryOccurrences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
+    public func queryOccurrences(
+        ofSymbol symbol: SourceSymbol,
+        query: IndexStoreQuery
+    ) -> [SourceSymbol] {
         queryOccurrences(ofUsr: symbol.usr, query: query)
     }
 
@@ -134,8 +264,12 @@ public final class IndexStore {
     /// - Parameters:
     ///   - usr: The ``SourceSymbol/usr`` to search with.
     ///   - query: The ``IndexStoreQuery`` to search with.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
-    public func queryOccurrences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+    public func queryOccurrences(
+        ofUsr usr: String,
+        query: IndexStoreQuery
+    ) -> [SourceSymbol] {
         let symbolKinds = query.kinds.map(\.indexSymbolKind)
         let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
         let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
@@ -151,7 +285,9 @@ public final class IndexStore {
             restrictToLocation: targetDirectory,
             module: query.module
         )
-        let results = occurrences.compactMap(sourceSymbolFromOccurrence)
+        let results = occurrences.compactMap {
+            sourceSymbolFromOccurrence($0, recursiveSearchConfig:  query.recursiveSearchConfig)
+        }
         return results
     }
 
@@ -180,16 +316,30 @@ public final class IndexStore {
     /// you can query as
     /// ```
     /// let classSymbol = indexStore.querySymbols(.classDeclarations(matching: "CustomClass"))[0]
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
     /// ```
     /// - Parameters:
     ///   - symbol: The ``SourceSymbol`` to search with.
     ///   - query: The ``IndexStoreQuery`` to search with.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
+    public func queryRelatedOccurrences(
+        ofSymbol symbol: SourceSymbol,
+        query: IndexStoreQuery
+    ) -> [SourceSymbol] {
+        queryRelatedOccurrences(ofUsr: symbol.usr, query: query)
+    }
+
+    @available(
+      *,
+      deprecated,
+      renamed: "queryRelatedOccurrences(ofSymbol:query:)",
+      message: "Use queryRelatedOccurrences(ofSymbol:query:) to fix the spelling of Occurrences"
+    )
     public func queryRelatedOccurences(ofSymbol symbol: SourceSymbol, query: IndexStoreQuery) -> [SourceSymbol] {
-        queryRelatedOccurences(ofUsr: symbol.usr, query: query)
+        queryRelatedOccurrences(ofUsr: symbol.usr, query: query)
     }
 
     /// Will return source symbols that have a defined semantic or structural relation to the given symbol usr value.
@@ -216,15 +366,19 @@ public final class IndexStore {
     /// you can query as
     /// ```
     /// let classSymbol = indexStore.querySymbols(.classDeclarations(matching: "CustomClass"))[0]
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
-    /// indexStore.queryRelatedOccurences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles([.definition, .childOf])) // var myInstance: MyClass
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles([.reference, .calledBy, .containedBy])) // myInstance = MyClass()
+    /// indexStore.queryRelatedOccurrences(ofSymbol: classSymbol, query: .withRoles(.all)) // [var myInstance: MyClass, myInstance = MyClass()]
     /// ```
     /// - Parameters:
     ///   - usr: The ``SourceSymbol/usr`` to search with.
     ///   - query: The ``IndexStoreQuery`` to search with.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
-    public func queryRelatedOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+    public func queryRelatedOccurrences(
+        ofUsr usr: String,
+        query: IndexStoreQuery
+    ) -> [SourceSymbol] {
         let symbolKinds = query.kinds.map(\.indexSymbolKind)
         let symbolRoles = SymbolRole(rawValue: query.roles.rawValue)
         let targetDirectory = query.restrictToProjectDirectory ? configuration.projectDirectory : nil
@@ -241,8 +395,20 @@ public final class IndexStore {
             restrictedToSourceFiles: query.sourceFiles ?? [],
             module: query.module
         )
-        let results = occurrences.compactMap(sourceSymbolFromOccurrence)
+        let results = occurrences.compactMap {
+            sourceSymbolFromOccurrence($0, recursiveSearchConfig: query.recursiveSearchConfig)
+        }
         return results
+    }
+
+    @available(
+      *,
+      deprecated,
+      renamed: "queryRelatedOccurrences(ofUsr:query:)",
+      message: "Use queryRelatedOccurrences(ofUsr:query:) to fix the spelling of Occurrences"
+    )
+    public func queryRelatedOccurences(ofUsr usr: String, query: IndexStoreQuery) -> [SourceSymbol] {
+        queryRelatedOccurrences(ofUsr: usr, query: query)
     }
 
     /// Will return all swift source file paths within the given project directory.
@@ -332,9 +498,11 @@ public final class IndexStore {
     /// Transforms the given occurrence into a source symbols instance.
     ///
     /// **Note: **Will also look up any inheritance and parents. This can increase time.
-    /// - Parameter occurrence: The occurrence to transform
+    /// - Parameters:
+    ///   - occurrence: The occurrence to transform
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: ``SourceSymbol``
-    public func sourceSymbolFromOccurrence(_ occurrence: SymbolOccurrence) -> SourceSymbol {
+    public func sourceSymbolFromOccurrence(_ occurrence: SymbolOccurrence, recursiveSearchConfig: RecursiveSearchConfiguration = .all) -> SourceSymbol {
         // Resolve source declaration kind
         let kind = SourceKind(symbolKind: occurrence.symbol.kind)
         // Source location
@@ -342,9 +510,21 @@ public final class IndexStore {
         // Roles
         let roles = SourceRole(rawValue: occurrence.roles.rawValue)
         // Optional parent
-        let parent = resolveParentForOccurrence(occurrence)
+        let nextParentConfig = recursiveSearchConfig.nextForParentRecursion()
+        let parent: SourceSymbol? = {
+            switch recursiveSearchConfig.parent {
+            case .noSearching: nil
+            default: resolveParentForOccurrence(occurrence, recursiveSearchConfig: nextParentConfig)
+            }
+        }()
         // Inheritance
-        let inheritanceCollection = resolveInheritanceForOccurrence(occurrence)
+        let nextInheritanceConfig = recursiveSearchConfig.nextForInheritanceRecursion()
+        let inheritanceCollection: [SourceSymbol] = {
+            switch recursiveSearchConfig.inheritance {
+            case .noSearching: []
+            default: resolveInheritanceForOccurrence(occurrence, recursiveSearchConfig: nextInheritanceConfig)
+            }
+        }()
         // Result
         let result = SourceSymbol(
             name: occurrence.symbol.name,
@@ -359,9 +539,14 @@ public final class IndexStore {
     }
 
     /// Will resolve the immediate parent for the given occurrence.
-    /// - Parameter symbolOccurrence: The `SymbolOccurrence` to resolve for.
+    /// - Parameters:
+    ///   - symbolOccurrence: The `SymbolOccurrence` to resolve for.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    public func resolveParentForOccurrence(_ symbolOccurrence: SymbolOccurrence) -> SourceSymbol? {
+    public func resolveParentForOccurrence(
+        _ symbolOccurrence: SymbolOccurrence,
+        recursiveSearchConfig: RecursiveSearchConfiguration = .all
+    ) -> SourceSymbol? {
         guard !symbolOccurrence.location.isSystem else { return nil }
         guard
             let childOfRelation = symbolOccurrence.relations.first(where: {
@@ -379,16 +564,21 @@ public final class IndexStore {
         else {
             return nil
         }
-        return sourceSymbolFromOccurrence(parentOccurrence)
+        return sourceSymbolFromOccurrence(parentOccurrence, recursiveSearchConfig: recursiveSearchConfig)
     }
 
     /// Will resolve the source symbols representing the types the given occurrence conforms to or inherits from.
-    /// - Parameter symbolOccurrence: The `SymbolOccurrence` to resolve for.
+    /// - Parameters:
+    ///   - symbolOccurrence: The `SymbolOccurrence` to resolve for.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: ``SourceSymbol`` instance or `nil`
-    public func resolveInheritanceForOccurrence(_ occurrence: SymbolOccurrence) -> [SourceSymbol] {
+    public func resolveInheritanceForOccurrence(
+        _ occurrence: SymbolOccurrence,
+        recursiveSearchConfig: RecursiveSearchConfiguration = .all
+    ) -> [SourceSymbol] {
         guard !occurrence.location.isSystem else { return [] }
         let sourceKind = SourceKind(symbolKind: occurrence.symbol.kind)
-        let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class, .protocol]
+        let validSourceKinds: [SourceKind] = [.protocol, .struct, .enum, .class]
         guard validSourceKinds.contains(sourceKind) else { return [] }
         logger.debug("resolving inheritance for source `\(occurrence.symbol.name)`")
         let references = workspace.occurrences(relatedToUSR: occurrence.symbol.usr, roles: [.baseOf])
@@ -411,7 +601,7 @@ public final class IndexStore {
                 targetOccurrence = occurrences.first
             }
             guard let result = targetOccurrence else { return }
-            let details = sourceSymbolFromOccurrence(result)
+            let details = sourceSymbolFromOccurrence(result, recursiveSearchConfig: recursiveSearchConfig)
             results.append(details)
         }
         return results

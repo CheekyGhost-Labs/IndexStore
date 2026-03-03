@@ -15,7 +15,7 @@ public extension IndexStore {
     /// Will return any source symbols for any **empty** extensions on types matching the given query.
     ///
     /// **Note: ** The provided query will have the `kinds` and `roles` modified to enable the search.
-    /// - Parameter query: The query to search with.
+    /// - Parameter query: The name of the class to search for.
     /// - Returns: Array of ``SourceSymbol`` instances
     func sourceSymbols(forEmptyExtensionsMatching query: IndexStoreQuery) -> [SourceSymbol] {
         let symbols = querySymbols(query)
@@ -24,7 +24,7 @@ public extension IndexStore {
             let references = workspace.occurrences(ofUSR: $0.usr, roles: [.reference])
             references.forEach { reference in
                 guard reference.roles.contains([.reference]), reference.relations.isEmpty else { return }
-                var details = sourceSymbolFromOccurrence(reference)
+                var details = sourceSymbolFromOccurrence(reference, recursiveSearchConfig: query.recursiveSearchConfig)
                 details.sourceKind = .extension
                 results.append(details)
             }

@@ -139,7 +139,7 @@ let colorSymbol indexStore.querySymbols(
     .first!
 
 // Look up any occurrences of the UIColor symbol
-let occurrences = indexStore.queryRelatedOccurences(ofSymbol: colorSymbol, query: .empty)
+let occurrences = indexStore.queryRelatedOccurrences(ofSymbol: colorSymbol, query: .empty)
 ```
 
 #### Convenience Methods
