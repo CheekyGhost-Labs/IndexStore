@@ -31,13 +31,13 @@ public extension IndexStore {
     /// ```
     /// - Parameter symbol: The symbol to search with.
     /// - Returns: `Array` of ``SourceSymbol`` objects.
-    func sourceSymbols(forPropertiesWithTypeOf symbol: SourceSymbol) -> [SourceSymbol] {
+    func sourceSymbols(forPropertiesWithTypeOf symbol: SourceSymbol, recursiveSearchConfig: RecursiveSearchConfiguration = .all) -> [SourceSymbol] {
         let symbolKinds = SourceKind.properties.map(\.indexSymbolKind)
         // Resolve valid occurrences based on roles
         let rawResults = workspace.occurrences(ofUSR: symbol.usr, roles: [.reference, .containedBy])
-        let baseOccurences = rawResults.map(sourceSymbolFromOccurrence)
+        let baseOccurrences = rawResults.map { sourceSymbolFromOccurrence($0, recursiveSearchConfig: recursiveSearchConfig) }
         // Grab the property parents of valid occurrences
-        let validOccurences: [SourceSymbol] = baseOccurences.compactMap {
+        let validOccurrences: [SourceSymbol] = baseOccurrences.compactMap {
             guard
                 let parent = $0.parent,
                 workspace.validateKind(parent.sourceKind.indexSymbolKind, kinds: symbolKinds, canIgnore: false)
@@ -46,7 +46,7 @@ public extension IndexStore {
             }
             return parent
         }
-        return validOccurences
+        return validOccurrences
     }
 
     /// Will return property declaration symbol occurrences of the resolved type of the given symbol within the given source files.

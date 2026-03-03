@@ -12,39 +12,53 @@ extension IndexStore {
     // MARK: - Convenience: Classes
 
     /// Will search for classes that match the given class name, then resolve any source symbols for declarations that subclass the given class.
-    /// - Parameter className: The name of the class to search for.
+    /// - Parameters:
+    ///   - className: The name of the class to search for.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: Array of ``SourceSymbol``
-    public func sourceSymbols(subclassing className: String) -> [SourceSymbol] {
+    public func sourceSymbols(subclassing className: String, recursiveSearchConfig: RecursiveSearchConfiguration = .all) -> [SourceSymbol] {
         // Find classes or declarations (objc class interface) matching the type.
         let query = IndexStoreQuery.classDeclarations(matching: className)
             .withIgnoringCase(true)
             .withRoles([.definition, .declaration])
             .withRestrictingToProjectDirectory(false)
+            .withRecursiveSearchConfig(recursiveSearchConfig)
         let symbols = querySymbols(query)
         // Resolve symbols conforming to the matches
-        return resolveSymbolsSubclassingClassSymbols(symbols)
+        return resolveSymbolsSubclassingClassSymbols(symbols, recursiveSearchConfig: recursiveSearchConfig)
     }
 
     /// Will search for classes that match the given class name, then resolve any source symbols for declarations that subclass the given class.
     /// - Parameters:
     ///   - className: The name of the class to search for.
     ///   - sourceFiles: The source files to search in.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: Array of ``SourceSymbol``
-    public func sourceSymbols(subclassing className: String, in sourceFiles: [String]) -> [SourceSymbol] {
+    public func sourceSymbols(
+        subclassing className: String,
+        in sourceFiles: [String],
+        recursiveSearchConfig: RecursiveSearchConfiguration = .all
+    ) -> [SourceSymbol] {
         // Resolve symbols for the given class name within the given source files
         let query = IndexStoreQuery.classDeclarations(matching: className)
             .withIgnoringCase(true)
             .withRoles([.definition, .declaration])
             .withRestrictingToProjectDirectory(false)
+            .withRecursiveSearchConfig(recursiveSearchConfig)
         let symbols = querySymbols(query)
         // Resolve symbols conforming to the matches within the source files
-        return resolveSymbolsSubclassingClassSymbols(symbols, in: sourceFiles)
+        return resolveSymbolsSubclassingClassSymbols(symbols, in: sourceFiles, recursiveSearchConfig: recursiveSearchConfig)
     }
 
     /// Performs the symbol lookups to find symbols subclassing the given class symbols.
-    /// - Parameter symbols: The symbols to search for.
+    /// - Parameters:
+    ///   - className: The name of the class to search for.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: Array of ``SourceSymbol`` instances
-    internal func resolveSymbolsSubclassingClassSymbols(_ symbols: [SourceSymbol]) -> [SourceSymbol] {
+    internal func resolveSymbolsSubclassingClassSymbols(
+        _ symbols: [SourceSymbol],
+        recursiveSearchConfig: RecursiveSearchConfiguration = .all
+    ) -> [SourceSymbol] {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach {
             let subclasses = workspace.occurrences(ofUSR: $0.usr, roles: [.baseOf])
@@ -68,7 +82,7 @@ extension IndexStore {
                 guard !results.contains(where: { $0.usr == occurrence.symbol.usr }) else {
                     return
                 }
-                let symbol = sourceSymbolFromOccurrence(occurrence)
+                let symbol = sourceSymbolFromOccurrence(occurrence, recursiveSearchConfig: recursiveSearchConfig)
                 results.append(symbol)
             }
         }
@@ -79,18 +93,25 @@ extension IndexStore {
     /// - Parameters:
     ///   - symbols: The symbols to search for.
     ///   - sourceFiles: The source files to search in.
+    ///   - recursiveSearchConfig: Configuration holding the recursive search strategies to use when searching for parents and inheritance.
     /// - Returns: Array of ``SourceSymbol``
-    internal func resolveSymbolsSubclassingClassSymbols(_ symbols: [SourceSymbol], in sourceFiles: [String]) -> [SourceSymbol] {
+    internal func resolveSymbolsSubclassingClassSymbols(
+        _ symbols: [SourceSymbol],
+        in sourceFiles: [String],
+        recursiveSearchConfig: RecursiveSearchConfiguration = .all
+    ) -> [SourceSymbol] {
         var results: OrderedSet<SourceSymbol> = []
         symbols.forEach { symbol in
             let baseOfRelations = workspace.occurrences(ofUSR: symbol.usr, roles: [.baseOf]).flatMap(\.relations)
             let declarationSymbols = workspace.symbolsInSourceFiles(at: sourceFiles, roles: [.definition, .declaration])
             declarationSymbols.forEach { declaration in
                 guard baseOfRelations.contains(where: { $0.symbol.usr == declaration.symbol.usr }) else { return }
-                let sourceSymbol = sourceSymbolFromOccurrence(declaration)
+                let sourceSymbol = sourceSymbolFromOccurrence(declaration, recursiveSearchConfig: recursiveSearchConfig)
                 results.append(sourceSymbol)
             }
         }
         return results.contents
     }
 }
+
+// TODO: Integrate search strategies

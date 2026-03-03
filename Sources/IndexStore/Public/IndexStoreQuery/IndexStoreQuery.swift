@@ -9,6 +9,7 @@ import IndexStoreDB
 
 /// Struct representing a query to give to an `IndexStore` instance to search for source symbols.
 public struct IndexStoreQuery: Equatable, Sendable {
+
     // MARK: - Properties
 
     /// The type or name query to search for.
@@ -40,6 +41,30 @@ public struct IndexStoreQuery: Equatable, Sendable {
 
     /// Bool whether to perform a case insensitive search. Default is `false`.
     public var ignoreCase: Bool = false
+
+    public var recursiveSearchConfig: IndexStore.RecursiveSearchConfiguration = .all
+
+    /// The strategy to use when resolving parent symbols of results.
+    /// - Note: Defaults to all
+    public var parentSearchStrategy: IndexStore.RecursiveSearchStrategy {
+        get {
+            recursiveSearchConfig.parent
+        }
+        set {
+            recursiveSearchConfig = recursiveSearchConfig.withParentStrategy(newValue)
+        }
+    }
+
+    /// The strategy to use when resolving parent symbols of results.
+    /// - Note: Defaults to all
+    public var inheritanceSearchStrategy: IndexStore.RecursiveSearchStrategy {
+        get {
+            recursiveSearchConfig.inheritance
+        }
+        set {
+            recursiveSearchConfig = recursiveSearchConfig.withInheritanceStrategy(newValue)
+        }
+    }
 
     // MARK: - Lifecycle
 
@@ -140,6 +165,24 @@ public struct IndexStoreQuery: Equatable, Sendable {
     public func withIgnoringCase(_ ignoreCase: Bool) -> IndexStoreQuery {
         var result = self
         result.ignoreCase = ignoreCase
+        return result
+    }
+
+    public func withRecursiveSearchConfig(_ value: IndexStore.RecursiveSearchConfiguration) -> IndexStoreQuery {
+        var result = self
+        result.recursiveSearchConfig = value
+        return result
+    }
+
+    public func withParentSearchStrategy(_ value: IndexStore.RecursiveSearchStrategy) -> IndexStoreQuery {
+        var result = self
+        result.parentSearchStrategy = value
+        return result
+    }
+
+    public func withInheritanceSearchStrategy(_ value: IndexStore.RecursiveSearchStrategy) -> IndexStoreQuery {
+        var result = self
+        result.inheritanceSearchStrategy = value
         return result
     }
 }
