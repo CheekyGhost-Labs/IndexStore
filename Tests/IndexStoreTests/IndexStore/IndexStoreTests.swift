@@ -12,6 +12,8 @@ import XCTest
 final class IndexStoreTests: XCTestCase {
     // MARK: - Properties
 
+    var isInitialScan: Bool = true
+
     var instanceUnderTest: IndexStore!
 
     var sampleSourceFilePaths: [String] {
@@ -33,7 +35,8 @@ final class IndexStoreTests: XCTestCase {
         let configPath = "\(Bundle.module.resourcePath ?? "")/Configurations/test_configuration.json"
         let configuration = try IndexStore.Configuration.fromJson(at: configPath)
         instanceUnderTest = IndexStore(configuration: configuration, logger: .test)
-        instanceUnderTest.pollForChangesAndWait()
+        try instanceUnderTest.loadIndexStore(shouldPollForChanges: isInitialScan)
+        isInitialScan = false
     }
 
     override func tearDownWithError() throws {
@@ -53,7 +56,7 @@ final class IndexStoreTests: XCTestCase {
     func test_querySymbols_inSourceFiles_classes_willReturnExpectedValues() throws {
         let query = IndexStoreQuery.classDeclarations(in: sampleSourceFilePaths)
         let results = instanceUnderTest.querySymbols(query)
-        XCTAssertEqual(results.count, 21)
+        XCTAssertEqual(results.count, 22)
         var result = results[0]
         XCTAssertNil(result.parent)
         XCTAssertEqual(result.name, "RootClass")
@@ -90,7 +93,7 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Occurrences
 
-    func test_queryOccurences_NSColor_willReturnExpectedResuls() throws {
+    func test_queryOccurrences_NSColor_willReturnExpectedResults() throws {
         let colorQuery = IndexStoreQuery
             .withQuery("NSColor")
             .withAnchorStart(true)
@@ -175,9 +178,9 @@ final class IndexStoreTests: XCTestCase {
 
     // MARK: - Tests: Relations
 
-    func test_queryRelatedOccurences_willReturnExpectedResults() throws {
+    func test_queryRelatedOccurrences_willReturnExpectedResults() throws {
         let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
-        let related = instanceUnderTest.queryRelatedOccurences(
+        let related = instanceUnderTest.queryRelatedOccurrences(
             ofSymbol: classSymbol,
             query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
         ).sorted(by: { $0.usr < $1.usr })
@@ -235,10 +238,10 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.offset, 13)
     }
 
-    func test_queryRelatedOccurences_inSourceFiles_willReturnExpectedResults() throws {
+    func test_queryRelatedOccurrences_inSourceFiles_willReturnExpectedResults() throws {
         let filePath = instanceUnderTest.swiftSourceFiles().first(where: { $0.contains("RelationsRestricted") })!
         let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "CustomClass")).first)
-        let related = instanceUnderTest.queryRelatedOccurences(
+        let related = instanceUnderTest.queryRelatedOccurrences(
             ofSymbol: classSymbol,
             query: .withSourceFiles([filePath]).withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
         )
@@ -271,9 +274,9 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.offset, 13)
     }
 
-    func test_queryRelatedOccurences_enum_willReturnExpectedResults() throws {
+    func test_queryRelatedOccurrences_enum_willReturnExpectedResults() throws {
         let enumSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.enumDeclarations(matching: "RelatedEnum")).first)
-        let related = instanceUnderTest.queryRelatedOccurences(
+        let related = instanceUnderTest.queryRelatedOccurrences(
             ofSymbol: enumSymbol,
             query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
         )
@@ -305,9 +308,9 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.offset, 21)
     }
 
-    func test_queryRelatedOccurences_Thing_willReturnExpectedResults() throws {
+    func test_queryRelatedOccurrences_Thing_willReturnExpectedResults() throws {
         let classSymbol = try XCTUnwrap(instanceUnderTest.querySymbols(.classDeclarations(matching: "Thing")).first)
-        let related = instanceUnderTest.queryRelatedOccurences(
+        let related = instanceUnderTest.queryRelatedOccurrences(
             ofSymbol: classSymbol,
             query: .withRoles([.reference, .call, .calledBy, .containedBy]).withKinds(SourceKind.properties)
         )
@@ -339,7 +342,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.offset, 18)
     }
 
-    func test_queryRelatedOccurences_NSColor_willReturnExpectedResuls() throws {
+    func test_queryRelatedOccurrences_NSColor_willReturnExpectedResults() throws {
         let colorQuery = IndexStoreQuery
             .withQuery("NSColor")
             .withAnchorStart(true)
@@ -349,7 +352,7 @@ final class IndexStoreTests: XCTestCase {
 
         let colorSymbols = instanceUnderTest.querySymbols(colorQuery)
         let targetSymbol = try XCTUnwrap(colorSymbols.first)
-        let related = instanceUnderTest.queryRelatedOccurences(
+        let related = instanceUnderTest.queryRelatedOccurrences(
             ofSymbol: targetSymbol,
             query: .withRoles([.read]).withKinds([.constructor])
         )
@@ -1513,7 +1516,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 18)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
@@ -1527,7 +1530,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 18)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
@@ -1588,7 +1591,7 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(targetResult.name, "OtherInheritanceSubclass")
         XCTAssertEqual(targetResult.sourceKind, .class)
         XCTAssertTrue(targetResult.location.path.hasSuffix("Classes.swift"))
-        XCTAssertEqual(targetResult.location.line, 15)
+        XCTAssertEqual(targetResult.location.line, 18)
         XCTAssertEqual(targetResult.location.column, 7)
         XCTAssertEqual(targetResult.location.offset, 7)
         XCTAssertEqual(targetResult.inheritance.map(\.name), ["InheritanceClass"])
@@ -1723,5 +1726,225 @@ final class IndexStoreTests: XCTestCase {
         XCTAssertEqual(symbol.location.line, 12)
         XCTAssertEqual(symbol.location.column, 9)
         XCTAssertEqual(symbol.location.offset, 9)
+    }
+
+    // MARK: - Tests: Recursive Controls
+
+    func test_querySymbols_structs_Inheritance_noSearching_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "InheritanceStruct").withInheritanceSearchStrategy(.noSearching))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "InheritanceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 3)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.count, 0)
+    }
+
+    func test_querySymbols_structs_customInheritance_immediate_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "CustomInheritanceStruct").withInheritanceSearchStrategy(.immediate))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "CustomInheritanceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.count, 2)
+        var nextInheritance = targetResult.inheritance[0]
+        XCTAssertEqual(nextInheritance.name, "ProtocolWithInheritance")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 9)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertEqual(nextInheritance.inheritance.count, 0)
+        nextInheritance = targetResult.inheritance[1]
+        XCTAssertEqual(nextInheritance.name, "RootProtocol")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 3)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertTrue(nextInheritance.inheritance.isEmpty)
+    }
+
+    func test_querySymbols_structs_customInheritance_all_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "CustomInheritanceStruct").withInheritanceSearchStrategy(.all))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "CustomInheritanceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.count, 2)
+        var nextInheritance = targetResult.inheritance[0]
+        XCTAssertEqual(nextInheritance.name, "ProtocolWithInheritance")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 9)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertEqual(nextInheritance.inheritance.count, 1)
+        nextInheritance = targetResult.inheritance[1]
+        XCTAssertEqual(nextInheritance.name, "RootProtocol")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 3)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertTrue(nextInheritance.inheritance.isEmpty)
+    }
+
+    func test_querySymbols_structs_customInheritance_level_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "CustomInheritanceStruct").withInheritanceSearchStrategy(.level(1)))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "CustomInheritanceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.count, 2)
+        var nextInheritance = targetResult.inheritance[0]
+        XCTAssertEqual(nextInheritance.name, "ProtocolWithInheritance")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 9)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertEqual(nextInheritance.inheritance.count, 0)
+        nextInheritance = targetResult.inheritance[1]
+        XCTAssertEqual(nextInheritance.name, "RootProtocol")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 3)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertTrue(nextInheritance.inheritance.isEmpty)
+    }
+
+    func test_querySymbols_structs_customInheritance_level_two_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.structDeclarations(matching: "CustomInheritanceStruct").withInheritanceSearchStrategy(.all))
+        let expectedPathSuffix = pathSuffix("Inheritance.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "CustomInheritanceStruct")
+        XCTAssertEqual(targetResult.sourceKind, .struct)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 17)
+        XCTAssertEqual(targetResult.location.column, 8)
+        XCTAssertEqual(targetResult.location.offset, 8)
+        XCTAssertEqual(targetResult.inheritance.count, 2)
+        var nextInheritance = targetResult.inheritance[0]
+        XCTAssertEqual(nextInheritance.name, "ProtocolWithInheritance")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 9)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertEqual(nextInheritance.inheritance.count, 1)
+        nextInheritance = targetResult.inheritance[1]
+        XCTAssertEqual(nextInheritance.name, "RootProtocol")
+        XCTAssertEqual(nextInheritance.sourceKind, .protocol)
+        XCTAssertEqual(nextInheritance.location.line, 3)
+        XCTAssertEqual(nextInheritance.location.column, 10)
+        XCTAssertEqual(nextInheritance.location.offset, 10)
+        XCTAssertTrue(nextInheritance.location.path.hasSuffix("Protocols.swift"))
+        XCTAssertTrue(nextInheritance.inheritance.isEmpty)
+    }
+
+    func test_querySymbols_parents_noSearching_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.classDeclarations(matching: "TripleNestedClass").withParentSearchStrategy(.noSearching))
+        let expectedPathSuffix = pathSuffix("Classes.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "TripleNestedClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 9)
+        XCTAssertEqual(targetResult.location.column, 19)
+        XCTAssertEqual(targetResult.location.offset, 19)
+        XCTAssertNil(targetResult.parent)
+    }
+
+    func test_querySymbols_parents_immediate_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.classDeclarations(matching: "TripleNestedClass").withParentSearchStrategy(.immediate))
+        let expectedPathSuffix = pathSuffix("Classes.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "TripleNestedClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 9)
+        XCTAssertEqual(targetResult.location.column, 19)
+        XCTAssertEqual(targetResult.location.offset, 19)
+        XCTAssertEqual(targetResult.parent?.name, "DoubleNestedClass")
+        XCTAssertEqual(targetResult.parent?.sourceKind, .class)
+        XCTAssertNil(targetResult.parent?.parent)
+    }
+
+    func test_querySymbols_parents_level_one_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.classDeclarations(matching: "TripleNestedClass").withParentSearchStrategy(.level(1)))
+        let expectedPathSuffix = pathSuffix("Classes.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "TripleNestedClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 9)
+        XCTAssertEqual(targetResult.location.column, 19)
+        XCTAssertEqual(targetResult.location.offset, 19)
+        XCTAssertEqual(targetResult.parent?.name, "DoubleNestedClass")
+        XCTAssertEqual(targetResult.parent?.sourceKind, .class)
+        XCTAssertNil(targetResult.parent?.parent)
+    }
+
+    func test_querySymbols_parents_level_two_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.classDeclarations(matching: "TripleNestedClass").withParentSearchStrategy(.level(2)))
+        let expectedPathSuffix = pathSuffix("Classes.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "TripleNestedClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 9)
+        XCTAssertEqual(targetResult.location.column, 19)
+        XCTAssertEqual(targetResult.location.offset, 19)
+        XCTAssertEqual(targetResult.parent?.name, "DoubleNestedClass")
+        XCTAssertEqual(targetResult.parent?.sourceKind, .class)
+        XCTAssertEqual(targetResult.parent?.parent?.name, "NestedClass")
+        XCTAssertEqual(targetResult.parent?.parent?.sourceKind, .class)
+        XCTAssertNil(targetResult.parent?.parent?.parent)
+    }
+
+    func test_querySymbols_parents_all_willReturnExpectedValues() throws {
+        let results = instanceUnderTest.querySymbols(.classDeclarations(matching: "TripleNestedClass").withParentSearchStrategy(.all))
+        let expectedPathSuffix = pathSuffix("Classes.swift")
+        XCTAssertEqual(results.count, 1)
+        let targetResult = results[0]
+        XCTAssertEqual(targetResult.name, "TripleNestedClass")
+        XCTAssertEqual(targetResult.sourceKind, .class)
+        XCTAssertTrue(targetResult.location.path.hasSuffix(expectedPathSuffix))
+        XCTAssertEqual(targetResult.location.line, 9)
+        XCTAssertEqual(targetResult.location.column, 19)
+        XCTAssertEqual(targetResult.location.offset, 19)
+        XCTAssertEqual(targetResult.parent?.name, "DoubleNestedClass")
+        XCTAssertEqual(targetResult.parent?.sourceKind, .class)
+        XCTAssertEqual(targetResult.parent?.parent?.name, "NestedClass")
+        XCTAssertEqual(targetResult.parent?.parent?.sourceKind, .class)
+        XCTAssertEqual(targetResult.parent?.parent?.parent?.name, "RootClass")
+        XCTAssertEqual(targetResult.parent?.parent?.parent?.sourceKind, .class)
+        XCTAssertNil(targetResult.parent?.parent?.parent?.parent)
     }
 }

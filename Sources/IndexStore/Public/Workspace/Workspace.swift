@@ -15,6 +15,9 @@ import TSCBasic
 /// Driven by an `IndexStoreDB` instance.
 public final class Workspace {
     // MARK: - Properties
+    
+    /// Delegate assigned to the underlying index store instance.
+    public weak var delegate: IndexDelegate?
 
     /// The path to the libIndexStore dylib.
     public let libIndexStorePath: String
@@ -46,7 +49,11 @@ public final class Workspace {
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
-    ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. This is assigned to `false` when
+    ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. Only `true` is supported outside unit tests.
+    ///   Setting to `false` disables reading or updating from the index store unless `pollForUnitChangesAndWait()` is called.
+    ///   - delegate: Delegate instance to listen for any unit processing changes
+    ///   - autoLoadStore: Bool whether to automatically try and load the store
+    ///   - shouldPollForChangesOnLoad: Bool whether to invoke the `pollForUnitChangesAndWait` with `isInitialScan` being set to `true`. Only invoked if `autoLoadStore` is also `true`.
     ///   - logger: `Logger` instance for any debug or console output.
     public init(
         libIndexStorePath: String,
@@ -54,31 +61,48 @@ public final class Workspace {
         indexStorePath: String,
         indexDatabasePath: String,
         listenToUnitEvents: Bool,
+        delegate: IndexDelegate?,
+        autoLoadStore: Bool = true,
+        shouldPollForChangesOnLoad: Bool = true,
         logger: Logger
     ) {
         self.libIndexStorePath = libIndexStorePath
         self.projectDirectory = projectDirectory
         self.indexStorePath = indexStorePath
         self.indexDatabasePath = indexDatabasePath
-        self.logger = logger
+        self.delegate = delegate
         self.listenToUnitEvents = listenToUnitEvents
-        try? loadIndexStore()
+        self.logger = logger
+        if autoLoadStore {
+            try? loadIndexStore(shouldPollForChanges: shouldPollForChangesOnLoad)
+        }
     }
 
     /// Will create a new instance and attempt to load an index store using the values from the given configuration.
     /// - Parameters:
     ///   - configuration: The configuration instance holding any path values.
+    ///   - delegate: Delegate instance to listen for any unit processing changes
+    ///   - autoLoadStore: Bool whether to automatically try and load the store
+    ///   - shouldPollForChangesOnLoad: Bool whether to invoke the `pollForUnitChangesAndWait` with `isInitialScan` being set to `true`. Only invoked if `autoLoadStore` is also `true`.
     ///   - logger: `Logger` instance for any debug or console output.
-    public init(configuration: IndexStore.Configuration, logger: Logger) {
+    public init(
+        configuration: IndexStore.Configuration,
+        delegate: IndexDelegate?,
+        autoLoadStore: Bool = true,
+        shouldPollForChangesOnLoad: Bool = true,
+        logger: Logger
+    ) {
         // Assign overrides
         projectDirectory = configuration.projectDirectory
         indexStorePath = configuration.indexStorePath
         indexDatabasePath = configuration.indexDatabasePath
         libIndexStorePath = configuration.libIndexStorePath
         listenToUnitEvents = !configuration.isRunningUnitTests
+        self.delegate = delegate
         self.logger = logger
-        // Create index store instance
-        try? loadIndexStore()
+        if autoLoadStore {
+            try? loadIndexStore(shouldPollForChanges: shouldPollForChangesOnLoad)
+        }
     }
 
     // MARK: - Helpers: IndexStore
@@ -90,9 +114,10 @@ public final class Workspace {
     }
 
     /// Will attempt to load the index store based on the current path settings.
-    ///
+    /// 
     /// **Note: ** If an `index` instance is assigned it will be replaced.
-    public func loadIndexStore() throws {
+    /// - Parameter shouldPollForChanges: Bool whether to invoke the `pollForUnitChangesAndWait` with `isInitialScan` being set to `true`.
+    public func loadIndexStore(shouldPollForChanges: Bool = true) throws {
         index = nil
         let lib = try IndexStoreLibrary(dylibPath: libIndexStorePath)
         let storePath = URL(fileURLWithPath: indexStorePath).path
@@ -102,9 +127,12 @@ public final class Workspace {
                 storePath: storePath,
                 databasePath: databasePath,
                 library: lib,
+                delegate: delegate,
                 listenToUnitEvents: listenToUnitEvents
             )
-            index?.pollForUnitChangesAndWait(isInitialScan: true)
+            if shouldPollForChanges {
+                index?.pollForUnitChangesAndWait(isInitialScan: true)
+            }
             let dbPath = indexDatabasePath
             let storePath = indexStorePath
             logger.info("Opened IndexStoreDB at \(dbPath) with store path \(storePath)")

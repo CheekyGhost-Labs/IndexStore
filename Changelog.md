@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 03-04-2025
+
+- Adding processing status delegation and auto-load opt-ins
+- Add recursive search controls/strategies for parent and inheritance lookups
+
 ## [3.2.0] - 03-04-2025
 
 - Bumping swift tools 6.x package to use IndexStoreDB dependency at tag "swift-6.1-RELEASE"
