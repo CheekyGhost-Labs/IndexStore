@@ -176,6 +176,71 @@ let isInvokedByTestCase = indexStore.isSymbolInvokedByTestCase(someSymbol)
 let emptyExtensions = indexStore.sourceSymbols(forEmptyExtensionsMatching: "SomeType")
 ```
 
+#### Delegate & Out-of-Date Unit Tracking
+
+`IndexStore` supports delegation via `IndexStoreDelegate` to observe index store activity and out-of-date unit detection.
+
+**Setting a delegate:**
+
+```swift
+class MyDelegate: IndexStoreDelegate {
+    func indexStore(_ store: IndexStore, didUpdatePendingUnitCount pendingUnitCount: Int) {
+        print("Pending units: \(pendingUnitCount)")
+    }
+
+    func indexStore(_ store: IndexStore, didDetectOutOfDateUnit unit: UnitInfo) {
+        print("Out-of-date unit detected: \(unit.unitName) — \(unit.triggerHintDescription)")
+    }
+
+    func indexStore(_ store: IndexStore, didUpdateTrackedUnitStatus trackedUnit: TrackedUnit) {
+        print("Unit '\(trackedUnit.unit.unitName)' status changed to \(trackedUnit.status)")
+    }
+}
+
+let delegate = MyDelegate()
+indexStore.delegate = delegate
+```
+
+All delegate methods are optional except `didUpdatePendingUnitCount` and `didDetectOutOfDateUnit`. The `didUpdateTrackedUnitStatus` callback has a default empty implementation so existing adopters are not broken.
+
+**Inspecting out-of-date units:**
+
+When out-of-date detection is enabled, units reported by IndexStoreDB are tracked with a status lifecycle of `.outOfDate` -> `.processing` -> `.processed`:
+
+```swift
+// Get all units currently marked as out-of-date
+let staleUnits = indexStore.outOfDateUnits
+
+// Get a full snapshot of all tracked units (outOfDate, processing, and processed)
+let allTracked = indexStore.trackedUnits
+```
+
+**Processing out-of-date units:**
+
+You can request the index store to re-process specific out-of-date units, or all of them at once:
+
+```swift
+// Process all out-of-date units
+indexStore.processOutOfDateUnits()
+
+// Or inspect and process a subset
+let staleUnits = indexStore.outOfDateUnits
+let selected = staleUnits.filter { $0.unit.unitName.contains("MyModule") }
+indexStore.processOutOfDateUnits(selected)
+```
+
+Each unit transitions through `.processing` (while being re-imported) and then `.processed` once complete. The delegate is notified at each transition.
+
+**Clearing processed history:**
+
+```swift
+// Remove only units that have reached `.processed` status
+indexStore.clearProcessedUnits()
+
+// Remove all tracked units regardless of status
+indexStore.clearAllTrackedUnits()
+```
+
 ## Installation
 
 ### Swift Package Manager

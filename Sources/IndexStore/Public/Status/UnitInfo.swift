@@ -55,8 +55,28 @@ public struct UnitInfo: Sendable, Hashable {
   /// schedule any expensive follow-up asynchronously.
   public let synchronous: Bool
 
+  // MARK: - Supplementary
+
+  /// Describes the processing status of a tracked unit within the index store.
+  public enum Status: Sendable, Hashable {
+    /// The unit has been detected as out of date but has not yet been submitted for processing.
+    case outOfDate
+    /// The unit has been submitted for re-processing and is currently being imported.
+    case processing
+    /// The unit has been successfully re-processed.
+    case processed
+  }
+
   // MARK: - Lifecycle
 
+  /// Creates a new ``UnitInfo`` instance describing an out-of-date unit.
+  /// - Parameters:
+  ///   - mainFilePath: The path to the main source file associated with the unit.
+  ///   - unitName: The name/identifier of the unit as reported by IndexStoreDB.
+  ///   - outOfDateModTime: The modification timestamp used to determine the unit is out of date.
+  ///   - triggerHintFile: A path hint describing which file change triggered the detection.
+  ///   - triggerHintDescription: A human-readable description of why the unit is out of date.
+  ///   - synchronous: Whether the underlying event should be handled synchronously.
   public init(
     mainFilePath: String,
     unitName: String,
@@ -71,5 +91,68 @@ public struct UnitInfo: Sendable, Hashable {
     self.triggerHintFile = triggerHintFile
     self.triggerHintDescription = triggerHintDescription
     self.synchronous = synchronous
+  }
+}
+
+// MARK: - TrackedUnit
+
+/// Pairs a ``UnitInfo`` with its current processing ``UnitInfo/Status`` and the timestamp
+/// of the most recent status change.
+///
+/// Consumers can retrieve tracked units from ``IndexStore/outOfDateUnits`` or
+/// ``IndexStore/trackedUnits`` and pass them to ``IndexStore/processOutOfDateUnits(_:)``
+/// to trigger re-processing.
+///
+/// Identity (``Equatable`` / ``Hashable``) is based on `unit.unitName`.
+public struct TrackedUnit: Sendable {
+
+  /// The underlying unit information.
+  public let unit: UnitInfo
+
+  /// The current processing status of the unit.
+  public private(set) var status: UnitInfo.Status
+
+  /// The date/time when ``status`` was last updated.
+  public private(set) var lastStatusChange: Date
+
+  // MARK: - Lifecycle
+
+  /// Creates a new ``TrackedUnit`` instance.
+  /// - Parameters:
+  ///   - unit: The ``UnitInfo`` describing the underlying unit.
+  ///   - status: The initial processing status. Defaults to ``UnitInfo/Status/outOfDate``.
+  ///   - lastStatusChange: The timestamp of the initial status. Defaults to the current date.
+  public init(unit: UnitInfo, status: UnitInfo.Status = .outOfDate, lastStatusChange: Date = Date()) {
+    self.unit = unit
+    self.status = status
+    self.lastStatusChange = lastStatusChange
+  }
+
+  // MARK: - Helpers: Internal
+
+  /// Returns a copy with the given status and an updated timestamp.
+  ///
+  /// - Parameters:
+  ///   - newStatus: The ``UnitInfo/Status`` to assign.
+  ///   - date: The timestamp to record for the status change. Defaults to the current date.
+  /// - Returns: A new ``TrackedUnit`` with the updated status and timestamp.
+  func withStatus(_ newStatus: UnitInfo.Status, at date: Date = Date()) -> TrackedUnit {
+    TrackedUnit(unit: unit, status: newStatus, lastStatusChange: date)
+  }
+}
+
+// MARK: - TrackedUnit + Equatable
+
+extension TrackedUnit: Equatable {
+  public static func == (lhs: TrackedUnit, rhs: TrackedUnit) -> Bool {
+    lhs.unit.unitName == rhs.unit.unitName
+  }
+}
+
+// MARK: - TrackedUnit + Hashable
+
+extension TrackedUnit: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(unit.unitName)
   }
 }

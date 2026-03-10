@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "IndexStore",
-    platforms: [.macOS(.v11)],
+    platforms: [.macOS(.v13)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -14,7 +14,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.1-RELEASE"),
+        .package(url: "https://github.com/swiftlang/indexstore-db.git", revision: "swift-6.2.4-RELEASE"),
         .package(url: "https://github.com/apple/swift-tools-support-core.git", exact: Version("0.7.1")),
     ],
     targets: [

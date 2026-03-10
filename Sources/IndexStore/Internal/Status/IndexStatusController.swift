@@ -23,6 +23,8 @@ class IndexStatusController: IndexDelegate {
         var lastPendingChangeTimestamp: Date?
         var lastOutOfDateTimestamp: Date?
         var lastOutOfDateUnit: UnitInfo?
+        /// All tracked units keyed by `unitName`.
+        var trackedUnits: [String: TrackedUnit] = [:]
     }
 
     // MARK: - References
@@ -86,7 +88,7 @@ class IndexStatusController: IndexDelegate {
     /// the store status (pending processing and out-of-date detection). As the implementation
     /// evolves (e.g. adding thread-safety or additional signals), `snapshot` helps keep
     /// state reads consistent and easy to extend.
-    var state: StatusState = .init(pendingUnitCount: 0, lastPendingChangeTimestamp: nil, lastOutOfDateTimestamp: nil, lastOutOfDateUnit: nil)
+    var state: StatusState = .init(pendingUnitCount: 0, lastPendingChangeTimestamp: nil, lastOutOfDateTimestamp: nil, lastOutOfDateUnit: nil, trackedUnits: [:])
 
     /// Indicates whether IndexStoreDB is currently processing at least one pending unit.
     ///
@@ -157,22 +159,136 @@ class IndexStatusController: IndexDelegate {
             triggerHintDescription: triggerHintDescription,
             synchronous: synchronous
         )
+        var tracked: TrackedUnit!
         countQueue.sync {
             state.lastOutOfDateUnit = info
             state.lastOutOfDateTimestamp = Date()
+            let entry = TrackedUnit(unit: info, status: .outOfDate)
+            state.trackedUnits[info.unitName] = entry
+            tracked = entry
         }
         notifyOutOfDate(info)
+        notifyTrackedUnitStatusChanged(tracked)
+    }
+
+    // MARK: - Properties: Tracked Units
+
+    /// Returns `true` when there is at least one tracked unit with ``UnitInfo/Status/outOfDate`` status.
+    var hasOutOfDateUnits: Bool {
+        !outOfDateUnits.isEmpty
+    }
+
+    /// All tracked units that are currently in the `.outOfDate` status.
+    var outOfDateUnits: [TrackedUnit] {
+        countQueue.sync {
+            state.trackedUnits.values.filter { $0.status == .outOfDate }
+        }
+    }
+
+    /// A snapshot of all tracked units regardless of status.
+    var allTrackedUnits: [TrackedUnit] {
+        countQueue.sync {
+            Array(state.trackedUnits.values)
+        }
+    }
+
+    // MARK: - Helpers: Tracked Unit Lifecycle
+
+    /// Transitions the given unit names from ``UnitInfo/Status/outOfDate`` to ``UnitInfo/Status/processing``.
+    ///
+    /// Only units whose current status is `.outOfDate` will be transitioned. Units in any other
+    /// status are silently ignored.
+    ///
+    /// - Parameter unitNames: The set of `unitName` identifiers to transition.
+    /// - Returns: The ``TrackedUnit`` values that were actually transitioned. Empty if none matched.
+    @discardableResult
+    func markUnitsProcessing(_ unitNames: Set<String>) -> [TrackedUnit] {
+        var transitioned: [TrackedUnit] = []
+        countQueue.sync {
+            for name in unitNames {
+                guard let existing = state.trackedUnits[name], existing.status == .outOfDate else { continue }
+                let updated = existing.withStatus(.processing)
+                state.trackedUnits[name] = updated
+                transitioned.append(updated)
+            }
+        }
+        for unit in transitioned {
+            notifyTrackedUnitStatusChanged(unit)
+        }
+        return transitioned
+    }
+
+    /// Transitions the given unit names from ``UnitInfo/Status/processing`` to ``UnitInfo/Status/processed``.
+    ///
+    /// Only units whose current status is `.processing` will be transitioned. Units in any other
+    /// status are silently ignored.
+    ///
+    /// - Parameter unitNames: The set of `unitName` identifiers to transition.
+    /// - Returns: The ``TrackedUnit`` values that were actually transitioned. Empty if none matched.
+    @discardableResult
+    func markUnitsProcessed(_ unitNames: Set<String>) -> [TrackedUnit] {
+        var transitioned: [TrackedUnit] = []
+        countQueue.sync {
+            for name in unitNames {
+                guard let existing = state.trackedUnits[name], existing.status == .processing else { continue }
+                let updated = existing.withStatus(.processed)
+                state.trackedUnits[name] = updated
+                transitioned.append(updated)
+            }
+        }
+        for unit in transitioned {
+            notifyTrackedUnitStatusChanged(unit)
+        }
+        return transitioned
+    }
+
+    /// Removes all tracked units with ``UnitInfo/Status/processed`` status.
+    ///
+    /// Units that are still `.outOfDate` or `.processing` are retained.
+    func clearProcessedUnits() {
+        countQueue.sync {
+            state.trackedUnits = state.trackedUnits.filter { $0.value.status != .processed }
+        }
+    }
+
+    /// Removes all tracked units regardless of their current status.
+    func clearAllTrackedUnits() {
+        countQueue.sync {
+            state.trackedUnits.removeAll()
+        }
     }
 
     // MARK: - Notifications (internal)
 
+    /// Clears the ``lastOutOfDateUnit`` and ``lastOutOfDateTimestamp`` values.
+    ///
+    /// This does **not** affect the ``trackedUnits`` collection.
+    func clearLastOutOfDateUnitStatus() {
+        countQueue.sync {
+            state.lastOutOfDateUnit = nil
+            state.lastOutOfDateTimestamp = nil
+        }
+    }
+
+    /// Forwards the current pending unit count to the public ``IndexStoreDelegate``.
     func notifyPendingCountChanged() {
         guard let store else { return }
         delegate?.indexStore(store, didUpdatePendingUnitCount: pendingUnitCount)
     }
 
+    /// Forwards an out-of-date unit event to the public ``IndexStoreDelegate``.
+    ///
+    /// - Parameter unit: The ``UnitInfo`` describing the out-of-date unit.
     func notifyOutOfDate(_ unit: UnitInfo) {
         guard let store else { return }
         delegate?.indexStore(store, didDetectOutOfDateUnit: unit)
+    }
+
+    /// Forwards a tracked unit status change to the public ``IndexStoreDelegate``.
+    ///
+    /// - Parameter trackedUnit: The ``TrackedUnit`` whose status was updated.
+    func notifyTrackedUnitStatusChanged(_ trackedUnit: TrackedUnit) {
+        guard let store else { return }
+        delegate?.indexStore(store, didUpdateTrackedUnitStatus: trackedUnit)
     }
 }

@@ -33,6 +33,14 @@ public extension IndexStore {
         /// **Note: ** This is derived from the active `ProcessInfo`. It does not support overriding at the moment.
         public let isRunningUnitTests: Bool
 
+        /// Whether the underlying IndexStoreDB instance should watch for out-of-date file changes.
+        ///
+        /// When `true`, the index store will detect units whose source files have been modified since
+        /// the last indexing pass and report them via ``IndexStoreDelegate/indexStore(_:didDetectOutOfDateUnit:)``.
+        ///
+        /// Defaults to `true`.
+        public let enableOutOfDateFileWatching: Bool
+
         // MARK: - Codable
 
         enum CodingKeys: CodingKey {
@@ -40,6 +48,7 @@ public extension IndexStore {
             case indexStorePath
             case indexDatabasePath
             case libIndexStorePath
+            case enableOutOfDateFileWatching
         }
 
         public init(from decoder: Decoder) throws {
@@ -55,6 +64,7 @@ public extension IndexStore {
             indexStorePath = try Self.resolveIndexStorePath(provided: storePath, xcodeDetails: xcodeDetails)
             libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexPath, xcodeDetails: xcodeDetails)
             isRunningUnitTests = Self.resolveIsRunningTests()
+            enableOutOfDateFileWatching = try container.decodeIfPresent(Bool.self, forKey: .enableOutOfDateFileWatching) ?? true
         }
 
         /// Will attempt to decode a configuration instance from the file at the given path.
@@ -74,11 +84,13 @@ public extension IndexStore {
         ///   - indexStorePath: The project index store directory path. A default path derived from the build directory will by assigned if left as `nil`.
         ///   - indexDatabasePath: The project index database path. A default path within the temporary directory will be assigned if left as `nil`.
         ///   - libIndexStorePath: The path to the libIndexStore dylib. `xcode-select -p` command will be used to build the path if left as `nil`.
+        ///   - enableOutOfDateFileWatching: Whether to enable out-of-date file watching on the underlying IndexStoreDB. Defaults to `true`.
         public init(
             projectDirectory: String,
             indexStorePath: String? = nil,
             indexDatabasePath: String? = nil,
-            libIndexStorePath: String? = nil
+            libIndexStorePath: String? = nil,
+            enableOutOfDateFileWatching: Bool = true
         ) throws {
             let xcodeDetails = try Self.resolveXcodeDetails()
             self.projectDirectory = projectDirectory
@@ -86,6 +98,7 @@ public extension IndexStore {
             self.libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexStorePath, xcodeDetails: xcodeDetails)
             self.indexStorePath = try Self.resolveIndexStorePath(provided: indexStorePath, xcodeDetails: xcodeDetails)
             isRunningUnitTests = Self.resolveIsRunningTests()
+            self.enableOutOfDateFileWatching = enableOutOfDateFileWatching
         }
 
         // MARK: Defaults Helpers
