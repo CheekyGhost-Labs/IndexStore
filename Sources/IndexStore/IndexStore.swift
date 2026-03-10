@@ -28,18 +28,21 @@ public protocol IndexStoreDelegate: AnyObject {
   ///   - unit: The ``UnitInfo`` describing the unit that was detected as out of date.
   func indexStore(_ store: IndexStore, didDetectOutOfDateUnit unit: UnitInfo)
 
-  /// Called whenever a tracked unit's status changes (e.g. `outOfDate` → `processing` → `processed`).
+  /// Called when an out-of-date unit has been successfully re-processed.
+  ///
+  /// This fires once per unit at the end of the ``IndexStore/processOutOfDateUnits(_:)`` lifecycle,
+  /// after the unit's status has transitioned to ``UnitInfo/Status/processed``.
   ///
   /// - Parameters:
-  ///   - store: The ``IndexStore`` instance sending the event.
-  ///   - trackedUnit: The ``TrackedUnit`` whose status was updated.
-  func indexStore(_ store: IndexStore, didUpdateTrackedUnitStatus trackedUnit: TrackedUnit)
+  ///   - store: The ``IndexStore`` instance that processed the unit.
+  ///   - trackedUnit: The ``TrackedUnit`` that was processed (status will be ``UnitInfo/Status/processed``).
+  func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit)
 }
 
 // MARK: - IndexStoreDelegate Defaults
 
 public extension IndexStoreDelegate {
-  func indexStore(_ store: IndexStore, didUpdateTrackedUnitStatus trackedUnit: TrackedUnit) {}
+  func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit) {}
 }
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
@@ -276,12 +279,12 @@ public final class IndexStore {
     /// - Parameter units: The ``TrackedUnit`` values to process. Typically retrieved from ``outOfDateUnits``.
     public func processOutOfDateUnits(_ units: [TrackedUnit]) {
         let unitNames = Set(units.map(\.unit.unitName))
-        let processing = statusController.markUnitsProcessing(unitNames)
+        let processing = statusController.markUnitsAsProcessing(unitNames)
         guard !processing.isEmpty else { return }
         let outputPaths = processing.map(\.unit.mainFilePath)
         workspace.processUnitsForOutputPathsAndWait(outputPaths)
         let processedNames = Set(processing.map(\.unit.unitName))
-        statusController.markUnitsProcessed(processedNames)
+        statusController.markUnitsAsProcessed(processedNames)
     }
 
     /// Convenience that processes **all** currently out-of-date tracked units.
