@@ -38,6 +38,11 @@ public final class Workspace {
     /// Defaults to `true`. When initialized with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
     public let listenToUnitEvents: Bool
 
+    /// Whether the underlying IndexStoreDB instance should watch for out-of-date file changes.
+    ///
+    /// Driven by ``IndexStore/Configuration/enableOutOfDateFileWatching``.
+    public let enableOutOfDateFileWatching: Bool
+
     /// Logger instance for any debug or console output.
     public let logger: Logger
 
@@ -51,6 +56,7 @@ public final class Workspace {
     ///   - indexDatabasePath: The path to put the index database.
     ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. Only `true` is supported outside unit tests.
     ///   Setting to `false` disables reading or updating from the index store unless `pollForUnitChangesAndWait()` is called.
+    ///   - enableOutOfDateFileWatching: Whether to enable out-of-date file watching on the underlying IndexStoreDB. Defaults to `true`.
     ///   - delegate: Delegate instance to listen for any unit processing changes
     ///   - autoLoadStore: Bool whether to automatically try and load the store
     ///   - shouldPollForChangesOnLoad: Bool whether to invoke the `pollForUnitChangesAndWait` with `isInitialScan` being set to `true`. Only invoked if `autoLoadStore` is also `true`.
@@ -61,6 +67,7 @@ public final class Workspace {
         indexStorePath: String,
         indexDatabasePath: String,
         listenToUnitEvents: Bool,
+        enableOutOfDateFileWatching: Bool = true,
         delegate: IndexDelegate?,
         autoLoadStore: Bool = true,
         shouldPollForChangesOnLoad: Bool = true,
@@ -72,6 +79,7 @@ public final class Workspace {
         self.indexDatabasePath = indexDatabasePath
         self.delegate = delegate
         self.listenToUnitEvents = listenToUnitEvents
+        self.enableOutOfDateFileWatching = enableOutOfDateFileWatching
         self.logger = logger
         if autoLoadStore {
             try? loadIndexStore(shouldPollForChanges: shouldPollForChangesOnLoad)
@@ -98,6 +106,7 @@ public final class Workspace {
         indexDatabasePath = configuration.indexDatabasePath
         libIndexStorePath = configuration.libIndexStorePath
         listenToUnitEvents = !configuration.isRunningUnitTests
+        enableOutOfDateFileWatching = configuration.enableOutOfDateFileWatching
         self.delegate = delegate
         self.logger = logger
         if autoLoadStore {
@@ -111,6 +120,17 @@ public final class Workspace {
     /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle.
     public func pollForChangesAndWait(isInitialScan: Bool) {
         index?.pollForUnitChangesAndWait(isInitialScan: isInitialScan)
+    }
+
+    /// Imports the units for the given output paths into the index store database.
+    /// Returns after the import has finished.
+    ///
+    /// This forces the index to re-read the unit data for the given output paths
+    /// by removing and re-adding them, without requiring a full rebuild of the store.
+    ///
+    /// - Parameter outputPaths: The output file paths (e.g. `.o` files) to re-process.
+    func processUnitsForOutputPathsAndWait(_ outputPaths: [String]) {
+          index?.processUnitsForOutputPathsAndWait(outputPaths)
     }
 
     /// Will attempt to load the index store based on the current path settings.
@@ -128,6 +148,7 @@ public final class Workspace {
                 databasePath: databasePath,
                 library: lib,
                 delegate: delegate,
+                enableOutOfDateFileWatching: enableOutOfDateFileWatching,
                 listenToUnitEvents: listenToUnitEvents
             )
             if shouldPollForChanges {

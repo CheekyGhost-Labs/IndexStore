@@ -15,11 +15,34 @@ import TSCBasic
 /// unit/symbol, it will decrease. The store can also detect when a unit is out-of-date.
 public protocol IndexStoreDelegate: AnyObject {
   /// Called whenever indexstore-db reports a change in the pending processing queue.
-  /// `pendingUnitCount` is the current computed pending count (never negative).
+  ///
+  /// - Parameters:
+  ///   - store: The ``IndexStore`` instance that detected the change.
+  ///   - pendingUnitCount: The current computed pending count (never negative).
   func indexStore(_ store: IndexStore, didUpdatePendingUnitCount pendingUnitCount: Int)
 
   /// Called when indexstore-db detects an out-of-date unit (only if out-of-date watching is enabled).
+  ///
+  /// - Parameters:
+  ///   - store: The ``IndexStore`` instance that detected the out-of-date unit.
+  ///   - unit: The ``UnitInfo`` describing the unit that was detected as out of date.
   func indexStore(_ store: IndexStore, didDetectOutOfDateUnit unit: UnitInfo)
+
+  /// Called when an out-of-date unit has been successfully re-processed.
+  ///
+  /// This fires once per unit at the end of the ``IndexStore/processOutOfDateUnits(_:)`` lifecycle,
+  /// after the unit's status has transitioned to ``UnitInfo/Status/processed``.
+  ///
+  /// - Parameters:
+  ///   - store: The ``IndexStore`` instance that processed the unit.
+  ///   - trackedUnit: The ``TrackedUnit`` that was processed (status will be ``UnitInfo/Status/processed``).
+  func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit)
+}
+
+// MARK: - IndexStoreDelegate Defaults
+
+public extension IndexStoreDelegate {
+  func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit) {}
 }
 
 /// Class abstracting `IndexStoreDB` functionality that serves ``SourceSymbol`` results.
@@ -209,6 +232,80 @@ public final class IndexStore {
         statusController.lastOutOfDateUnit
     }
 
+    /// Clears the ``lastOutOfDateUnit`` and ``lastOutOfDateTimestamp`` values.
+    ///
+    /// This resets the "most recent out-of-date event" tracking. It does **not** affect
+    /// the ``trackedUnits`` collection.
+    public func clearLastOutOfDateUnitStatus() {
+        statusController.clearLastOutOfDateUnitStatus()
+    }
+
+    // MARK: - Properties: Tracked Units
+
+    /// Returns `true` when there is at least one tracked unit with ``UnitInfo/Status/outOfDate`` status.
+    ///
+    /// This is a lightweight check that avoids copying the full array — prefer this over
+    /// `outOfDateUnits.isEmpty` when you only need a boolean signal.
+    public var hasOutOfDateUnits: Bool {
+        statusController.hasOutOfDateUnits
+    }
+
+    /// All tracked units that are currently in the ``UnitInfo/Status/outOfDate`` status.
+    ///
+    /// Use this to inspect which units are stale and optionally pass them to
+    /// ``processOutOfDateUnits(_:)`` for re-processing.
+    public var outOfDateUnits: [TrackedUnit] {
+        statusController.outOfDateUnits
+    }
+
+    /// A snapshot of all tracked units regardless of status.
+    ///
+    /// Includes units that are `.outOfDate`, `.processing`, and `.processed`.
+    public var trackedUnits: [TrackedUnit] {
+        statusController.allTrackedUnits
+    }
+
+    // MARK: - Helpers: Out-of-Date Processing
+
+    /// Processes specific out-of-date units by re-importing their data into the index store.
+    ///
+    /// The lifecycle for each unit is:
+    /// 1. Status transitions to ``UnitInfo/Status/processing``
+    /// 2. The unit's `mainFilePath` is passed to the underlying `processUnitsForOutputPathsAndWait`
+    /// 3. Status transitions to ``UnitInfo/Status/processed``
+    ///
+    /// The ``IndexStoreDelegate/indexStore(_:didUpdateTrackedUnitStatus:)`` callback fires at each transition.
+    ///
+    /// - Parameter units: The ``TrackedUnit`` values to process. Typically retrieved from ``outOfDateUnits``.
+    public func processOutOfDateUnits(_ units: [TrackedUnit]) {
+        let unitNames = Set(units.map(\.unit.unitName))
+        let processing = statusController.markUnitsAsProcessing(unitNames)
+        guard !processing.isEmpty else { return }
+        let outputPaths = processing.map(\.unit.mainFilePath)
+        workspace.processUnitsForOutputPathsAndWait(outputPaths)
+        let processedNames = Set(processing.map(\.unit.unitName))
+        statusController.markUnitsAsProcessed(processedNames)
+    }
+
+    /// Convenience that processes **all** currently out-of-date tracked units.
+    ///
+    /// Equivalent to `processOutOfDateUnits(outOfDateUnits)`.
+    public func processOutOfDateUnits() {
+        processOutOfDateUnits(outOfDateUnits)
+    }
+
+    /// Removes all tracked units that have reached the ``UnitInfo/Status/processed`` status.
+    ///
+    /// Units that are still `.outOfDate` or `.processing` are retained.
+    public func clearProcessedUnits() {
+        statusController.clearProcessedUnits()
+    }
+
+    /// Removes **all** tracked units regardless of their current status.
+    public func clearAllTrackedUnits() {
+        statusController.clearAllTrackedUnits()
+    }
+
     // MARK: - Properties: Internal
 
     var statusController: IndexStatusController = .init()
@@ -261,6 +358,17 @@ public final class IndexStore {
     /// - Parameter isInitialScan: Bool whether this is the initial scan for changes in the index stores lifecycle. Defaults to `false`.
     public func pollForChangesAndWait(isInitialScan: Bool = false) {
         workspace.pollForChangesAndWait(isInitialScan: false)
+    }
+
+    /// Imports the units for the given output paths into the index store database.
+    /// Returns after the import has finished.
+    ///
+    /// This forces the index to re-read the unit data for the given output paths
+    /// by removing and re-adding them, without requiring a full rebuild of the store.
+    ///
+    /// - Parameter outputPaths: The output file paths (e.g. `.o` files) to re-process.
+    public func processUnitsForOutputPathsAndWait(_ outputPaths: [String]) {
+        workspace.processUnitsForOutputPathsAndWait(outputPaths)
     }
 
     /// Will return source symbols for any declarations/symbols matching the given query.

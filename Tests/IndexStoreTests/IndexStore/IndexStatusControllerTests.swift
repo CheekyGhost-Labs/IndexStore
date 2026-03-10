@@ -6,10 +6,12 @@
 //
 
 import XCTest
-@testable import IndexStoreDB
+
 @testable import IndexStore
+@testable import IndexStoreDB
 
 class IndexStoreDelegateSpy: IndexStoreDelegate {
+    // MARK: - IndexStoreDelegate: PartialSpy
 
     var indexStore_didUpdatePendingUnitCountCalled: Bool { indexStore_didUpdatePendingUnitCountCallCount > 0 }
     var indexStore_didUpdatePendingUnitCountCallCount: Int = 0
@@ -29,6 +31,16 @@ class IndexStoreDelegateSpy: IndexStoreDelegate {
     func indexStore(_ store: IndexStore, didDetectOutOfDateUnit unit: UnitInfo) {
         indexStore_didDetectOutOfDateUnitCallCount += 1
         indexStore_didDetectOutOfDateUnitParameterList.append((store, unit))
+    }
+
+    var indexStore_didProcessOutOfDateUnitCalled: Bool { indexStore_didProcessOutOfDateUnitCallCount > 0 }
+    var indexStore_didProcessOutOfDateUnitCallCount: Int = 0
+    var indexStore_didProcessOutOfDateUnitParameters: (store: IndexStore, trackedUnit: TrackedUnit)? { indexStore_didProcessOutOfDateUnitParameterList.last }
+    var indexStore_didProcessOutOfDateUnitParameterList: [(store: IndexStore, trackedUnit: TrackedUnit)] = []
+
+    func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit) {
+        indexStore_didProcessOutOfDateUnitCallCount += 1
+        indexStore_didProcessOutOfDateUnitParameterList.append((store, trackedUnit))
     }
 }
 
@@ -153,5 +165,204 @@ final class IndexStatusControllerTests: XCTestCase {
         XCTAssertEqual(delegateSpy.indexStore_didDetectOutOfDateUnitCallCount, 1)
         XCTAssertIdentical(delegateSpy.indexStore_didDetectOutOfDateUnitParameters?.store, indexStore)
         XCTAssertEqual(delegateSpy.indexStore_didDetectOutOfDateUnitParameters?.unit, expected)
+    }
+
+    // MARK: - Tests: Tracked Unit Lifecycle
+
+    func test_hasOutOfDateUnits_returnsFalseWhenEmpty() {
+        XCTAssertFalse(instanceUnderTest.hasOutOfDateUnits)
+        XCTAssertFalse(indexStore.hasOutOfDateUnits)
+    }
+
+    func test_hasOutOfDateUnits_returnsTrueWhenOutOfDateUnitsExist() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        XCTAssertTrue(instanceUnderTest.hasOutOfDateUnits)
+        XCTAssertTrue(indexStore.hasOutOfDateUnits)
+    }
+
+    func test_hasOutOfDateUnits_returnsFalseWhenAllProcessed() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        instanceUnderTest.markUnitsAsProcessed(["unitA"])
+        XCTAssertFalse(instanceUnderTest.hasOutOfDateUnits)
+        XCTAssertFalse(indexStore.hasOutOfDateUnits)
+    }
+
+    func test_unitIsOutOfDate_tracksMultipleUnits() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        reportOutOfDateUnit(mainFilePath: "pathC", unitName: "unitC")
+
+        let tracked = instanceUnderTest.allTrackedUnits
+        XCTAssertEqual(tracked.count, 3)
+        let names = Set(tracked.map(\.unit.unitName))
+        XCTAssertEqual(names, ["unitA", "unitB", "unitC"])
+        XCTAssertTrue(tracked.allSatisfy { $0.status == .outOfDate })
+    }
+
+    func test_unitIsOutOfDate_updatesExistingUnit() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA", outOfDateModTime: 100)
+        reportOutOfDateUnit(mainFilePath: "pathA-updated", unitName: "unitA", outOfDateModTime: 200)
+
+        let tracked = instanceUnderTest.allTrackedUnits
+        XCTAssertEqual(tracked.count, 1)
+        let entry = tracked.first
+        XCTAssertEqual(entry?.unit.unitName, "unitA")
+        XCTAssertEqual(entry?.unit.mainFilePath, "pathA-updated")
+        XCTAssertEqual(entry?.unit.outOfDateModTime, 200)
+        XCTAssertEqual(entry?.status, .outOfDate)
+    }
+
+    func test_markUnitsAsProcessing_transitionsCorrectUnits() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        reportOutOfDateUnit(mainFilePath: "pathC", unitName: "unitC")
+
+        let result = instanceUnderTest.markUnitsAsProcessing(["unitA", "unitC"])
+        XCTAssertEqual(result.count, 2)
+        XCTAssertTrue(result.allSatisfy { $0.status == .processing })
+
+        let all = instanceUnderTest.allTrackedUnits
+        let processingNames = Set(all.filter { $0.status == .processing }.map(\.unit.unitName))
+        let outOfDateNames = Set(all.filter { $0.status == .outOfDate }.map(\.unit.unitName))
+        XCTAssertEqual(processingNames, ["unitA", "unitC"])
+        XCTAssertEqual(outOfDateNames, ["unitB"])
+    }
+
+    func test_markUnitsAsProcessing_ignoresNonOutOfDateUnits() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        // unitA is now .processing — calling again should not re-transition
+        let result = instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        XCTAssertTrue(result.isEmpty)
+    }
+
+    func test_markUnitsAsProcessed_transitionsCorrectUnits() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        instanceUnderTest.markUnitsAsProcessing(["unitA", "unitB"])
+
+        let result = instanceUnderTest.markUnitsAsProcessed(["unitA"])
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.unit.unitName, "unitA")
+        XCTAssertEqual(result.first?.status, .processed)
+
+        let all = instanceUnderTest.allTrackedUnits
+        let processed = all.first { $0.unit.unitName == "unitA" }
+        let stillProcessing = all.first { $0.unit.unitName == "unitB" }
+        XCTAssertEqual(processed?.status, .processed)
+        XCTAssertEqual(stillProcessing?.status, .processing)
+    }
+
+    func test_outOfDateUnits_filtersCorrectly() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        reportOutOfDateUnit(mainFilePath: "pathC", unitName: "unitC")
+        instanceUnderTest.markUnitsAsProcessing(["unitB"])
+        instanceUnderTest.markUnitsAsProcessed(["unitB"])
+
+        let outOfDate = instanceUnderTest.outOfDateUnits
+        let names = Set(outOfDate.map(\.unit.unitName))
+        XCTAssertEqual(names, ["unitA", "unitC"])
+    }
+
+    func test_clearProcessedUnits_removesOnlyProcessed() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        reportOutOfDateUnit(mainFilePath: "pathC", unitName: "unitC")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        instanceUnderTest.markUnitsAsProcessed(["unitA"])
+
+        instanceUnderTest.clearProcessedUnits()
+
+        let all = instanceUnderTest.allTrackedUnits
+        XCTAssertEqual(all.count, 2)
+        let names = Set(all.map(\.unit.unitName))
+        XCTAssertEqual(names, ["unitB", "unitC"])
+    }
+
+    func test_clearAllTrackedUnits_removesEverything() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+
+        instanceUnderTest.clearAllTrackedUnits()
+
+        XCTAssertTrue(instanceUnderTest.allTrackedUnits.isEmpty)
+    }
+
+    func test_statusTransitions_notifyDelegate() {
+        // Reset the spy count (unitIsOutOfDate also fires a notification)
+        delegateSpy.indexStore_didProcessOutOfDateUnitCallCount = 0
+        delegateSpy.indexStore_didProcessOutOfDateUnitParameterList.removeAll()
+
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        // 1 notification: outOfDate
+        instanceUnderTest.markUnitsAsOutOfDate(["unitA"])
+        XCTAssertFalse(delegateSpy.indexStore_didProcessOutOfDateUnitCalled)
+
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        // 2 notifications total: outOfDate + processing
+        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitCallCount, 1)
+        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitParameters?.trackedUnit.status, .processing)
+
+        instanceUnderTest.markUnitsAsProcessed(["unitA"])
+        // 3 notifications total: outOfDate + processing + processed
+        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitCallCount, 2)
+        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitParameters?.trackedUnit.status, .processed)
+
+        // All delegate calls should reference the correct store
+        XCTAssertTrue(delegateSpy.indexStore_didDetectOutOfDateUnitParameterList.allSatisfy { $0.store === indexStore })
+    }
+
+    func test_indexStore_outOfDateUnits_proxiesToController() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        XCTAssertEqual(indexStore.outOfDateUnits.count, instanceUnderTest.outOfDateUnits.count)
+        XCTAssertEqual(indexStore.outOfDateUnits.first?.unit.unitName, "unitA")
+    }
+
+    func test_indexStore_trackedUnits_proxiesToController() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        XCTAssertEqual(indexStore.trackedUnits.count, 1)
+        XCTAssertEqual(indexStore.trackedUnits.first?.status, .processing)
+    }
+
+    func test_indexStore_clearProcessedUnits_proxiesToController() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        instanceUnderTest.markUnitsAsProcessing(["unitA"])
+        instanceUnderTest.markUnitsAsProcessed(["unitA"])
+        XCTAssertEqual(instanceUnderTest.allTrackedUnits.count, 1)
+
+        indexStore.clearProcessedUnits()
+        XCTAssertTrue(instanceUnderTest.allTrackedUnits.isEmpty)
+    }
+
+    func test_indexStore_clearAllTrackedUnits_proxiesToController() {
+        reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
+        reportOutOfDateUnit(mainFilePath: "pathB", unitName: "unitB")
+        XCTAssertEqual(instanceUnderTest.allTrackedUnits.count, 2)
+
+        indexStore.clearAllTrackedUnits()
+        XCTAssertTrue(instanceUnderTest.allTrackedUnits.isEmpty)
+    }
+
+    // MARK: - Helpers
+
+    func reportOutOfDateUnit(
+        mainFilePath: String = "main-path",
+        unitName: String = "unit-name",
+        outOfDateModTime: UInt64 = 1234,
+        triggerHintFile: String = "hint",
+        triggerHintDescription: String = "hint-desc",
+        synchronous: Bool = false
+    ) {
+        instanceUnderTest.unitIsOutOfDate(
+            StoreUnitInfo(mainFilePath: mainFilePath, unitName: unitName),
+            outOfDateModTime: outOfDateModTime,
+            triggerHintFile: triggerHintFile,
+            triggerHintDescription: triggerHintDescription,
+            synchronous: synchronous
+        )
     }
 }
