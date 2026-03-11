@@ -190,10 +190,10 @@ class IndexStatusController: IndexDelegate {
 
     // MARK: - Helpers: Tracked Unit Lifecycle
 
-    /// Transitions the given unit names from ``UnitInfo/Status/outOfDate`` to ``UnitInfo/Status/processing``.
+    /// Transitions the given unit names back to ``UnitInfo/Status/outOfDate``.
     ///
-    /// Only units whose current status is `.outOfDate` will be transitioned. Units in any other
-    /// status are silently ignored.
+    /// Only units that are already tracked and not currently `.outOfDate` will be transitioned.
+    /// Units that are already `.outOfDate` or not tracked are silently ignored.
     ///
     /// - Parameter unitNames: The set of `unitName` identifiers to transition.
     /// - Returns: The ``TrackedUnit`` values that were actually transitioned. Empty if none matched.
@@ -203,7 +203,7 @@ class IndexStatusController: IndexDelegate {
         countQueue.sync {
             for name in unitNames {
                 guard let existing = state.trackedUnits[name], existing.status != .outOfDate else { continue }
-                let updated = existing.withStatus(.processing)
+                let updated = existing.withStatus(.outOfDate)
                 state.trackedUnits[name] = updated
                 transitioned.append(updated)
             }
@@ -228,9 +228,6 @@ class IndexStatusController: IndexDelegate {
                 state.trackedUnits[name] = updated
                 transitioned.append(updated)
             }
-        }
-        for unit in transitioned {
-            notifyProcessedOutOfDateUnit(unit)
         }
         return transitioned
     }
@@ -275,8 +272,6 @@ class IndexStatusController: IndexDelegate {
         }
     }
 
-    // MARK: - Notifications (internal)
-
     /// Clears the ``lastOutOfDateUnit`` and ``lastOutOfDateTimestamp`` values.
     ///
     /// This does **not** affect the ``trackedUnits`` collection.
@@ -286,6 +281,8 @@ class IndexStatusController: IndexDelegate {
             state.lastOutOfDateTimestamp = nil
         }
     }
+
+    // MARK: - Notifications (internal)
 
     /// Forwards the current pending unit count to the public ``IndexStoreDelegate``.
     func notifyPendingCountChanged() {

@@ -192,8 +192,8 @@ class MyDelegate: IndexStoreDelegate {
         print("Out-of-date unit detected: \(unit.unitName) — \(unit.triggerHintDescription)")
     }
 
-    func indexStore(_ store: IndexStore, didUpdateTrackedUnitStatus trackedUnit: TrackedUnit) {
-        print("Unit '\(trackedUnit.unit.unitName)' status changed to \(trackedUnit.status)")
+    func indexStore(_ store: IndexStore, didProcessOutOfDateUnit trackedUnit: TrackedUnit) {
+        print("Unit '\(trackedUnit.unit.unitName)' processed — status: \(trackedUnit.status)")
     }
 }
 
@@ -201,7 +201,7 @@ let delegate = MyDelegate()
 indexStore.delegate = delegate
 ```
 
-All delegate methods are optional except `didUpdatePendingUnitCount` and `didDetectOutOfDateUnit`. The `didUpdateTrackedUnitStatus` callback has a default empty implementation so existing adopters are not broken.
+All delegate methods are optional except `didUpdatePendingUnitCount` and `didDetectOutOfDateUnit`. The `didProcessOutOfDateUnit` callback has a default empty implementation so existing adopters are not broken.
 
 **Inspecting out-of-date units:**
 
@@ -229,7 +229,7 @@ let selected = staleUnits.filter { $0.unit.unitName.contains("MyModule") }
 indexStore.processOutOfDateUnits(selected)
 ```
 
-Each unit transitions through `.processing` (while being re-imported) and then `.processed` once complete. The delegate is notified at each transition.
+Each unit transitions through `.processing` (while being re-imported) and then `.processed` once complete. The delegate's `didProcessOutOfDateUnit` callback fires when the unit reaches `.processed`.
 
 **Clearing processed history:**
 

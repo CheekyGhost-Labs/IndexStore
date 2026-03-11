@@ -292,26 +292,23 @@ final class IndexStatusControllerTests: XCTestCase {
     }
 
     func test_statusTransitions_notifyDelegate() {
-        // Reset the spy count (unitIsOutOfDate also fires a notification)
-        delegateSpy.indexStore_didProcessOutOfDateUnitCallCount = 0
-        delegateSpy.indexStore_didProcessOutOfDateUnitParameterList.removeAll()
-
         reportOutOfDateUnit(mainFilePath: "pathA", unitName: "unitA")
-        // 1 notification: outOfDate
-        instanceUnderTest.markUnitsAsOutOfDate(["unitA"])
+
+        // unitIsOutOfDate should NOT fire didProcessOutOfDateUnit
         XCTAssertFalse(delegateSpy.indexStore_didProcessOutOfDateUnitCalled)
 
+        // Transitioning to .processing should NOT fire didProcessOutOfDateUnit
         instanceUnderTest.markUnitsAsProcessing(["unitA"])
-        // 2 notifications total: outOfDate + processing
-        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitCallCount, 1)
-        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitParameters?.trackedUnit.status, .processing)
+        XCTAssertFalse(delegateSpy.indexStore_didProcessOutOfDateUnitCalled)
 
+        // Transitioning to .processed SHOULD fire didProcessOutOfDateUnit
         instanceUnderTest.markUnitsAsProcessed(["unitA"])
-        // 3 notifications total: outOfDate + processing + processed
-        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitCallCount, 2)
+        XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitCallCount, 1)
         XCTAssertEqual(delegateSpy.indexStore_didProcessOutOfDateUnitParameters?.trackedUnit.status, .processed)
+        XCTAssertIdentical(delegateSpy.indexStore_didProcessOutOfDateUnitParameters?.store, indexStore)
 
-        // All delegate calls should reference the correct store
+        // The didDetectOutOfDateUnit delegate should have fired once (from unitIsOutOfDate)
+        XCTAssertEqual(delegateSpy.indexStore_didDetectOutOfDateUnitCallCount, 1)
         XCTAssertTrue(delegateSpy.indexStore_didDetectOutOfDateUnitParameterList.allSatisfy { $0.store === indexStore })
     }
 
