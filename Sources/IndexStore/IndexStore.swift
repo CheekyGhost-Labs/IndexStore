@@ -21,7 +21,9 @@ public protocol IndexStoreDelegate: AnyObject {
   ///   - pendingUnitCount: The current computed pending count (never negative).
   func indexStore(_ store: IndexStore, didUpdatePendingUnitCount pendingUnitCount: Int)
 
-  /// Called when indexstore-db detects an out-of-date unit (only if out-of-date watching is enabled).
+  /// Called when indexstore-db detects an out-of-date unit.
+  ///
+  /// This callback requires ``IndexStore/Configuration/enableOutOfDateFileWatching`` to be `true` (the default).
   ///
   /// - Parameters:
   ///   - store: The ``IndexStore`` instance that detected the out-of-date unit.
@@ -32,6 +34,7 @@ public protocol IndexStoreDelegate: AnyObject {
   ///
   /// This fires once per unit at the end of the ``IndexStore/processOutOfDateUnits(_:)`` lifecycle,
   /// after the unit's status has transitioned to ``UnitInfo/Status/processed``.
+  /// Requires ``IndexStore/Configuration/enableOutOfDateFileWatching`` to be `true` (the default).
   ///
   /// - Parameters:
   ///   - store: The ``IndexStore`` instance that processed the unit.
@@ -244,6 +247,7 @@ public final class IndexStore {
 
     /// Returns `true` when there is at least one tracked unit with ``UnitInfo/Status/outOfDate`` status.
     ///
+    /// Requires ``Configuration/enableOutOfDateFileWatching`` to be `true` (the default) for units to be tracked.
     /// This is a lightweight check that avoids copying the full array — prefer this over
     /// `outOfDateUnits.isEmpty` when you only need a boolean signal.
     public var hasOutOfDateUnits: Bool {
@@ -269,12 +273,14 @@ public final class IndexStore {
 
     /// Processes specific out-of-date units by re-importing their data into the index store.
     ///
+    /// Requires ``Configuration/enableOutOfDateFileWatching`` to be `true` (the default) for units to be tracked.
+    ///
     /// The lifecycle for each unit is:
     /// 1. Status transitions to ``UnitInfo/Status/processing``
     /// 2. The unit's `mainFilePath` is passed to the underlying `processUnitsForOutputPathsAndWait`
     /// 3. Status transitions to ``UnitInfo/Status/processed``
     ///
-    /// The ``IndexStoreDelegate/indexStore(_:didUpdateTrackedUnitStatus:)`` callback fires at each transition.
+    /// The ``IndexStoreDelegate/indexStore(_:didProcessOutOfDateUnit:)`` callback fires when a unit reaches ``UnitInfo/Status/processed``.
     ///
     /// - Parameter units: The ``TrackedUnit`` values to process. Typically retrieved from ``outOfDateUnits``.
     public func processOutOfDateUnits(_ units: [TrackedUnit]) {
