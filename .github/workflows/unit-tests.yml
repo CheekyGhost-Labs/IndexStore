@@ -11,74 +11,67 @@ on:
       - main
       - develop
       - 'release/**'
+  workflow_dispatch:
 
 jobs:
-  swift_tests_latest:
-    name: Latest Swift
-    runs-on: macos-26
+  build-and-test:
+    name: Swift ${{ matrix.swift }} • Xcode ${{ matrix.xcode }} • ${{ matrix.runs_on }}
+    runs-on: ${{ matrix.runs_on }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Swift 5.10
+          - swift: "5.10"
+            xcode: "15.4"
+            runs_on: "macos-14"
+
+          # Swift 6.0
+          - swift: "6.0"
+            xcode: "16.2"
+            runs_on: "macos-15"
+
+          # Swift 6.1
+          - swift: "6.1"
+            xcode: "16.4"
+            runs_on: "macos-15"
+
+          # Latest stable on GitHub-hosted runners
+          - swift: "6.2.3"
+            xcode: "26.3"
+            runs_on: "macos-26"
+
     steps:
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode ${{ matrix.xcode }}
+        uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "26.0"
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+          xcode-version: ${{ matrix.xcode }}
+
+      - name: Show toolchain info
+        run: |
+          xcodebuild -version
+          swift --version
+          xcode-select -p
+
+      - name: Cache SwiftPM build artifacts
+        uses: actions/cache@v4
         with:
           path: .build
-          key: macos-latest-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-${{ matrix.runs_on }}-xcode-${{ matrix.xcode }}-swift-${{ matrix.swift }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            macos-latest-spm-
+            ${{ runner.os }}-${{ matrix.runs_on }}-xcode-${{ matrix.xcode }}-swift-${{ matrix.swift }}-spm-
+            ${{ runner.os }}-${{ matrix.runs_on }}-xcode-${{ matrix.xcode }}-spm-
+            ${{ runner.os }}-${{ matrix.runs_on }}-spm-
 
       - name: Create test configuration
         run: chmod +x ./build_configuration.sh && ./build_configuration.sh
         shell: bash
 
-      - name: Build
-        run: swift build
-
-      - name: Run tests
-        run: swift test
-  swift_tests_previous:
-    name: Swift 6.1
-    runs-on: macos-15
-    steps:
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "16.3"
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: .build
-          key: macos-14-swift-610-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            macos-14-swift-610-spm-
-
-      - name: Create test configuration
-        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
-        shell: bash
-
-      - name: Build
-        run: swift build
-
-      - name: Run tests
-        run: swift test
-  swift_tests_previous_previous:
-    name: Swift 6.0
-    runs-on: macos-15
-    steps:
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "16.0"
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: .build
-          key: macos-14-swift-600-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            macos-14-swift-600-spm-
-
-      - name: Create test configuration
-        run: chmod +x ./build_configuration.sh && ./build_configuration.sh
-        shell: bash
+      - name: Resolve package dependencies
+        run: swift package resolve
 
       - name: Build
         run: swift build
