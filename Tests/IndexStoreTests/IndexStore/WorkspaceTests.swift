@@ -20,6 +20,13 @@ final class WorkspaceTests: XCTestCase {
         XCTAssertFalse(instanceUnderTest.listenToUnitEvents)
     }
 
+    func test_init_configuration_listenToUnitEventsFalse_isRunningInTestsFalse_willAssignFalse() throws {
+        let configuration = try IndexStore.Configuration(projectDirectory: "test-dir", listenToUnitEvents: false, isRunningUnitTests: false)
+        let storeInstance = IndexStore(configuration: configuration)
+        let instanceUnderTest = Workspace(configuration: configuration, delegate: nil, logger: storeInstance.logger)
+        XCTAssertFalse(instanceUnderTest.listenToUnitEvents)
+    }
+
     func test_init_configuration_listenToUnitEventsTrue_isRunningInTestsFalse_willAssignTrue() throws {
         let configuration = try IndexStore.Configuration(projectDirectory: "test-dir", listenToUnitEvents: true, isRunningUnitTests: false)
         let storeInstance = IndexStore(configuration: configuration)
@@ -42,7 +49,7 @@ final class WorkspaceTests: XCTestCase {
         XCTAssertFalse(instanceUnderTest.listenToUnitEvents)
     }
 
-    func test_init_manual_listenToUnitEventsTrue_isRunningInTestsfalse_willAssignProvided() throws {
+    func test_init_manual_listenToUnitEventsTrue_isRunningInTestsFalse_willAssignProvided() throws {
         // Remove XCTestConfigurationFilePath so resolveIsRunningTests() returns false
         let envKey = "XCTestConfigurationFilePath"
         let originalValue = ProcessInfo.processInfo.environment[envKey]
@@ -64,5 +71,29 @@ final class WorkspaceTests: XCTestCase {
             logger: storeInstance.logger
         )
         XCTAssertTrue(instanceUnderTest.listenToUnitEvents)
+    }
+
+    func test_init_manual_listenToUnitEventsFalse_isRunningInTestsFalse_willAssignProvided() throws {
+        // Remove XCTestConfigurationFilePath so resolveIsRunningTests() returns false
+        let envKey = "XCTestConfigurationFilePath"
+        let originalValue = ProcessInfo.processInfo.environment[envKey]
+        unsetenv(envKey)
+        defer {
+            if let originalValue {
+                setenv(envKey, originalValue, 1)
+            }
+        }
+        let configuration = try IndexStore.Configuration(projectDirectory: "test-dir", listenToUnitEvents: true, isRunningUnitTests: false)
+        let storeInstance = IndexStore(configuration: configuration)
+        let instanceUnderTest = Workspace(
+            libIndexStorePath: "",
+            projectDirectory: "",
+            indexStorePath: "",
+            indexDatabasePath: "",
+            listenToUnitEvents: false,
+            delegate: nil,
+            logger: storeInstance.logger
+        )
+        XCTAssertFalse(instanceUnderTest.listenToUnitEvents)
     }
 }
