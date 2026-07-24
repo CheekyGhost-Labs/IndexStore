@@ -252,7 +252,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/3.3"),
+        .package(url: "https://github.com/CheekyGhost-Labs/IndexStore.git", branch: "release/3.4"),
     ],
     targets: [
         .executableTarget(name: "<command-line-tool>", dependencies: [
