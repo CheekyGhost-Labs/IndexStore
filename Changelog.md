@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] - 24-07-2026
+
+### Added
+
+- `listenToUnitEvents` property on `IndexStore.Configuration` to control whether the underlying `IndexStoreDB` listens to unit events
+- `TrackedUnit` type pairing a `UnitInfo` with its processing `Status` and last status change timestamp
+- `UnitInfo.Status` enum (`.outOfDate`, `.processing`, `.processed`) for tracked unit lifecycle
+- `hasOutOfDateUnits`, `outOfDateUnits`, and `trackedUnits` properties on `IndexStore`
+- `processOutOfDateUnits(_:)` and `processOutOfDateUnits()` methods on `IndexStore` for re-processing stale units
+- `clearProcessedUnits()`, `clearAllTrackedUnits()`, and `clearLastOutOfDateUnitStatus()` methods on `IndexStore`
+- `processUnitsForOutputPathsAndWait(_:)` public method on `IndexStore`
+- `indexStore(_:didProcessOutOfDateUnit:)` delegate method on `IndexStoreDelegate` (with default empty implementation)
+- `enableOutOfDateFileWatching` property on `IndexStore.Configuration`
+
+### Changed
+
+- `Workspace` now gates `listenToUnitEvents` with the resolved `isRunningUnitTests` check, ensuring it is always `false` during test runs
+- Dropped Swift 5.8 and 5.9 support
+- Privacy manifest aligned with latest guidelines
+
 ## [3.3.0] - 03-04-2025
 
 - Adding processing status delegation and auto-load opt-ins
