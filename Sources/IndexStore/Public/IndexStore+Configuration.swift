@@ -40,6 +40,24 @@ public extension IndexStore {
         ///
         /// Defaults to `true`.
         public let enableOutOfDateFileWatching: Bool
+        
+        /// Whether the underlying `IndexStoreDB` instance should listen to unit events.
+        ///
+        /// When `true`, the index store actively monitors the index store directory for new or
+        /// updated compilation units (`.o` files and their associated index data) and automatically
+        /// incorporates changes into the index database. This enables real-time index updates as
+        /// source files are compiled, without needing to manually call ``Workspace/pollForChangesAndWait(isInitialScan:)``.
+        ///
+        /// When `false`, the index store will **not** automatically detect or process unit changes.
+        /// You must explicitly call ``Workspace/pollForChangesAndWait(isInitialScan:)`` to refresh
+        /// the index with any new data. This is primarily useful during unit testing, where
+        /// deterministic control over index state is needed.
+        ///
+        /// - Note: Only `true` is supported outside unit tests. This value will be as provided, or the default `true`.
+        /// However, if ``isRunningUnitTests`` is `true` it will not be honored internally on the IndexStoreDB instance.
+        ///
+        ///   - Note: Defaults to true
+        public let listenToUnitEvents: Bool
 
         // MARK: - Codable
 
@@ -49,6 +67,7 @@ public extension IndexStore {
             case indexDatabasePath
             case libIndexStorePath
             case enableOutOfDateFileWatching
+            case listenToUnitEvents
         }
 
         public init(from decoder: Decoder) throws {
@@ -58,6 +77,7 @@ public extension IndexStore {
             let storePath = try container.decodeIfPresent(String.self, forKey: .indexStorePath)
             let databasePath = try container.decodeIfPresent(String.self, forKey: .indexDatabasePath)
             let libIndexPath = try container.decodeIfPresent(String.self, forKey: .libIndexStorePath)
+            let listenToEvents = try container.decodeIfPresent(Bool.self, forKey: .listenToUnitEvents)
             // Assign using provided as defaults
             let xcodeDetails = try Self.resolveXcodeDetails()
             indexDatabasePath = Self.resolveIndexDatabasePath(provided: databasePath)
@@ -65,6 +85,7 @@ public extension IndexStore {
             libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexPath, xcodeDetails: xcodeDetails)
             isRunningUnitTests = Self.resolveIsRunningTests()
             enableOutOfDateFileWatching = try container.decodeIfPresent(Bool.self, forKey: .enableOutOfDateFileWatching) ?? true
+            listenToUnitEvents = listenToEvents ?? true // Defaults to true
         }
 
         /// Will attempt to decode a configuration instance from the file at the given path.
@@ -85,12 +106,14 @@ public extension IndexStore {
         ///   - indexDatabasePath: The project index database path. A default path within the temporary directory will be assigned if left as `nil`.
         ///   - libIndexStorePath: The path to the libIndexStore dylib. `xcode-select -p` command will be used to build the path if left as `nil`.
         ///   - enableOutOfDateFileWatching: Whether to enable out-of-date file watching on the underlying IndexStoreDB. Defaults to `true`.
+        ///   - listenToUnitEvents: Whether the underlying `IndexStoreDB` instance should listen to unit events. Defaults to `true`.
         public init(
             projectDirectory: String,
             indexStorePath: String? = nil,
             indexDatabasePath: String? = nil,
             libIndexStorePath: String? = nil,
-            enableOutOfDateFileWatching: Bool = true
+            enableOutOfDateFileWatching: Bool = true,
+            listenToUnitEvents: Bool = true
         ) throws {
             let xcodeDetails = try Self.resolveXcodeDetails()
             self.projectDirectory = projectDirectory
@@ -99,6 +122,27 @@ public extension IndexStore {
             self.indexStorePath = try Self.resolveIndexStorePath(provided: indexStorePath, xcodeDetails: xcodeDetails)
             isRunningUnitTests = Self.resolveIsRunningTests()
             self.enableOutOfDateFileWatching = enableOutOfDateFileWatching
+            self.listenToUnitEvents = listenToUnitEvents
+        }
+
+        /// Internal init for testing purposes (allows mutating the `isRunningUnitTests`)
+        init(
+            projectDirectory: String,
+            indexStorePath: String? = nil,
+            indexDatabasePath: String? = nil,
+            libIndexStorePath: String? = nil,
+            enableOutOfDateFileWatching: Bool = true,
+            listenToUnitEvents: Bool,
+            isRunningUnitTests: Bool? = nil
+        ) throws {
+            let xcodeDetails = try Self.resolveXcodeDetails()
+            self.projectDirectory = projectDirectory
+            self.indexDatabasePath = Self.resolveIndexDatabasePath(provided: indexDatabasePath)
+            self.libIndexStorePath = try Self.resolveLibIndexStorePath(provided: libIndexStorePath, xcodeDetails: xcodeDetails)
+            self.indexStorePath = try Self.resolveIndexStorePath(provided: indexStorePath, xcodeDetails: xcodeDetails)
+            self.isRunningUnitTests = isRunningUnitTests ?? Self.resolveIsRunningTests()
+            self.enableOutOfDateFileWatching = enableOutOfDateFileWatching
+            self.listenToUnitEvents = listenToUnitEvents
         }
 
         // MARK: Defaults Helpers

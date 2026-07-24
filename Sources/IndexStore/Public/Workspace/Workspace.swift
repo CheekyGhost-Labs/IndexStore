@@ -34,8 +34,23 @@ public final class Workspace {
     /// The source code index (if loaded)
     public private(set) var index: IndexStoreDB?
 
-    /// Bool whether any index store changes should be listened for.
-    /// Defaults to `true`. When initialized with a ``Configuration`` will be set to `false` when the ``Configuration/isRunningUnitTests`` is `true`.
+    /// Whether the underlying `IndexStoreDB` instance should listen to unit events.
+    ///
+    /// When `true`, the index store actively monitors the index store directory for new or
+    /// updated compilation units (`.o` files and their associated index data) and automatically
+    /// incorporates changes into the index database. This enables real-time index updates as
+    /// source files are compiled, without needing to manually call ``pollForChangesAndWait(isInitialScan:)``.
+    ///
+    /// When `false`, the index store will **not** automatically detect or process unit changes.
+    /// You must explicitly call ``pollForChangesAndWait(isInitialScan:)`` to refresh the index
+    /// with any new data. This is primarily useful during unit testing, where deterministic
+    /// control over index state is needed.
+    ///
+    /// Only `true` is supported outside unit tests. Setting to `false` disables reading or
+    /// updating from the index store unless ``pollForChangesAndWait(isInitialScan:)`` is called.
+    ///
+    /// Defaults to `true`.
+    /// - Note: Will be `false` when ``Configuration/isRunningUnitTests`` is `true`.
     public let listenToUnitEvents: Bool
 
     /// Whether the underlying IndexStoreDB instance should watch for out-of-date file changes.
@@ -54,7 +69,7 @@ public final class Workspace {
     ///   - projectDirectory: The root project directory.
     ///   - indexStorePath: The path to the raw index store data.
     ///   - indexDatabasePath: The path to put the index database.
-    ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. Only `true` is supported outside unit tests.
+    ///   - listenToUnitEvents: Bool whether the index store should listen to unit changes. `true` is only supported outside unit tests.
     ///   Setting to `false` disables reading or updating from the index store unless `pollForUnitChangesAndWait()` is called.
     ///   - enableOutOfDateFileWatching: Whether to enable out-of-date file watching on the underlying IndexStoreDB. Defaults to `true`.
     ///   - delegate: Delegate instance to listen for any unit processing changes
@@ -78,7 +93,7 @@ public final class Workspace {
         self.indexStorePath = indexStorePath
         self.indexDatabasePath = indexDatabasePath
         self.delegate = delegate
-        self.listenToUnitEvents = listenToUnitEvents
+        self.listenToUnitEvents = listenToUnitEvents && !IndexStore.Configuration.resolveIsRunningTests()
         self.enableOutOfDateFileWatching = enableOutOfDateFileWatching
         self.logger = logger
         if autoLoadStore {
@@ -105,7 +120,7 @@ public final class Workspace {
         indexStorePath = configuration.indexStorePath
         indexDatabasePath = configuration.indexDatabasePath
         libIndexStorePath = configuration.libIndexStorePath
-        listenToUnitEvents = !configuration.isRunningUnitTests
+        listenToUnitEvents = configuration.listenToUnitEvents && !configuration.isRunningUnitTests
         enableOutOfDateFileWatching = configuration.enableOutOfDateFileWatching
         self.delegate = delegate
         self.logger = logger
